@@ -9,21 +9,24 @@ def Init(allUp, N):
     for i in range(1, N):
         for j in range(1, N):
             if ra.random() > 0.5:
-                ARR[i,ii] = -1
+                ARR[i, j] = -1
     return ARR
 
-def MonteCarloUpdate(A, nSteps):
+
+def MonteCarloUpdate(A, nSteps, cost):
     for _ in range(nSteps):
-        a = ra.random() * N
-        b = ra.random() * N
-        nb = A[a][b] * ( A[(a + 1)%N][b] + A[(a - 1)%N][b] + A[a][(b + 1)%N] + A[a][(b - 1)%N]
+        a = int(ra.random() * N)
+        b = int(ra.random() * N)
+        nb = A[a][b] * ( A[(a + 1) % N][b] + A[(a - 1) % N][b] + A[a][(b + 1) % N] + A[a][(b - 1) % N])
         if nb <= 0 or ra.random() < cost[int(nb/4)]:
-            A[a][b]=-A[a][b]
+            A[a][b] =- A[a][b]
     return A
+
 
 beta = 0.2
 cost = np.zeros(3)
 cost[1] = np.exp(-4*beta)
 cost[2] = cost[1]*cost[1]
-N=10
+N = 10
 IsingArray = Init(0, N)
+IsingArray = MonteCarloUpdate(IsingArray, 1000, cost)

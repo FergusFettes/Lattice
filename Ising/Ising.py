@@ -31,8 +31,9 @@ N = 20
 IsingArray = Init(1, N)
 #IsingArray = MonteCarloUpdate(IsingArray, 1000, cost)
 
+IsingArray[0, 0] = -1
 print(IsingArray)
-wait = input("PRESS ENTER TO CONTINUE.")
+wait = input("PRESS ENTER TO BEGIN.")
 
 ct=2
 while 1:

@@ -6,8 +6,8 @@ def Init(allUp, N):
     ARR = np.ones((N, N), int)
     if allUp:
         return ARR
-    for i in range(1, N):
-        for j in range(1, N):
+    for i in range(0, N):
+        for j in range(0, N):
             if ra.random() > 0.5:
                 ARR[i, j] = -1
     return ARR

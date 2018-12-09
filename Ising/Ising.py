@@ -27,6 +27,9 @@ beta = 0.2
 cost = np.zeros(3)
 cost[1] = np.exp(-4 * beta)
 cost[2] = cost[1] * cost[1]
-N = 10
+N = 20
 IsingArray = Init(0, N)
 IsingArray = MonteCarloUpdate(IsingArray, 1000, cost)
+while 1:
+    print(IsingArray)
+    IsingArray=MonteCarloUpdate(IsingArray, 1, cost)

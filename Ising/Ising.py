@@ -23,13 +23,21 @@ def MonteCarloUpdate(A, nSteps, cost):
     return A
 
 
-beta = 0.2
+beta = 0.3
 cost = np.zeros(3)
 cost[1] = np.exp(-4 * beta)
 cost[2] = cost[1] * cost[1]
 N = 20
-IsingArray = Init(0, N)
-IsingArray = MonteCarloUpdate(IsingArray, 1000, cost)
+IsingArray = Init(1, N)
+#IsingArray = MonteCarloUpdate(IsingArray, 1000, cost)
+
+print(IsingArray)
+wait = input("PRESS ENTER TO CONTINUE.")
+
+ct=2
 while 1:
     print(IsingArray)
     IsingArray=MonteCarloUpdate(IsingArray, 1, cost)
+    if ct % 10000 == 1:
+        wait = input("PRESS ENTER TO CONTINUE")
+    ct += 1

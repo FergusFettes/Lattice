@@ -6,30 +6,38 @@ from functools import partial
 import numpy as np
 import random as ra
 
+# Draws the main window and contains the simulation code
+# TODO: split the GUI and the simulations
 class MainWindow(QWidget):
 
+    # Initialises the window and variables. Very uncertain about which
+    # variables should go where, but it's fine for now I guess.
     def __init__(self):
         super().__init__()
 
-        self.initUI()
+        #VARS
         self.cost = np.zeros(3)
         self.cost[1] = np.exp(-4 * beta)
         self.cost[2] = self.cost[1] * self.cost[1]
+        # Number of frames to generate
+        # TODO: make '-1' result in infinite run
         self.imageUpdates = 500
+        # Number of updates between frames
         self.monteUpdates = 1000
+
+        #INITS
+        self.initUI()
         self.spinArray = self.isingInit()
         self.exportArray(self.spinArray, primaryColor, secondaryColor)
         # self.redoColors(0xff00ff00, 0xff00ffff, 1)
 
-        # The allows i3 to popup the window (add to i3/config)
-        # 'for_window [window_role='popup'] floating enable'
-        self.setWindowRole('popup')
-
+    # Run in background (waay fast)
     def staticRun(self, montUp=None):
         montUp = montUp if montUp is not None else self.monteUpdates
         self.spinArray, updateList  = self.MonteCarloUpdate(self.spinArray, montUp, self.cost)
         self.exportList(updateList, primaryColor, secondaryColor)
 
+    # Run and update image continuously
     def dynamicRun(self, imUp=None, montUp=None):
         montUp = montUp if montUp is not None else self.monteUpdates
         imUp = imUp if imUp is not None else self.imageUpdates
@@ -38,6 +46,7 @@ class MainWindow(QWidget):
             self.exportList(updateList, primaryColor, secondaryColor)
             self.repaint()
 
+    # Initialise GUI
     def initUI(self):
 
         primary_color = QColor(Qt.black)
@@ -73,6 +82,10 @@ class MainWindow(QWidget):
         self.setLayout(hb)
         self.show()
 
+        # The allows i3 to popup the window (add to i3/config)
+        # 'for_window [window_role='popup'] floating enable'
+        self.setWindowRole('popup')
+
     def exit_button_clicked(self):
         QCoreApplication.instance().quit()
 
@@ -80,6 +93,7 @@ class MainWindow(QWidget):
         if e.key() == Qt.Key_Escape:
             QCoreApplication.instance().quit()
 
+    # Initialises the data array (invisible to user)
     def isingInit(self):
         ARR = np.ones((N, N), int)
         if allUp:
@@ -90,6 +104,8 @@ class MainWindow(QWidget):
                     ARR[i, j] = -1
         return ARR
 
+    # Performs a monte carlo update. Could be exported to C, but this isn't
+    # where the cycles go anyway
     def MonteCarloUpdate(self, A, nSteps, cost):
         updateList=[]
         for _ in range(nSteps):
@@ -101,6 +117,7 @@ class MainWindow(QWidget):
                 updateList.append([a,b,A[a][b]])
         return A, updateList
 
+    # Updates image with values from entire array. SLOW
     def exportArray(self, A, color, color2):
         im = QImage((N * SCALE), (N * SCALE), QImage.Format_ARGB32)
         for i in range(N * SCALE):
@@ -114,6 +131,8 @@ class MainWindow(QWidget):
         nupix.convertFromImage(im)
         self.canvas.setPixmap(nupix)
 
+    # Updates image only where the pixels have changed. FASTER
+    # TODO: Make more performant, use bitdata, also QGLWidget
     def exportList(self, L, color, color2):
         im = self.canvas.pixmap().toImage()
         for el in L:
@@ -129,6 +148,8 @@ class MainWindow(QWidget):
         self.canvas.setPixmap(nupix)
 
 
+    # Repaint the whole field. Doesnt reset data array. Should probably just
+    # replace this with an isinInit + exportArray. Good for testing though.
     def redoColors(self, color, color2, stripes):
         im = QImage((N * SCALE), (N * SCALE), QImage.Format_ARGB32)
         if stripes:
@@ -151,9 +172,13 @@ if __name__ == '__main__':
     app = QApplication([])
     primaryColor = 0xffff0000
     secondaryColor = 0xff00ff00
+    # Ising array starts out homogeneous?
     allUp = 0
+    # Array dimensions
     N = 100
+    # Image dimensions = N*SCALE x N*SCALE
     SCALE = 4
+    # 0.1 is HOT (noisy), 0.9 is COLD (homogeneous). Play with this.
     beta = 0.7
     w = MainWindow()
     app.exec()

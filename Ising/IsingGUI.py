@@ -11,12 +11,23 @@ class MainWindow(QWidget):
         super().__init__()
 
         self.initUI()
-        cost = np.zeros(3)
-        cost[1] = np.exp(-4 * beta)
-        cost[2] = cost[1] * cost[1]
-        allUp = 1
-        self.isingInit(allUp)
-        self.redoColors()
+        self.cost = np.zeros(3)
+        self.cost[1] = np.exp(-4 * beta)
+        self.cost[2] = self.cost[1] * self.cost[1]
+        self.spinArray = self.isingInit()
+        self.exportArray(self.spinArray, primaryColor, secondaryColor)
+        # self.redoColors(0xff00ff00, 0xff00ffff, 1)
+
+    def shortRun(self):
+        self.spinArray = self.MonteCarloUpdate(self.spinArray, 1000, self.cost)
+        self.exportArray(self.spinArray, primaryColor, secondaryColor)
+
+    def basicRun(self):
+        length = 100
+        for _ in range(length):
+            self.spinArray = self.MonteCarloUpdate(self.spinArray, 1000, self.cost)
+            self.exportArray(self.spinArray, primaryColor, secondaryColor)
+            self.repaint()
 
     def initUI(self):
 
@@ -26,16 +37,18 @@ class MainWindow(QWidget):
         self.canvas.setPixmap(QPixmap(N * SCALE, N * SCALE))
         self.canvas.pixmap().fill(primary_color)
 
-        button1 = QPushButton('These')
-        button2 = QPushButton('buttons')
+        short = QPushButton('Short')
+        short.clicked.connect(self.shortRun)
+        dynamic = QPushButton('Dynamic')
+        dynamic.clicked.connect(self.basicRun)
         button3 = QPushButton('do')
         button4 = QPushButton('nothing!')
         exit_button = QPushButton('EXIT!')
         exit_button.clicked.connect(self.exit_button_clicked)
 
         vb = QVBoxLayout()
-        vb.addWidget(button1)
-        vb.addWidget(button2)
+        vb.addWidget(short)
+        vb.addWidget(dynamic)
         vb.addWidget(button3)
         vb.addWidget(button4)
         vb.addStretch()
@@ -57,7 +70,7 @@ class MainWindow(QWidget):
         if e.key() == Qt.Key_Escape:
             QCoreApplication.instance().quit()
 
-    def isingInit(self, allUp):
+    def isingInit(self):
         ARR = np.ones((N, N), int)
         if allUp:
             return ARR
@@ -67,7 +80,7 @@ class MainWindow(QWidget):
                     ARR[i, j] = -1
         return ARR
 
-    def MonteCarloUpdate(A, nSteps, cost):
+    def MonteCarloUpdate(self, A, nSteps, cost):
         for _ in range(nSteps):
             a = int(ra.random() * N)
             b = int(ra.random() * N)
@@ -76,26 +89,38 @@ class MainWindow(QWidget):
                 A[a][b] = -A[a][b]
         return A
 
-    def exportArray(self, A):
-        if SCALE > 1:
-            A2 = np.ones((N * SCALE, N * SCALE), int)
+    def exportArray(self, A, color, color2):
+      # if SCALE > 1:
+      #     A2 = np.ones((N * SCALE, N * SCALE), int)
+      #     for i in range(N * SCALE):
+      #         for j in range(N * SCALE):
+      #             A2[i][j] = A[int(i / SCALE)][int(j / SCALE)]
+      # else:
+      #     A2 = A
+
+        im = QImage((N * SCALE), (N * SCALE), QImage.Format_ARGB32)
+        for i in range(N * SCALE):
+            for j in range(N * SCALE):
+                if A[int(i / SCALE)][int(j / SCALE)]==1:
+                    im.setPixel(i, j, color)
+                else:
+                    im.setPixel(i, j, color2)
+
+        nupix = QPixmap()
+        nupix.convertFromImage(im)
+        self.canvas.setPixmap(nupix)
+
+    def redoColors(self, color, color2, stripes):
+        im = QImage((N * SCALE), (N * SCALE), QImage.Format_ARGB32)
+        if stripes:
             for i in range(N * SCALE):
                 for j in range(N * SCALE):
-                    A2[i][j] = A[int(i / SCALE)][int(j / SCALE)]
+                    if int(i / 2) % 2 == 0:
+                        im.setPixel(i, j, color)
+                    else:
+                        im.setPixel(i, j, color2)
         else:
-            A2 = A
-
-        p = QPainter(self.canvas.pixmap())
-
-        im = QImage()
-        im.setColor(0, 0xffff00ff)
-        im.setColor(1, 0xffffff00)
-        im.fill(1)
-
-    def redoColors(self):
-        im = QImage((N * SCALE), (N * SCALE), QImage.Format_ARGB32)
-        im.setColor(0, 0xffff00ff)
-        im.fill(QColor(Qt.blue))
+            im.fill(color)
 
         nupix = QPixmap()
         nupix.convertFromImage(im)
@@ -105,8 +130,13 @@ class MainWindow(QWidget):
 if __name__ == '__main__':
 
     app = QApplication([])
+    primaryColor = 0xffff0000
+    secondaryColor = 0xff00ff00
+    allUp = 0
     N = 100
     SCALE = 4
-    beta = 0.3
+    beta = 0.5
     w = MainWindow()
     app.exec()
+
+    # w.basicRun(3)

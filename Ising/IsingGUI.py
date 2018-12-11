@@ -17,10 +17,16 @@ class MainWindow(QWidget):
         super().__init__()
 
         #VARS
+        self.colorList=[]
         self.beta = beta
         self.cost = np.zeros(3)
         self.cost[1] = np.exp(-4 * self.beta)
         self.cost[2] = self.cost[1] * self.cost[1]
+        self.costP = np.zeros(4)
+        self.costP[0] = np.exp(-1 * self.beta)
+        self.costP[1] = self.costP[0] ** 2
+        self.costP[2] = self.costP[0] ** 3
+        self.costP[3] = self.costP[0] ** 3
         # Number of frames to generate
         # TODO: make '-1' result in infinite run
         self.imageUpdates = 100
@@ -29,11 +35,15 @@ class MainWindow(QWidget):
         self.speed = speed
         self.primaryColor = QColor(primaryColor)
         self.secondaryColor = QColor(secondaryColor)
+        # Degree of the Potts model
+        self.deg = degree
 
         #INITS
         self.initUI()
-        self.spinArray = self.isingInit()
-        self.exportArray(self.spinArray, self.primaryColor.rgba(), self.secondaryColor.rgba())
+        # self.spinArray = self.isingInit()
+        self.spinArray = self.pottsInit(self.deg)
+        # self.exportArray(self.spinArray, self.primaryColor.rgba(), self.secondaryColor.rgba())
+        self.exportPottsArray(self.spinArray, None, self.deg)
 
     # Initialise GUI
     def initUI(self):
@@ -42,11 +52,14 @@ class MainWindow(QWidget):
         self.canvas.setPixmap(QPixmap(N * SCALE, N * SCALE))
 
         short = QPushButton('Short')
-        short.clicked.connect(partial(self.staticRun, None))
+      # short.clicked.connect(partial(self.staticRun, None))
+        short.clicked.connect(partial(self.staticRunPotts, None))
         self.equilibrate = QPushButton('Equilibrate')
-        self.equilibrate.clicked.connect(partial(self.staticRun, 50000))
+      # self.equilibrate.clicked.connect(partial(self.staticRun, 50000))
+        self.equilibrate.clicked.connect(partial(self.staticRunPotts, 50000))
         self.dynamic = QPushButton('Dynamic')
-        self.dynamic.clicked.connect(partial(self.dynamicRun, None, None))
+      # self.dynamic.clicked.connect(partial(self.dynamicRun, None, None))
+        self.dynamic.clicked.connect(partial(self.dynamicRunPotts, None, None))
 
         self.primaryButton = QPushButton()
         self.primaryButton.setStyleSheet('QPushButton { background-color: %s; }' % self.primaryColor.name())
@@ -58,6 +71,15 @@ class MainWindow(QWidget):
         gr = QGridLayout()
         gr.addWidget(self.primaryButton, 0, 0)
         gr.addWidget(self.secondaryButton, 0, 1)
+        self.colorList = []
+        self.colorList.append(self.primaryColor.rgba())
+        self.colorList.append(self.secondaryColor.rgba())
+        for i in range(self.deg-2):
+            temp = QPushButton()
+            colHex = int(ra.random() * int('0xffffffff', 16))
+            temp.setStyleSheet('QPushButton { background-color: %s; }' % QColor.fromRgb(colHex).name())
+            self.colorList.append(colHex)
+            gr.addWidget(temp)
 
         self.tempCtrl = QSlider(Qt.Vertical)
         self.tempCtrl.setMinimum(1)
@@ -126,6 +148,10 @@ class MainWindow(QWidget):
         self.beta = self.tempCtrl.value() / 100
         self.cost[1] = np.exp(-4 * self.beta)
         self.cost[2] = self.cost[1] * self.cost[1]
+        self.costP[0] = np.exp(-1 * self.beta)
+        self.costP[1] = self.costP[0] ** 2
+        self.costP[2] = self.costP[0] ** 3
+        self.costP[3] = self.costP[0] ** 3
         self.tempLabel.setText('Beta = ' + str(self.beta))
 
     def exit_button_clicked(self):
@@ -152,7 +178,19 @@ class MainWindow(QWidget):
         elif e.key() == Qt.Key_Q:
             self.equilibrate.click()
 
-
+#=================Simulation Station===============#
+    # Initialises the data array (invisible to user)
+    def pottsInit(self, DEGREE):
+        ARR = np.zeros((N, N), int)
+        if allUp:
+            return ARR
+        for i in range(N):
+            for j in range(N):
+                tempra = ra.random()
+                for k in range(DEGREE):
+                    if (k / DEGREE) <= tempra <= ((k + 1) / DEGREE):
+                        ARR[i, j] = k
+        return ARR
 
     # Initialises the data array (invisible to user)
     def isingInit(self):
@@ -164,6 +202,33 @@ class MainWindow(QWidget):
                 if ra.random() > 0.5:
                     ARR[i, j] = -1
         return ARR
+
+    # MonteCarlo algorithm for Potts
+    def PottsUpdate(self, A, nSteps, costP, DEGREE):
+        updateList=[]
+        for _ in range(nSteps):
+            a = int(ra.random() * N)
+            b = int(ra.random() * N)
+            nb = int(A[a][b] == A[(a + 1) % N][b]) \
+                + int(A[a][b] == A[(a - 1) % N][b]) \
+                + int(A[a][b] == A[a][(b + 1) % N]) \
+                + int(A[a][b] == A[a][(b - 1) % N])
+            print(nb)
+            tempra=ra.random()
+            for k in range(DEGREE):
+                if (k / DEGREE) <=  tempra <= ((k + 1) / DEGREE):
+                    temp = k
+            print(temp)
+            nb2 = int(k == A[(a + 1) % N][b]) \
+                + int(k == A[(a - 1) % N][b]) \
+                + int(k == A[a][(b + 1) % N]) \
+                + int(k == A[a][(b - 1) % N])
+            print(nb2)
+            if (nb2 - nb) <= 0 or ra.random() < costP[(nb2 - nb) - 1]:
+                A[a][b] = k
+                updateList.append([a,b,A[a][b]])
+        time.sleep(0.001 * (100 - self.speed))
+        return A, updateList
 
     # Performs a monte carlo update. Could be exported to C, but this isn't
     # where the cycles go anyway
@@ -178,6 +243,21 @@ class MainWindow(QWidget):
                 updateList.append([a,b,A[a][b]])
         time.sleep(0.001 * (100 - self.speed))
         return A, updateList
+
+    # Potts Array Update (VERY SLOW)
+    def exportPottsArray(self, A, colorList=None, DEGREE=None):
+        colorList = colorList if colorList is not None else self.colorList
+        DEGREE = DEGREE if DEGREE is not None else self.deg
+        im = QImage((N * SCALE), (N * SCALE), QImage.Format_ARGB32)
+        for i in range(N * SCALE):
+            for j in range(N * SCALE):
+                num = A[int(i / SCALE)][int(j / SCALE)]
+                color = colorList[num]
+                im.setPixel(i, j, color)
+
+        nupix = QPixmap()
+        nupix.convertFromImage(im)
+        self.canvas.setPixmap(nupix)
 
     # Updates image with values from entire array. SLOW
     def exportArray(self, A, color, color2):
@@ -208,6 +288,20 @@ class MainWindow(QWidget):
         nupix = QPixmap()
         nupix.convertFromImage(im)
         self.canvas.setPixmap(nupix)
+
+    # Potts Static
+    def staticRunPotts(self, montUp=None):
+        montUp = montUp if montUp is not None else self.monteUpdates
+        self.spinArray, updateList  = self.PottsUpdate(self.spinArray, montUp, self.costP, self.deg)
+        self.exportPottsArray(self.spinArray, self.colorList, self.deg)
+
+    # Potts Dynamic
+    def dynamicRunPotts(self, imUp=None, montUp=None):
+        montUp = montUp if montUp is not None else self.monteUpdates
+        imUp = imUp if imUp is not None else self.imageUpdates
+        for _ in range(imUp):
+            self.spinArray, updateList = self.PottsUpdate(self.spinArray, montUp, self.costP, self.deg)
+            self.exportPottsArray(self.spinArray, self.colorList, self.deg)
 
     # Run in background (waay fast)
     def staticRun(self, montUp=None):
@@ -251,16 +345,18 @@ if __name__ == '__main__':
     # Ising array starts out homogeneous?
     allUp = 0
     # Array dimensions
-    N = 100
+    N = 150
     # Image dimensions = N*SCALE x N*SCALE
     # You'll see this used in a few places to convert between the data arrray
     # and the image data. This took a while to figure out but was TOTALLY WORTH
-    # IT rite guise?
-    SCALE = 4
+    # IT.
+    SCALE = 3
     # 0.1 is HOT (noisy), 0.9 is COLD (homogeneous). Play with this.
     beta = 1 / 8
     # Speed is a sort of throttle, 100 is no throttle, 1 is lots of throttle
     speed = 60
+    # Degree of the Potts model
+    degree = 4
     w = MainWindow()
     app.exec()
 

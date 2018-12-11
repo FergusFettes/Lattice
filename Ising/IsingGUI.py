@@ -74,9 +74,7 @@ class MainWindow(QWidget):
         vb.addWidget(exit_button)
 
         hb = QHBoxLayout()
-        # vb.setStretch(1, 1)
         hb.addLayout(vb)
-        # canvas.setSizePolicy(QSizePolicy.setHorizontalStretch(QSizePolicy, 3))
         hb.addWidget(self.canvas)
 
         self.setLayout(hb)
@@ -177,6 +175,9 @@ if __name__ == '__main__':
     # Array dimensions
     N = 100
     # Image dimensions = N*SCALE x N*SCALE
+    # You'll see this used in a few places to convert between the data arrray
+    # and the image data. This took a while to figure out but was TOTALLY WORTH
+    # IT rite guise?
     SCALE = 4
     # 0.1 is HOT (noisy), 0.9 is COLD (homogeneous). Play with this.
     beta = 0.7

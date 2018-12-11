@@ -15,7 +15,7 @@ class MainWindow(QWidget):
         self.cost = np.zeros(3)
         self.cost[1] = np.exp(-4 * beta)
         self.cost[2] = self.cost[1] * self.cost[1]
-        self.imageUpdates = 100
+        self.imageUpdates = 500
         self.monteUpdates = 1000
         self.spinArray = self.isingInit()
         self.exportArray(self.spinArray, primaryColor, secondaryColor)
@@ -47,9 +47,9 @@ class MainWindow(QWidget):
         self.canvas.pixmap().fill(primary_color)
 
         short = QPushButton('Short')
-        short.clicked.connect(partial(self.staticRun, 1000))
+        short.clicked.connect(partial(self.staticRun, None))
         dynamic = QPushButton('Dynamic')
-        dynamic.clicked.connect(partial(self.dynamicRun, 100, 1000))
+        dynamic.clicked.connect(partial(self.dynamicRun, None, None))
         button3 = QPushButton('NIX')
         equilibrate = QPushButton('Equilibrate')
         equilibrate.clicked.connect(partial(self.staticRun, 50000))
@@ -154,7 +154,7 @@ if __name__ == '__main__':
     allUp = 0
     N = 100
     SCALE = 4
-    beta = 0.5
+    beta = 0.7
     w = MainWindow()
     app.exec()
 

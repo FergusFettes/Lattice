@@ -25,14 +25,17 @@ class MainWindow(QWidget):
         # 'for_window [window_role='popup'] floating enable'
         self.setWindowRole('popup')
 
-    def staticRun(self, montUp):
-        self.spinArray = self.MonteCarloUpdate(self.spinArray, montUp, self.cost)
-        self.exportArray(self.spinArray, primaryColor, secondaryColor)
+    def staticRun(self, montUp=None):
+        montUp = montUp if montUp is not None else self.monteUpdates
+        self.spinArray, updateList  = self.MonteCarloUpdate(self.spinArray, montUp, self.cost)
+        self.exportList(updateList, primaryColor, secondaryColor)
 
-    def dynamicRun(self, imUp, montUp):
+    def dynamicRun(self, imUp=None, montUp=None):
+        montUp = montUp if montUp is not None else self.monteUpdates
+        imUp = imUp if imUp is not None else self.imageUpdates
         for _ in range(imUp):
-            self.spinArray = self.MonteCarloUpdate(self.spinArray, montUp, self.cost)
-            self.exportArray(self.spinArray, primaryColor, secondaryColor)
+            self.spinArray, updateList = self.MonteCarloUpdate(self.spinArray, montUp, self.cost)
+            self.exportList(updateList, primaryColor, secondaryColor)
             self.repaint()
 
     def initUI(self):
@@ -88,23 +91,17 @@ class MainWindow(QWidget):
         return ARR
 
     def MonteCarloUpdate(self, A, nSteps, cost):
+        updateList=[]
         for _ in range(nSteps):
             a = int(ra.random() * N)
             b = int(ra.random() * N)
             nb = A[a][b] * (A[(a + 1) % N][b] + A[(a - 1) % N][b] + A[a][(b + 1) % N] + A[a][(b - 1) % N])
             if nb <= 0 or ra.random() < cost[int(nb / 4)]:
                 A[a][b] = -A[a][b]
-        return A
+                updateList.append([a,b,A[a][b]])
+        return A, updateList
 
     def exportArray(self, A, color, color2):
-      # if SCALE > 1:
-      #     A2 = np.ones((N * SCALE, N * SCALE), int)
-      #     for i in range(N * SCALE):
-      #         for j in range(N * SCALE):
-      #             A2[i][j] = A[int(i / SCALE)][int(j / SCALE)]
-      # else:
-      #     A2 = A
-
         im = QImage((N * SCALE), (N * SCALE), QImage.Format_ARGB32)
         for i in range(N * SCALE):
             for j in range(N * SCALE):
@@ -116,6 +113,21 @@ class MainWindow(QWidget):
         nupix = QPixmap()
         nupix.convertFromImage(im)
         self.canvas.setPixmap(nupix)
+
+    def exportList(self, L, color, color2):
+        im = self.canvas.pixmap().toImage()
+        for el in L:
+            for i in range(SCALE):
+                for j in range(SCALE):
+                    if el[2] == 1:
+                        im.setPixel((SCALE * el[0]) + i, (SCALE * el[1]) + j, color)
+                    else:
+                        im.setPixel((SCALE * el[0]) + i, (SCALE * el[1]) + j, color2)
+
+        nupix = QPixmap()
+        nupix.convertFromImage(im)
+        self.canvas.setPixmap(nupix)
+
 
     def redoColors(self, color, color2, stripes):
         im = QImage((N * SCALE), (N * SCALE), QImage.Format_ARGB32)

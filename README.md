@@ -5,6 +5,7 @@ The goal is to make a little app for visualising different lattice models. Initi
 
 The models that I will be starting with are:
 > **Ising & Potts**
+
 > **Conway's GoL** and cellular automata
 
 Ideall I would later move on to do some nice **Eden model simulations** and maybe some **evolutionary dynamics** (Prisoners Dilemma etc.)

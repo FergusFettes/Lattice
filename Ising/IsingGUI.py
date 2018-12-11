@@ -5,6 +5,7 @@ from functools import partial
 
 import numpy as np
 import random as ra
+import time
 
 # Draws the main window and contains the simulation code
 # TODO: split the GUI and the simulations
@@ -16,14 +17,16 @@ class MainWindow(QWidget):
         super().__init__()
 
         #VARS
+        self.beta = beta
         self.cost = np.zeros(3)
-        self.cost[1] = np.exp(-4 * beta)
+        self.cost[1] = np.exp(-4 * self.beta)
         self.cost[2] = self.cost[1] * self.cost[1]
         # Number of frames to generate
         # TODO: make '-1' result in infinite run
-        self.imageUpdates = 500
+        self.imageUpdates = 100
         # Number of updates between frames
         self.monteUpdates = 1000
+        self.speed = speed
 
         #INITS
         self.initUI()
@@ -65,17 +68,41 @@ class MainWindow(QWidget):
         exit_button = QPushButton('EXIT!')
         exit_button.clicked.connect(self.exit_button_clicked)
 
+        self.tempCtrl = QSlider(Qt.Vertical)
+        self.tempCtrl.setMinimum(1)
+        self.tempCtrl.setMaximum(150)
+        self.tempCtrl.setValue(self.beta * 100)
+        self.tempCtrl.setTickPosition(QSlider.TicksLeft)
+        self.tempCtrl.setTickInterval(20)
+        self.tempCtrl.valueChanged.connect(self.sliderChange)
+        self.tempLabel = QLabel('Beta = ' + str(self.beta))
+
+        self.speedCtrl = QSlider(Qt.Horizontal)
+        self.speedCtrl.setMinimum(1)
+        self.speedCtrl.setMaximum(100)
+        self.speedCtrl.setValue(self.speed)
+        self.speedCtrl.setTickPosition(QSlider.TicksBelow)
+        self.speedCtrl.setTickInterval(20)
+        self.speedCtrl.valueChanged.connect(self.speedChange)
+        self.speedLabel = QLabel('Speed = ' + str(self.speed) + '%')
+
         vb = QVBoxLayout()
         vb.addWidget(short)
         vb.addWidget(dynamic)
         vb.addWidget(button3)
         vb.addWidget(equilibrate)
-        vb.addStretch()
+        vb.addWidget(self.tempCtrl)
+        vb.addWidget(self.tempLabel)
         vb.addWidget(exit_button)
+
+        rb = QVBoxLayout()
+        rb.addWidget(self.canvas)
+        rb.addWidget(self.speedCtrl)
+        rb.addWidget(self.speedLabel)
 
         hb = QHBoxLayout()
         hb.addLayout(vb)
-        hb.addWidget(self.canvas)
+        hb.addLayout(rb)
 
         self.setLayout(hb)
         self.show()
@@ -83,6 +110,16 @@ class MainWindow(QWidget):
         # The allows i3 to popup the window (add to i3/config)
         # 'for_window [window_role='popup'] floating enable'
         self.setWindowRole('popup')
+
+    def speedChange(self):
+        self.speed = self.speedCtrl.value()
+        self.speedLabel.setText('Speed = ' + str(self.speed) + '%')
+
+    def sliderChange(self):
+        self.beta = self.tempCtrl.value() / 100
+        self.cost[1] = np.exp(-4 * self.beta)
+        self.cost[2] = self.cost[1] * self.cost[1]
+        self.tempLabel.setText('Beta = ' + str(self.beta))
 
     def exit_button_clicked(self):
         QCoreApplication.instance().quit()
@@ -113,6 +150,8 @@ class MainWindow(QWidget):
             if nb <= 0 or ra.random() < cost[int(nb / 4)]:
                 A[a][b] = -A[a][b]
                 updateList.append([a,b,A[a][b]])
+        time.sleep(0.001 * (100 - self.speed))
+        print(str(0.001 * (100 - self.speed)))
         return A, updateList
 
     # Updates image with values from entire array. SLOW
@@ -180,7 +219,9 @@ if __name__ == '__main__':
     # IT rite guise?
     SCALE = 4
     # 0.1 is HOT (noisy), 0.9 is COLD (homogeneous). Play with this.
-    beta = 0.7
+    beta = 1 / 8
+    # Speed is a sort of throttle, 100 is no throttle, 1 is lots of throttle
+    speed = 20
     w = MainWindow()
     app.exec()
 

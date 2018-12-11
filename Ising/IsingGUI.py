@@ -27,46 +27,39 @@ class MainWindow(QWidget):
         # Number of updates between frames
         self.monteUpdates = 1000
         self.speed = speed
+        self.primaryColor = QColor(primaryColor)
+        self.secondaryColor = QColor(secondaryColor)
+        print(self.secondaryColor.rgba())
+        print(self.secondaryColor.name())
 
         #INITS
         self.initUI()
         self.spinArray = self.isingInit()
-        self.exportArray(self.spinArray, primaryColor, secondaryColor)
-        # self.redoColors(0xff00ff00, 0xff00ffff, 1)
-
-    # Run in background (waay fast)
-    def staticRun(self, montUp=None):
-        montUp = montUp if montUp is not None else self.monteUpdates
-        self.spinArray, updateList  = self.MonteCarloUpdate(self.spinArray, montUp, self.cost)
-        self.exportList(updateList, primaryColor, secondaryColor)
-
-    # Run and update image continuously
-    def dynamicRun(self, imUp=None, montUp=None):
-        montUp = montUp if montUp is not None else self.monteUpdates
-        imUp = imUp if imUp is not None else self.imageUpdates
-        for _ in range(imUp):
-            self.spinArray, updateList = self.MonteCarloUpdate(self.spinArray, montUp, self.cost)
-            self.exportList(updateList, primaryColor, secondaryColor)
-            self.repaint()
+        self.exportArray(self.spinArray, self.primaryColor.rgba(), self.secondaryColor.rgba())
 
     # Initialise GUI
     def initUI(self):
 
-        primary_color = QColor(Qt.black)
-
         self.canvas = QLabel()
         self.canvas.setPixmap(QPixmap(N * SCALE, N * SCALE))
-        self.canvas.pixmap().fill(primary_color)
 
         short = QPushButton('Short')
         short.clicked.connect(partial(self.staticRun, None))
-        dynamic = QPushButton('Dynamic')
-        dynamic.clicked.connect(partial(self.dynamicRun, None, None))
-        button3 = QPushButton('NIX')
         equilibrate = QPushButton('Equilibrate')
         equilibrate.clicked.connect(partial(self.staticRun, 50000))
-        exit_button = QPushButton('EXIT!')
-        exit_button.clicked.connect(self.exit_button_clicked)
+        dynamic = QPushButton('Dynamic')
+        dynamic.clicked.connect(partial(self.dynamicRun, None, None))
+
+        self.primaryButton = QPushButton()
+        self.primaryButton.setStyleSheet('QPushButton { background-color: %s; }' % self.primaryColor.name())
+        self.primaryButton.pressed.connect(lambda: self.choose_color(self.set_primary_color))
+        self.secondaryButton = QPushButton()
+        self.secondaryButton.setStyleSheet('QPushButton { background-color: %s; }' % self.secondaryColor.name())
+        self.secondaryButton.pressed.connect(lambda: self.choose_color(self.set_secondary_color))
+
+        gr = QGridLayout()
+        gr.addWidget(self.primaryButton, 0, 0)
+        gr.addWidget(self.secondaryButton, 0, 1)
 
         self.tempCtrl = QSlider(Qt.Vertical)
         self.tempCtrl.setMinimum(1)
@@ -77,6 +70,18 @@ class MainWindow(QWidget):
         self.tempCtrl.valueChanged.connect(self.sliderChange)
         self.tempLabel = QLabel('Beta = ' + str(self.beta))
 
+        exit_button = QPushButton('EXIT!')
+        exit_button.clicked.connect(self.exit_button_clicked)
+
+        vb = QVBoxLayout()
+        vb.addWidget(short)
+        vb.addWidget(equilibrate)
+        vb.addWidget(dynamic)
+        vb.addLayout(gr)
+        vb.addWidget(self.tempCtrl)
+        vb.addWidget(self.tempLabel)
+        vb.addWidget(exit_button)
+
         self.speedCtrl = QSlider(Qt.Horizontal)
         self.speedCtrl.setMinimum(1)
         self.speedCtrl.setMaximum(100)
@@ -85,15 +90,6 @@ class MainWindow(QWidget):
         self.speedCtrl.setTickInterval(20)
         self.speedCtrl.valueChanged.connect(self.speedChange)
         self.speedLabel = QLabel('Speed = ' + str(self.speed) + '%')
-
-        vb = QVBoxLayout()
-        vb.addWidget(short)
-        vb.addWidget(dynamic)
-        vb.addWidget(button3)
-        vb.addWidget(equilibrate)
-        vb.addWidget(self.tempCtrl)
-        vb.addWidget(self.tempLabel)
-        vb.addWidget(exit_button)
 
         rb = QVBoxLayout()
         rb.addWidget(self.canvas)
@@ -110,6 +106,20 @@ class MainWindow(QWidget):
         # The allows i3 to popup the window (add to i3/config)
         # 'for_window [window_role='popup'] floating enable'
         self.setWindowRole('popup')
+
+    def choose_color(self, callback):
+        dlg = QColorDialog()
+        if dlg.exec():
+            callback( dlg.selectedColor().name() )
+
+    def set_primary_color(self, hexx):
+        self.primaryColor = QColor(hexx)
+        print(hexx)
+        self.primaryButton.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
+
+    def set_secondary_color(self, hexx):
+        self.secondaryColor = QColor(hexx)
+        self.secondaryButton.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
 
     def speedChange(self):
         self.speed = self.speedCtrl.value()
@@ -151,7 +161,6 @@ class MainWindow(QWidget):
                 A[a][b] = -A[a][b]
                 updateList.append([a,b,A[a][b]])
         time.sleep(0.001 * (100 - self.speed))
-        print(str(0.001 * (100 - self.speed)))
         return A, updateList
 
     # Updates image with values from entire array. SLOW
@@ -184,6 +193,20 @@ class MainWindow(QWidget):
         nupix.convertFromImage(im)
         self.canvas.setPixmap(nupix)
 
+    # Run in background (waay fast)
+    def staticRun(self, montUp=None):
+        montUp = montUp if montUp is not None else self.monteUpdates
+        self.spinArray, updateList  = self.MonteCarloUpdate(self.spinArray, montUp, self.cost)
+        self.exportList(updateList, self.primaryColor.rgba(), self.secondaryColor.rgba())
+
+    # Run and update image continuously
+    def dynamicRun(self, imUp=None, montUp=None):
+        montUp = montUp if montUp is not None else self.monteUpdates
+        imUp = imUp if imUp is not None else self.imageUpdates
+        for _ in range(imUp):
+            self.spinArray, updateList = self.MonteCarloUpdate(self.spinArray, montUp, self.cost)
+            self.exportList(updateList, self.primaryColor.rgba(), self.secondaryColor.rgba())
+            self.repaint()
 
     # Repaint the whole field. Doesnt reset data array. Should probably just
     # replace this with an isinInit + exportArray. Good for testing though.
@@ -207,8 +230,8 @@ class MainWindow(QWidget):
 if __name__ == '__main__':
 
     app = QApplication([])
-    primaryColor = 0xffff0000
-    secondaryColor = 0xff00ff00
+    primaryColor = '#ffffff00'
+    secondaryColor = '#ffffffa0'
     # Ising array starts out homogeneous?
     allUp = 0
     # Array dimensions
@@ -221,7 +244,7 @@ if __name__ == '__main__':
     # 0.1 is HOT (noisy), 0.9 is COLD (homogeneous). Play with this.
     beta = 1 / 8
     # Speed is a sort of throttle, 100 is no throttle, 1 is lots of throttle
-    speed = 20
+    speed = 60
     w = MainWindow()
     app.exec()
 

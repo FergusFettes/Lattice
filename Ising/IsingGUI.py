@@ -1,6 +1,7 @@
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from functools import partial
 
 import numpy as np
 import random as ra
@@ -14,18 +15,23 @@ class MainWindow(QWidget):
         self.cost = np.zeros(3)
         self.cost[1] = np.exp(-4 * beta)
         self.cost[2] = self.cost[1] * self.cost[1]
+        self.imageUpdates = 100
+        self.monteUpdates = 1000
         self.spinArray = self.isingInit()
         self.exportArray(self.spinArray, primaryColor, secondaryColor)
         # self.redoColors(0xff00ff00, 0xff00ffff, 1)
 
-    def shortRun(self):
-        self.spinArray = self.MonteCarloUpdate(self.spinArray, 1000, self.cost)
+        # The allows i3 to popup the window (add to i3/config)
+        # 'for_window [window_role='popup'] floating enable'
+        self.setWindowRole('popup')
+
+    def staticRun(self, montUp):
+        self.spinArray = self.MonteCarloUpdate(self.spinArray, montUp, self.cost)
         self.exportArray(self.spinArray, primaryColor, secondaryColor)
 
-    def basicRun(self):
-        length = 100
-        for _ in range(length):
-            self.spinArray = self.MonteCarloUpdate(self.spinArray, 1000, self.cost)
+    def dynamicRun(self, imUp, montUp):
+        for _ in range(imUp):
+            self.spinArray = self.MonteCarloUpdate(self.spinArray, montUp, self.cost)
             self.exportArray(self.spinArray, primaryColor, secondaryColor)
             self.repaint()
 
@@ -38,11 +44,12 @@ class MainWindow(QWidget):
         self.canvas.pixmap().fill(primary_color)
 
         short = QPushButton('Short')
-        short.clicked.connect(self.shortRun)
+        short.clicked.connect(partial(self.staticRun, 1000))
         dynamic = QPushButton('Dynamic')
-        dynamic.clicked.connect(self.basicRun)
-        button3 = QPushButton('do')
-        button4 = QPushButton('nothing!')
+        dynamic.clicked.connect(partial(self.dynamicRun, 100, 1000))
+        button3 = QPushButton('NIX')
+        equilibrate = QPushButton('Equilibrate')
+        equilibrate.clicked.connect(partial(self.staticRun, 50000))
         exit_button = QPushButton('EXIT!')
         exit_button.clicked.connect(self.exit_button_clicked)
 
@@ -50,7 +57,7 @@ class MainWindow(QWidget):
         vb.addWidget(short)
         vb.addWidget(dynamic)
         vb.addWidget(button3)
-        vb.addWidget(button4)
+        vb.addWidget(equilibrate)
         vb.addStretch()
         vb.addWidget(exit_button)
 

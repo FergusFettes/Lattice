@@ -29,8 +29,6 @@ class MainWindow(QWidget):
         self.speed = speed
         self.primaryColor = QColor(primaryColor)
         self.secondaryColor = QColor(secondaryColor)
-        print(self.secondaryColor.rgba())
-        print(self.secondaryColor.name())
 
         #INITS
         self.initUI()
@@ -45,10 +43,10 @@ class MainWindow(QWidget):
 
         short = QPushButton('Short')
         short.clicked.connect(partial(self.staticRun, None))
-        equilibrate = QPushButton('Equilibrate')
-        equilibrate.clicked.connect(partial(self.staticRun, 50000))
-        dynamic = QPushButton('Dynamic')
-        dynamic.clicked.connect(partial(self.dynamicRun, None, None))
+        self.equilibrate = QPushButton('Equilibrate')
+        self.equilibrate.clicked.connect(partial(self.staticRun, 50000))
+        self.dynamic = QPushButton('Dynamic')
+        self.dynamic.clicked.connect(partial(self.dynamicRun, None, None))
 
         self.primaryButton = QPushButton()
         self.primaryButton.setStyleSheet('QPushButton { background-color: %s; }' % self.primaryColor.name())
@@ -75,8 +73,8 @@ class MainWindow(QWidget):
 
         vb = QVBoxLayout()
         vb.addWidget(short)
-        vb.addWidget(equilibrate)
-        vb.addWidget(dynamic)
+        vb.addWidget(self.equilibrate)
+        vb.addWidget(self.dynamic)
         vb.addLayout(gr)
         vb.addWidget(self.tempCtrl)
         vb.addWidget(self.tempLabel)
@@ -114,7 +112,6 @@ class MainWindow(QWidget):
 
     def set_primary_color(self, hexx):
         self.primaryColor = QColor(hexx)
-        print(hexx)
         self.primaryButton.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
 
     def set_secondary_color(self, hexx):
@@ -135,8 +132,27 @@ class MainWindow(QWidget):
         QCoreApplication.instance().quit()
 
     def keyPressEvent(self, e):
+        # print(e.key())
         if e.key() == Qt.Key_Escape:
             QCoreApplication.instance().quit()
+        elif e.key() == Qt.Key_D:
+            self.speedCtrl.triggerAction(QSlider.SliderPageStepAdd)
+        elif e.key() == Qt.Key_A:
+            self.speedCtrl.triggerAction(QSlider.SliderPageStepSub)
+        elif e.key() == Qt.Key_W:
+            self.tempCtrl.triggerAction(QSlider.SliderPageStepAdd)
+        elif e.key() == Qt.Key_S:
+            self.tempCtrl.triggerAction(QSlider.SliderPageStepSub)
+        elif e.key() == Qt.Key_1:
+            self.primaryButton.click()
+        elif e.key() == Qt.Key_2:
+            self.secondaryButton.click()
+        elif e.key() == Qt.Key_E:
+            self.dynamic.click()
+        elif e.key() == Qt.Key_Q:
+            self.equilibrate.click()
+
+
 
     # Initialises the data array (invisible to user)
     def isingInit(self):
@@ -230,7 +246,7 @@ class MainWindow(QWidget):
 if __name__ == '__main__':
 
     app = QApplication([])
-    primaryColor = '#ffffff00'
+    primaryColor = '#ffff557f'
     secondaryColor = '#ffffffa0'
     # Ising array starts out homogeneous?
     allUp = 0

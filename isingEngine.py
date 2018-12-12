@@ -10,11 +10,16 @@ import time
 
 class IsingEngine():
 
-    def initialize(beta, nuArr=1, allUp=0):
+    def initialize(self, nuArr=None, **kwargs):
+        nuArr = nuArr if nuArr is not None else 1
         if nuArr:
-            self.Array = self.arrayInit(N, allUp)
-        self.imageUpdates = 100
-        self.monteUpdate = 1000
+            self.Array = self.arrayInit(kwargs['N'], kwargs['ALLUP'])
+            self.costUpdate(kwargs['BETA'])
+
+    def costUpdate(self, beta):
+        self.cost = [0] * 3
+        self.cost[1] = np.exp(-4 * beta)
+        self.cost[2] = self.cost[1] ** 2
 
     # Initialises the data array (invisible to user)
     def arrayInit(self, N, allUp):
@@ -29,29 +34,29 @@ class IsingEngine():
 
     # Performs a monte carlo update. Could be exported to C, but this isn't
     # where the cycles go anyway
-    def arrayUpdate(self, A, nSteps, cost):
+    def arrayUpdate(self, A=None, cost=None, **kwargs):
+        A = A if A is not None else self.Array
+        cost = cost if cost is not None else self.cost
+        N = kwargs['N']
         updateList=[]
-        for _ in range(nSteps):
-            a = int(ra.random() * N)
-            b = int(ra.random() * N)
+        for _ in range(kwargs['MONTEUPDATES']):
+            a = int(ra.random() * kwargs['N'])
+            b = int(ra.random() * kwargs['N'])
             nb = A[a][b] * (A[(a + 1) % N][b] + A[(a - 1) % N][b] + A[a][(b + 1) % N] + A[a][(b - 1) % N])
             if nb <= 0 or ra.random() < cost[int(nb / 4)]:
                 A[a][b] = -A[a][b]
                 updateList.append([a,b,A[a][b]])
-        time.sleep(0.001 * (100 - self.speed))
+        time.sleep(0.001 * (100 - kwargs['SPEED']))
         return A, updateList
 
     # Run in background (waay fast)
-    def staticRun(self, montUp=None):
-        montUp = montUp if montUp is not None else self.monteUpdates
-        self.spinArray, updateList  = self.MonteCarloUpdate(self.spinArray, montUp, self.cost)
-        self.exportList(updateList, self.primaryColor.rgba(), self.secondaryColor.rgba())
+    def staticRun(self, canvas, **kwargs):
+        self.Array, updateList  = self.arrayUpdate(**kwargs)
+        canvas.exportList(updateList)
 
     # Run and update image continuously
-    def dynamicRun(self, imUp=None, montUp=None):
-        montUp = montUp if montUp is not None else self.monteUpdates
-        imUp = imUp if imUp is not None else self.imageUpdates
-        for _ in range(imUp):
-            self.spinArray, updateList = self.MonteCarloUpdate(self.spinArray, montUp, self.cost)
-            self.exportList(updateList, self.primaryColor.rgba(), self.secondaryColor.rgba())
-            self.repaint()
+    def dynamicRun(self, canvas, **kwargs):
+        for _ in range(kwargs['IMAGEUPDATES']):
+            self.Array, updateList = self.arrayUpdate(**kwargs)
+            canvas.exportList(updateList)
+            canvas.repaint()

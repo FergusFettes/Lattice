@@ -20,6 +20,7 @@ class MainWindow(QWidget):
         self.imageUpdates = DEFAULTS['IMAGEUPDATES']
         self.speed = DEFAULTS['SPEED']
         # Internal Vars
+        self.beta = []
         self.colorList = []
         self.primaryColor = QColor(DEFAULTS['PRIMARYCOLOR'])
         self.secondaryColor = QColor(DEFAULTS['SECONDARYCOLOR'])
@@ -36,7 +37,7 @@ class MainWindow(QWidget):
         self.canvas.initialize(**DEFAULTS)
 
         self.isingButt = QPushButton('Ising')
-      # self.isingButt.pressed.connect(self.initIsingUI)
+        self.isingButt.pressed.connect(partial(self.initIsingUI, **DEFAULTS))
         self.pottButt = QPushButton('Potts')
       # self.pottButt.pressed.connect(self.initPottUI)
         self.conwayButt = QPushButton('Conway')
@@ -53,10 +54,12 @@ class MainWindow(QWidget):
 
         self.primaryButton = QPushButton()
         self.primaryButton.setStyleSheet('QPushButton { background-color: %s; }' % self.primaryColor.name())
-        self.primaryButton.pressed.connect(lambda: self.choose_color(self.set_primary_color))
+        self.primaryButton.pressed.connect(     \
+            partial(self.choose_color, self.set_color, self.primaryButton, 0))
         self.secondaryButton = QPushButton()
         self.secondaryButton.setStyleSheet('QPushButton { background-color: %s; }' % self.secondaryColor.name())
-        self.secondaryButton.pressed.connect(lambda: self.choose_color(self.set_secondary_color))
+        self.secondaryButton.pressed.connect(   \
+            partial(self.choose_color, self.set_color, self.secondaryButton, 1))
 
         self.gr = QGridLayout()
         self.gr.addWidget(self.primaryButton, 0, 0)
@@ -122,18 +125,42 @@ class MainWindow(QWidget):
         # 'for_window [window_role='popup'] floating enable'
         self.setWindowRole('popup')
 
-    def choose_color(self, callback):
+    def initIsingUI(self, **DEFAULTS):
+        self.engine = IsingEngine()
+        self.engine.initialize(**DEFAULTS)
+
+        self.short.setText('Short')
+        self.short.clicked.connect(partial(self.engine.staticRun, self.canvas, **DEFAULTS))
+        self.equilibrate.setText('Equilibrate')
+        self.equilibrate.clicked.connect(partial(self.engine.staticRun, 100000))
+        self.dynamic.setText('Dynamic')
+        self.dynamic.clicked.connect(partial(self.engine.dynamicRun, self.canvas, **DEFAULTS))
+
+        self.tempCtrl.setMinimum(10)
+        self.tempCtrl.setMaximum(150)
+        self.tempCtrl.setValue(DEFAULTS['BETA'] * 100)
+        self.tempCtrl.valueChanged.connect(self.sliderChange)
+        self.tempLabel.setText('Beta = ' + str(DEFAULTS['BETA']))
+
+        exit_button = QPushButton('EXIT!')
+        exit_button.clicked.connect(self.exit_button_clicked)
+
+        self.speedCtrl.setMinimum(1)
+        self.speedCtrl.setMaximum(100)
+        self.speedCtrl.setValue(DEFAULTS['SPEED'])
+        self.speedCtrl.valueChanged.connect(self.speedChange)
+        self.speedLabel.setText('Speed = ' + str(DEFAULTS['SPEED']) + '%')
+        self.frameCtrl.setValue(DEFAULTS['IMAGEUPDATES'])
+        self.frameCtrl.valueChanged.connect(self.frameChange)
+
+    def choose_color(self, callback, *args):
         dlg = QColorDialog()
         if dlg.exec():
-            callback(dlg.selectedColor().name())
+            callback(dlg.selectedColor().name(), *args)
 
-    def set_primary_color(self, hexx):
-        self.primaryColor = QColor(hexx)
-        self.primaryButton.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
-
-    def set_secondary_color(self, hexx):
-        self.secondaryColor = QColor(hexx)
-        self.secondaryButton.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
+    def set_color(self, hexx, button, Num):
+        self.colorList[Num] = QColor(hexx).rgba()
+        button.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
 
     def frameChange(self):
         self.imageUpdates = self.frameCtrl.value()
@@ -145,6 +172,11 @@ class MainWindow(QWidget):
     def speedChange(self):
         self.speed = self.speedCtrl.value()
         self.speedLabel.setText('Speed = ' + str(self.speed) + '%')
+
+    def sliderChange(self):
+        self.beta = self.tempCtrl.value() / 100
+        self.engine.costUpdate(self.beta)
+        self.tempLabel.setText('Beta = ' + str(self.beta))
 
     def exit_button_clicked(self):
         QCoreApplication.instance().quit()

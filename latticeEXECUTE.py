@@ -15,7 +15,8 @@ def initVars():
         'BETA':1 / 8,   # Critical temp for Ising
         'SPEED':60,     # Throttle %
         'DEGREE':4,     # Degree of the Potts model
-        'IMAGEUPDATES':100 # Number of frames to run
+        'IMAGEUPDATES':100,# Number of frames to run
+        'MONTEUPDATES':1000# MonteCarlo updates per frame
     }
     return DEF
 

@@ -17,6 +17,7 @@ class MainWindow(QWidget):
         super().__init__()
 
         #VARS
+        self.frameNum = 0
         self.colorList=[]
         self.beta = beta
         self.cost = np.zeros(3)
@@ -110,11 +111,24 @@ class MainWindow(QWidget):
         self.speedCtrl.setTickInterval(20)
         self.speedCtrl.valueChanged.connect(self.speedChange)
         self.speedLabel = QLabel('Speed = ' + str(self.speed) + '%')
+        self.frameLabel = QLabel(str(self.frameNum) + ' / ')
+        self.frameCtrl = QSpinBox()
+        self.frameCtrl.setRange(10, 1000)
+        self.frameCtrl.setSingleStep(10)
+        self.frameCtrl.setValue(self.imageUpdates)
+        self.frameCtrl.setMaximumSize(100, 40)
+        self.frameCtrl.valueChanged.connect(self.frameChange)
+
+        rbb = QHBoxLayout()
+        rbb.addWidget(self.speedLabel)
+        rbb.addStretch()
+        rbb.addWidget(self.frameLabel)
+        rbb.addWidget(self.frameCtrl)
 
         rb = QVBoxLayout()
         rb.addWidget(self.canvas)
         rb.addWidget(self.speedCtrl)
-        rb.addWidget(self.speedLabel)
+        rb.addLayout(rbb)
 
         hb = QHBoxLayout()
         hb.addLayout(vb)
@@ -139,6 +153,9 @@ class MainWindow(QWidget):
     def set_secondary_color(self, hexx):
         self.secondaryColor = QColor(hexx)
         self.secondaryButton.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
+
+    def frameChange(self):
+        self.imageUpdates = self.frameCtrl.value()
 
     def speedChange(self):
         self.speed = self.speedCtrl.value()
@@ -213,21 +230,21 @@ class MainWindow(QWidget):
                 + int(A[a][b] == A[(a - 1) % N][b]) \
                 + int(A[a][b] == A[a][(b + 1) % N]) \
                 + int(A[a][b] == A[a][(b - 1) % N])
-            print(nb)
             tempra=ra.random()
             for k in range(DEGREE):
                 if (k / DEGREE) <=  tempra <= ((k + 1) / DEGREE):
                     temp = k
-            print(temp)
-            nb2 = int(k == A[(a + 1) % N][b]) \
-                + int(k == A[(a - 1) % N][b]) \
-                + int(k == A[a][(b + 1) % N]) \
-                + int(k == A[a][(b - 1) % N])
-            print(nb2)
+            nb2 = int(temp == A[(a + 1) % N][b]) \
+                + int(temp == A[(a - 1) % N][b]) \
+                + int(temp == A[a][(b + 1) % N]) \
+                + int(temp == A[a][(b - 1) % N])
             if (nb2 - nb) <= 0 or ra.random() < costP[(nb2 - nb) - 1]:
-                A[a][b] = k
+                A[a][b] = temp
                 updateList.append([a,b,A[a][b]])
+
         time.sleep(0.001 * (100 - self.speed))
+        self.frameNum += 1
+        self.frameLabel.setText(str(self.frameNum) + ' / ')
         return A, updateList
 
     # Performs a monte carlo update. Could be exported to C, but this isn't
@@ -254,6 +271,20 @@ class MainWindow(QWidget):
                 num = A[int(i / SCALE)][int(j / SCALE)]
                 color = colorList[num]
                 im.setPixel(i, j, color)
+
+        nupix = QPixmap()
+        nupix.convertFromImage(im)
+        self.canvas.setPixmap(nupix)
+
+    # Potts List Update (FASTER)
+    def exportPottsList(self, L, colorList=None, DEGREE=None):
+        colorList = colorList if colorList is not None else self.colorList
+        DEGREE = DEGREE if DEGREE is not None else self.deg
+        im = self.canvas.pixmap().toImage()
+        for el in L:
+            for i in range(SCALE):
+                for j in range(SCALE):
+                    im.setPixel((SCALE * el[0]) + i, (SCALE * el[1]) + j, colorList[el[2]])
 
         nupix = QPixmap()
         nupix.convertFromImage(im)
@@ -292,8 +323,10 @@ class MainWindow(QWidget):
     # Potts Static
     def staticRunPotts(self, montUp=None):
         montUp = montUp if montUp is not None else self.monteUpdates
-        self.spinArray, updateList  = self.PottsUpdate(self.spinArray, montUp, self.costP, self.deg)
-        self.exportPottsArray(self.spinArray, self.colorList, self.deg)
+        self.spinArray, updateList = self.PottsUpdate(self.spinArray, montUp, self.costP, self.deg)
+        self.exportPottsList(updateList, self.colorList, self.deg)
+        self.frameNum = 0
+        self.frameLabel.setText(str(self.frameNum) + ' / ')
 
     # Potts Dynamic
     def dynamicRunPotts(self, imUp=None, montUp=None):
@@ -301,7 +334,10 @@ class MainWindow(QWidget):
         imUp = imUp if imUp is not None else self.imageUpdates
         for _ in range(imUp):
             self.spinArray, updateList = self.PottsUpdate(self.spinArray, montUp, self.costP, self.deg)
-            self.exportPottsArray(self.spinArray, self.colorList, self.deg)
+            self.exportPottsList(updateList, self.colorList, self.deg)
+            self.repaint()
+        self.frameNum = 0
+        self.frameLabel.setText(str(self.frameNum) + ' / ')
 
     # Run in background (waay fast)
     def staticRun(self, montUp=None):

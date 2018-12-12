@@ -27,7 +27,7 @@ class MainWindow(QWidget):
         self.costP[0] = np.exp(-1 * self.beta)
         self.costP[1] = self.costP[0] ** 2
         self.costP[2] = self.costP[0] ** 3
-        self.costP[3] = self.costP[0] ** 3
+        self.costP[3] = self.costP[0] ** 4
         # Number of frames to generate
         # TODO: make '-1' result in infinite run
         self.imageUpdates = 100
@@ -78,13 +78,13 @@ class MainWindow(QWidget):
         for i in range(self.deg-2):
             temp = QPushButton()
             colHex = int(ra.random() * int('0xffffffff', 16))
-            temp.setStyleSheet('QPushButton { background-color: %s; }' % QColor.fromRgb(colHex).name())
+            temp.setStyleSheet('QPushButton { background-color: %s; }' % QColor.fromRgba(colHex).name())
             self.colorList.append(colHex)
             gr.addWidget(temp)
 
         self.tempCtrl = QSlider(Qt.Vertical)
-        self.tempCtrl.setMinimum(1)
-        self.tempCtrl.setMaximum(150)
+        self.tempCtrl.setMinimum(10)
+        self.tempCtrl.setMaximum(350)
         self.tempCtrl.setValue(self.beta * 100)
         self.tempCtrl.setTickPosition(QSlider.TicksLeft)
         self.tempCtrl.setTickInterval(20)
@@ -156,6 +156,11 @@ class MainWindow(QWidget):
 
     def frameChange(self):
         self.imageUpdates = self.frameCtrl.value()
+        # The following was necessary for the keyboard shortcuts to work again,
+        # but it does mean that you have to type numbers longer than 2x twice
+        a = self.frameCtrl.previousInFocusChain()
+        a.setFocus()
+
 
     def speedChange(self):
         self.speed = self.speedCtrl.value()
@@ -203,10 +208,7 @@ class MainWindow(QWidget):
             return ARR
         for i in range(N):
             for j in range(N):
-                tempra = ra.random()
-                for k in range(DEGREE):
-                    if (k / DEGREE) <= tempra <= ((k + 1) / DEGREE):
-                        ARR[i, j] = k
+                temp = ra.randint(0, DEGREE-1)
         return ARR
 
     # Initialises the data array (invisible to user)
@@ -230,17 +232,15 @@ class MainWindow(QWidget):
                 + int(A[a][b] == A[(a - 1) % N][b]) \
                 + int(A[a][b] == A[a][(b + 1) % N]) \
                 + int(A[a][b] == A[a][(b - 1) % N])
-            tempra=ra.random()
-            for k in range(DEGREE):
-                if (k / DEGREE) <=  tempra <= ((k + 1) / DEGREE):
-                    temp = k
+            temp = ra.randint(0, DEGREE-1)
             nb2 = int(temp == A[(a + 1) % N][b]) \
                 + int(temp == A[(a - 1) % N][b]) \
                 + int(temp == A[a][(b + 1) % N]) \
                 + int(temp == A[a][(b - 1) % N])
-            if (nb2 - nb) <= 0 or ra.random() < costP[(nb2 - nb) - 1]:
+            tempra = ra.random()
+            if (nb2 - nb) <= 0 or tempra < costP[(nb2 - nb) - 1]:
                 A[a][b] = temp
-                updateList.append([a,b,A[a][b]])
+                updateList.append([a,b,temp])
 
         time.sleep(0.001 * (100 - self.speed))
         self.frameNum += 1
@@ -392,7 +392,7 @@ if __name__ == '__main__':
     # Speed is a sort of throttle, 100 is no throttle, 1 is lots of throttle
     speed = 60
     # Degree of the Potts model
-    degree = 4
+    degree = 3
     w = MainWindow()
     app.exec()
 

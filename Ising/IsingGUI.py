@@ -57,7 +57,7 @@ class MainWindow(QWidget):
         short.clicked.connect(partial(self.staticRunPotts, None))
         self.equilibrate = QPushButton('Equilibrate')
       # self.equilibrate.clicked.connect(partial(self.staticRun, 50000))
-        self.equilibrate.clicked.connect(partial(self.staticRunPotts, 50000))
+        self.equilibrate.clicked.connect(partial(self.staticRunPotts, 100000))
         self.dynamic = QPushButton('Dynamic')
       # self.dynamic.clicked.connect(partial(self.dynamicRun, None, None))
         self.dynamic.clicked.connect(partial(self.dynamicRunPotts, None, None))
@@ -238,7 +238,7 @@ class MainWindow(QWidget):
                 + int(temp == A[a][(b + 1) % N]) \
                 + int(temp == A[a][(b - 1) % N])
             tempra = ra.random()
-            if (nb2 - nb) <= 0 or tempra < costP[(nb2 - nb) - 1]:
+            if (nb - nb2) <= 0 or tempra < costP[(nb - nb2) - 1]:
                 A[a][b] = temp
                 updateList.append([a,b,temp])
 
@@ -392,7 +392,7 @@ if __name__ == '__main__':
     # Speed is a sort of throttle, 100 is no throttle, 1 is lots of throttle
     speed = 60
     # Degree of the Potts model
-    degree = 3
+    degree = 6
     w = MainWindow()
     app.exec()
 

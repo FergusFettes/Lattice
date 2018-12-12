@@ -392,8 +392,6 @@ if __name__ == '__main__':
     # Speed is a sort of throttle, 100 is no throttle, 1 is lots of throttle
     speed = 60
     # Degree of the Potts model
-    degree = 6
+    degree = 4
     w = MainWindow()
     app.exec()
-
-    # w.basicRun(3)

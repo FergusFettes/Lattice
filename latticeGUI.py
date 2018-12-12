@@ -4,6 +4,7 @@ from PyQt5.QtCore import *
 from functools import partial
 
 from isingEngine import IsingEngine
+from latticeCanvas import Canvas
 
 # Draws the main window and contains the simulation code
 # TODO: split the GUI and the simulations
@@ -11,29 +12,28 @@ class MainWindow(QWidget):
 
     # Initialises the window and variables. Very uncertain about which
     # variables should go where, but it's fine for now I guess.
-    def __init__(self):
+    def __init__(self, **DEFAULTS):
         super().__init__()
 
         # VARS for display
-        self.frameNum = 0
-        self.beta = 0
-        # Number of frames to generate
-        self.imageUpdates = 100
-        self.speed = 0
+        self.frameNum = 0       # Current Frame Number
+        self.imageUpdates = DEFAULTS['IMAGEUPDATES']
+        self.speed = DEFAULTS['SPEED']
         # Internal Vars
         self.colorList = []
-        self.primaryColor = QColor()
-        self.secondaryColor = QColor()
+        self.primaryColor = QColor(DEFAULTS['PRIMARYCOLOR'])
+        self.secondaryColor = QColor(DEFAULTS['SECONDARYCOLOR'])
         # Degree of the Potts model
-        self.deg = 2
+        self.deg = DEFAULTS['DEGREE']
 
         # INITS
-        self.initUI()
+        self.initDummy(**DEFAULTS)
 
     # Initialise GUI
-    def initUI(self):
+    def initDummy(self, **DEFAULTS):
 
-        self.canvas = QLabel()
+        self.canvas = Canvas()
+        self.canvas.initialize(**DEFAULTS)
 
         self.isingButt = QPushButton('Ising')
       # self.isingButt.pressed.connect(self.initIsingUI)
@@ -48,11 +48,8 @@ class MainWindow(QWidget):
         hbTop.addWidget(self.conwayButt)
 
         self.short = QPushButton()
-      # self.short.clicked.connect(partial(self.staticRun, None))
         self.equilibrate = QPushButton()
-      # self.equilibrate.clicked.connect(partial(self.staticRun, 50000))
         self.dynamic = QPushButton()
-      # self.dynamic.clicked.connect(partial(self.dynamicRun, None, None))
 
         self.primaryButton = QPushButton()
         self.primaryButton.setStyleSheet('QPushButton { background-color: %s; }' % self.primaryColor.name())
@@ -74,7 +71,6 @@ class MainWindow(QWidget):
         self.tempCtrl = QSlider(Qt.Vertical)
         self.tempCtrl.setTickPosition(QSlider.TicksLeft)
         self.tempCtrl.setTickInterval(20)
-        self.tempCtrl.valueChanged.connect(self.sliderChange)
         self.tempLabel = QLabel()
 
         exit_button = QPushButton('EXIT!')
@@ -84,26 +80,21 @@ class MainWindow(QWidget):
         vb.addWidget(self.short)
         vb.addWidget(self.equilibrate)
         vb.addWidget(self.dynamic)
-        vb.addLayout(gr)
+        vb.addLayout(self.gr)
         vb.addWidget(self.tempCtrl)
         vb.addWidget(self.tempLabel)
         vb.addWidget(exit_button)
 
         self.speedCtrl = QSlider(Qt.Horizontal)
-        self.speedCtrl.setMinimum(1)
-        self.speedCtrl.setMaximum(100)
-        self.speedCtrl.setValue(self.speed)
         self.speedCtrl.setTickPosition(QSlider.TicksBelow)
         self.speedCtrl.setTickInterval(20)
-        self.speedCtrl.valueChanged.connect(self.speedChange)
-        self.speedLabel = QLabel('Speed = ' + str(self.speed) + '%')
-        self.frameLabel = QLabel(str(self.frameNum) + ' / ')
+        self.speedLabel = QLabel('Speed = ???')
+        self.frameLabel = QLabel('0000/ ')
         self.frameCtrl = QSpinBox()
         self.frameCtrl.setRange(10, 1000)
         self.frameCtrl.setSingleStep(10)
-        self.frameCtrl.setValue(self.imageUpdates)
+        self.frameCtrl.setValue(100)
         self.frameCtrl.setMaximumSize(100, 40)
-        self.frameCtrl.valueChanged.connect(self.frameChange)
 
         rbb = QHBoxLayout()
         rbb.addWidget(self.speedLabel)

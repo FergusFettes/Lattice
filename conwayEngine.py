@@ -8,6 +8,9 @@ import random as ra
 import time
 
 
+# TODO: build an awesome function that stochastically fluctuates the
+# background, killing cells when the alive list is too long and bringing them
+# to life when it is too small
 class ConwayEngine():
 
     def initialize(self, canvas, frameLabel, nuArr=None, **kwargs):

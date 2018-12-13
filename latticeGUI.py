@@ -152,8 +152,10 @@ class MainWindow(QWidget):
             temp = QPushButton()
             self.gr.addWidget(temp, int(i / 2), i % 2)
 
+        self.tempCtrl.disconnect()
         self.tempCtrl.setMinimum(10)
         self.tempCtrl.setMaximum(150)
+        self.tempCtrl.setPageStep(20)
         self.tempCtrl.setValue(kwargs['BETA'] * 100)
         self.tempCtrl.valueChanged.connect(self.sliderChange)
         self.tempLabel.setText('Beta = ' + str(kwargs['BETA']))
@@ -193,8 +195,10 @@ class MainWindow(QWidget):
             self.colorList.append(colHex)
         self.canvas.addColors(self.colorList, self.degree)
 
+        self.tempCtrl.disconnect()
         self.tempCtrl.setMinimum(10)
         self.tempCtrl.setMaximum(350)
+        self.tempCtrl.setPageStep(20)
         self.tempCtrl.setValue(kwargs['BETA'] * 100)
         self.tempCtrl.valueChanged.connect(self.sliderChange)
         self.tempLabel.setText('Beta = ' + str(kwargs['BETA']))
@@ -232,8 +236,10 @@ class MainWindow(QWidget):
             self.gr.addWidget(temp, int(i / 2), i % 2)
         self.canvas.addColors(self.colorList, self.degree)
 
+        self.tempCtrl.disconnect()
         self.tempCtrl.setMinimum(1)
-        self.tempCtrl.setMaximum(100)
+        self.tempCtrl.setPageStep(2)
+        self.tempCtrl.setMaximum(40)
         self.tempCtrl.setValue(kwargs['COVERAGE'])
         self.tempCtrl.valueChanged.connect(self.coverageChange)
         self.tempLabel.setText('Coverage')
@@ -248,12 +254,6 @@ class MainWindow(QWidget):
         self.speedLabel.setText('Speed = ' + str(kwargs['SPEED']) + '%')
         self.frameCtrl.setValue(kwargs['IMAGEUPDATES'])
         self.frameCtrl.valueChanged.connect(self.frameChange)
-
-        def keyPressEvent(self, e):
-            if e.key() == Qt.Key_W:
-                self.tempCtrl.triggerAction(QSlider.SliderSingleStepAdd)
-            elif e.key() == Qt.Key_S:
-                self.tempCtrl.triggerAction(QSlider.SliderSingleStepSub)
 
     def changeKwarg(self, kwarg, nuVal):
         self.kwargs[kwarg] = nuVal

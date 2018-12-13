@@ -14,7 +14,7 @@ def initVars():
         'PRIMARYCOLOR':QColor.fromRgba(colHex1).name(),   # These are just random rn
         'SECONDARYCOLOR':QColor.fromRgba(colHex2).name(),
         'ALLUP':0,      # Ising starts homogeneous?
-        'N':150,        # Array dimensions
+        'N':120,        # Array dimensions
         'SCALE':4,      # Image dim = N*SCALE x N*SCALE
         'BETA':1 / 8,   # Critical temp for Ising
         'SPEED':60,     # Throttle %
@@ -22,7 +22,8 @@ def initVars():
         'IMAGEUPDATES':100, # Number of frames to run
         'MONTEUPDATES':1000,# MonteCarlo updates per frame
         'EQUILIBRATE':100000,
-        'COVERAGE':5
+        'COVERAGE':5,
+        'NEWARR':1
     }
     return DEF
 

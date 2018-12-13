@@ -14,24 +14,32 @@ import time
 class ConwayEngine():
 
     def initialize(self, canvas, frameLabel, nuArr=None, **kwargs):
-        nuArr = nuArr if nuArr is not None else 1
+        nuArr = nuArr if nuArr is not None else 0
         self.updateKwargs(**kwargs)
-        if nuArr:
-            self.Array = self.arrayInit(kwargs['N'], 1)
         self.canvas = canvas
-        self.canvas.reset()
-        self.canvas.exportList(self.addColorRow(self.aliveList))
+        self.aliveList = []
+        self.n = kwargs['N']
+        if nuArr:
+            self.canvas.Array = self.arrayInit(kwargs['N'], 1)
+            self.canvas.reset()
+            self.canvas.exportList(self.addColorRow(self.aliveList))
+        else:
+            self.findLiving(self.canvas.Array)
         self.frameLabel = frameLabel
+
+    def findLiving(self, A):
+        for i in range(self.n):
+            for j in range(self.n):
+                if A[i][j]:
+                    self.aliveList.append([i, j])
 
     def updateKwargs(self, **kwargs):
         self.coverage = kwargs['COVERAGE']
         self.kwargs = kwargs
         self.kwargs['MONTEUPDATES'] = 20
-        self.n = kwargs['N']
 
     # Initialises the data array (invisible to user)
     def arrayInit(self, N, allUp):
-        self.aliveList = []
         ARR = np.zeros((N, N), int)
         for i in range(0, N):
             for j in range(0, N):
@@ -43,7 +51,7 @@ class ConwayEngine():
 
     # MonteCarlo Update
     def arrayUpdate(self, A=None, **kwargs):
-        A = A if A is not None else self.Array
+        A = A if A is not None else self.canvas.Array
         if not self.aliveList:
             print('No life!')
             return A, self.aliveList
@@ -101,7 +109,7 @@ class ConwayEngine():
 
     # Run in background (waay fast)
     def staticRun(self):
-        self.Array, updateList  = self.arrayUpdate(**self.kwargs)
+        self.canvas.Array, updateList  = self.arrayUpdate(**self.kwargs)
         if updateList:
             self.canvas.exportList(self.addColorRow(updateList))
 
@@ -110,7 +118,7 @@ class ConwayEngine():
         frameNum = 0
         for _ in range(self.kwargs['IMAGEUPDATES']):
             frameNum += 1
-            self.Array, updateList = self.arrayUpdate(**self.kwargs)
+            self.canvas.Array, updateList = self.arrayUpdate(**self.kwargs)
             if not updateList:
                 print('No change')
                 break

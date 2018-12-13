@@ -10,13 +10,13 @@ import time
 
 class IsingEngine():
 
-    def initialize(self, canvas, frameLabel, nuArr=None, **kwargs):
-        nuArr = nuArr if nuArr is not None else 1
-        if nuArr:
-            self.Array = self.arrayInit(kwargs['N'], kwargs['ALLUP'])
-            self.costUpdate(kwargs['BETA'])
-        self.kwargs = kwargs
+    def initialize(self, canvas, frameLabel,  **kwargs):
         self.canvas = canvas
+        self.n = kwargs['N']
+        if kwargs['NEWARR']:
+            self.canvas.Array = self.arrayInit(kwargs['N'], kwargs['ALLUP'])
+        self.costUpdate(kwargs['BETA'])
+        self.kwargs = kwargs
         self.frameLabel = frameLabel
 
     def updateKwargs(self, **kwargs):
@@ -36,13 +36,14 @@ class IsingEngine():
             for j in range(0, N):
                 if ra.random() > 0.5:
                     ARR[i, j] = -1
-        return ARR
+        return self.flattenArray(ARR)
 
     # Performs a monte carlo update. Could be exported to C, but this isn't
     # where the cycles go anyway
     def arrayUpdate(self, A=None, cost=None, **kwargs):
-        A = A if A is not None else self.Array
+        A = A if A is not None else self.canvas.Array
         cost = cost if cost is not None else self.cost
+        A = self.fattenArray(A)
         N = kwargs['N']
         updateList=[]
         for _ in range(kwargs['MONTEUPDATES']):
@@ -53,7 +54,7 @@ class IsingEngine():
                 A[a][b] = -A[a][b]
                 updateList.append([a,b,A[a][b]])
         time.sleep(0.001 * (100 - kwargs['SPEED']))
-        return A, updateList
+        return self.flattenArray(A), updateList
 
     def equilibrate(self):
         mont = self.kwargs['MONTEUPDATES']
@@ -63,7 +64,7 @@ class IsingEngine():
 
     # Run in background (waay fast)
     def staticRun(self):
-        self.Array, updateList  = self.arrayUpdate(**self.kwargs)
+        self.canvas.Array, updateList  = self.arrayUpdate(**self.kwargs)
         self.canvas.exportList(self.flattenForExport(updateList))
 
     # Run and update image continuously
@@ -71,7 +72,7 @@ class IsingEngine():
         frameNum = 0
         for _ in range(self.kwargs['IMAGEUPDATES']):
             frameNum += 1
-            self.Array, updateList = self.arrayUpdate(**self.kwargs)
+            self.canvas.Array, updateList = self.arrayUpdate(**self.kwargs)
             self.canvas.exportList(self.flattenForExport(updateList))
             self.canvas.repaint()
             self.frameLabel.setText(str(frameNum) + ' / ')
@@ -82,3 +83,15 @@ class IsingEngine():
         for idx,_ in enumerate(listIn):
             listIn[idx][2] = int((listIn[idx][2] + 1) / 2)
         return listIn
+
+    def flattenArray(self, A):
+        for i in range(self.n):
+            for j in range(self.n):
+                A[i][j] = int((A[i][j] + 1) / 2)
+        return A
+
+    def fattenArray(self, A):
+        for i in range(self.n):
+            for j in range(self.n):
+                A[i][j] = int((2 * A[i][j]) - 1)
+        return A

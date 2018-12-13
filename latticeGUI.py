@@ -139,6 +139,7 @@ class MainWindow(QWidget):
         kwargs = self.kwargs
         self.engine = IsingEngine()
         self.engine.initialize(self.canvas, self.frameLabel, **kwargs)
+        self.changeKwarg('NEWARR', 0)
 
         self.short.setText('Short')
         self.short.clicked.connect(self.engine.staticRun)
@@ -217,7 +218,7 @@ class MainWindow(QWidget):
     def initConwayUI(self):
         kwargs = self.kwargs
         self.engine = ConwayEngine()
-        self.engine.initialize(self.canvas, self.frameLabel, **kwargs)
+        self.engine.initialize(self.canvas, self.frameLabel,  **kwargs)
         self.degree = 2
         self.coverage = kwargs['COVERAGE']
 

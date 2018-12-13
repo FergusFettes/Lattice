@@ -7,6 +7,9 @@ import numpy as np
 import random as ra
 import time
 
+# TODO: write and interrupt handler, so you don't need to have those stupid
+# 'frames' anymore, and you can just quit a run. This is probably the best
+# place to do it?
 class Canvas(QLabel):
 
     def initialize(self, **kwargs):
@@ -17,6 +20,7 @@ class Canvas(QLabel):
         self.n = kwargs['N']
         self.scale = kwargs['SCALE']
         self.reset()
+        self.Array = np.zeros((self.n * self.scale, self.n * self.scale), int)
 
     def reset(self):
         self.setPixmap(QPixmap(self.n * self.scale, self.n * self.scale))
@@ -31,7 +35,8 @@ class Canvas(QLabel):
         self.degree = degree
 
     # Updates image with values from entire array. SLOW
-    def exportArray(self, A):
+    def exportArray(self):
+        A = self.arrayHolder
         im = QImage((self.n * self.scale), (self.n * self.scale), QImage.Format_ARGB32)
         for i in range(self.n * self.scale):
             for j in range(self.n * self.scale):

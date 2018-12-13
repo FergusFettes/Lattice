@@ -43,9 +43,9 @@ class MainWindow(QWidget):
         self.canvas.initialize(**DEFAULTS)
 
         self.isingButt = QPushButton('Ising')
-        self.isingButt.pressed.connect(partial(self.initIsingUI, **self.kwargs))
+        self.isingButt.pressed.connect(partial(self.initIsingUI))
         self.pottsButt = QPushButton('Potts')
-        self.pottsButt.pressed.connect(partial(self.initPottsUI, **self.kwargs))
+        self.pottsButt.pressed.connect(partial(self.initPottsUI))
         self.conwayButt = QPushButton('Conway')
       # self.conwayButt.pressed.connect(self.initConwayUI)
 
@@ -132,7 +132,8 @@ class MainWindow(QWidget):
         # 'for_window [window_role='popup'] floating enable'
         self.setWindowRole('popup')
 
-    def initIsingUI(self, **kwargs):
+    def initIsingUI(self):
+        kwargs = self.kwargs
         self.engine = IsingEngine()
         self.engine.initialize(self.canvas, self.frameLabel, **kwargs)
 
@@ -160,7 +161,8 @@ class MainWindow(QWidget):
         self.frameCtrl.setValue(kwargs['IMAGEUPDATES'])
         self.frameCtrl.valueChanged.connect(self.frameChange)
 
-    def initPottsUI(self, **kwargs):
+    def initPottsUI(self):
+        kwargs = self.kwargs
         self.engine = PottsEngine()
         self.engine.initialize(self.canvas, self.frameLabel, **kwargs)
         self.degree = kwargs['DEGREE']

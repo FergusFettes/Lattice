@@ -60,11 +60,13 @@ class MainWindow(QWidget):
         self.dynamic = QPushButton()
 
         self.primaryButton = QPushButton()
-        self.primaryButton.setStyleSheet('QPushButton { background-color: %s; }' % self.primaryColor.name())
+        self.primaryButton.setStyleSheet('QPushButton { background-color: %s; }' %  \
+                                         self.primaryColor.name())
         self.primaryButton.pressed.connect(     \
             partial(self.choose_color, self.set_color, self.primaryButton, 0))
         self.secondaryButton = QPushButton()
-        self.secondaryButton.setStyleSheet('QPushButton { background-color: %s; }' % self.secondaryColor.name())
+        self.secondaryButton.setStyleSheet('QPushButton { background-color: %s; }' %\
+                                           self.secondaryColor.name())
         self.secondaryButton.pressed.connect(   \
             partial(self.choose_color, self.set_color, self.secondaryButton, 1))
 
@@ -186,7 +188,8 @@ class MainWindow(QWidget):
             temp = QPushButton()
             self.gr.addWidget(temp, int(i / 2), i % 2)
             colHex = int(ra.random() * int('0xffffffff', 16))
-            temp.setStyleSheet('QPushButton { background-color: %s; }' % QColor.fromRgba(colHex).name())
+            temp.setStyleSheet('QPushButton { background-color: %s; }' %  \
+                               QColor.fromRgba(colHex).name())
             self.colorList.append(colHex)
         self.canvas.addColors(self.colorList, self.degree)
 
@@ -212,6 +215,7 @@ class MainWindow(QWidget):
         self.engine = ConwayEngine()
         self.engine.initialize(self.canvas, self.frameLabel, **kwargs)
         self.degree = 2
+        self.coverage = kwargs['COVERAGE']
 
         self.short.setText('Short')
         self.short.clicked.connect(self.engine.staticRun)
@@ -228,11 +232,11 @@ class MainWindow(QWidget):
             self.gr.addWidget(temp, int(i / 2), i % 2)
         self.canvas.addColors(self.colorList, self.degree)
 
-        self.tempCtrl.setMinimum(10)
-        self.tempCtrl.setMaximum(350)
-        self.tempCtrl.setValue(kwargs['BETA'] * 100)
-        self.tempCtrl.valueChanged.connect(self.sliderChange)
-        self.tempLabel.setText('Nuffin')
+        self.tempCtrl.setMinimum(1)
+        self.tempCtrl.setMaximum(100)
+        self.tempCtrl.setValue(kwargs['COVERAGE'])
+        self.tempCtrl.valueChanged.connect(self.coverageChange)
+        self.tempLabel.setText('Coverage')
 
         exit_button = QPushButton('EXIT!')
         exit_button.clicked.connect(self.exit_button_clicked)
@@ -244,6 +248,12 @@ class MainWindow(QWidget):
         self.speedLabel.setText('Speed = ' + str(kwargs['SPEED']) + '%')
         self.frameCtrl.setValue(kwargs['IMAGEUPDATES'])
         self.frameCtrl.valueChanged.connect(self.frameChange)
+
+        def keyPressEvent(self, e):
+            if e.key() == Qt.Key_W:
+                self.tempCtrl.triggerAction(QSlider.SliderSingleStepAdd)
+            elif e.key() == Qt.Key_S:
+                self.tempCtrl.triggerAction(QSlider.SliderSingleStepSub)
 
     def changeKwarg(self, kwarg, nuVal):
         self.kwargs[kwarg] = nuVal
@@ -270,6 +280,11 @@ class MainWindow(QWidget):
         self.speed = self.speedCtrl.value()
         self.changeKwarg('SPEED', self.speed)
         self.speedLabel.setText('Speed = ' + str(self.speed) + '%')
+
+    def coverageChange(self):
+        self.coverage = self.tempCtrl.value()
+        self.changeKwarg('COVERAGE', self.coverage)
+        self.tempLabel.setText('Coverage= ' + str(self.coverage) + '%')
 
     def sliderChange(self):
         self.beta = self.tempCtrl.value() / 100

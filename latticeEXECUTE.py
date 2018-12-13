@@ -4,23 +4,25 @@ from PyQt5.QtCore import *
 from functools import partial
 
 from latticeGUI import MainWindow
-
+import random as ra
 
 def initVars():
     # TODO: add a load function here
+    colHex1 = int(ra.random() * int('0xffffffff', 16))
+    colHex2 = int(ra.random() * int('0xffffffff', 16))
     DEF = {
-        'PRIMARYCOLOR':'#ffff557f',   # These are just random rn
-        'SECONDARYCOLOR':'#ffffffa0',
+        'PRIMARYCOLOR':QColor.fromRgba(colHex1).name(),   # These are just random rn
+        'SECONDARYCOLOR':QColor.fromRgba(colHex2).name(),
         'ALLUP':0,      # Ising starts homogeneous?
-        'N':100,        # Array dimensions
+        'N':150,        # Array dimensions
         'SCALE':4,      # Image dim = N*SCALE x N*SCALE
         'BETA':1 / 8,   # Critical temp for Ising
-        'SPEED':10,     # Throttle %
+        'SPEED':60,     # Throttle %
         'DEGREE':4,     # Degree of the Potts model
-        'IMAGEUPDATES':50, # Number of frames to run
+        'IMAGEUPDATES':100, # Number of frames to run
         'MONTEUPDATES':1000,# MonteCarlo updates per frame
         'EQUILIBRATE':100000,
-        'COVERAGE':4
+        'COVERAGE':5
     }
     return DEF
 

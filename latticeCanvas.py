@@ -12,6 +12,8 @@ class Canvas(QLabel):
     def initialize(self, **kwargs):
         self.primaryColor = QColor(kwargs['PRIMARYCOLOR'])
         self.secondaryColor = QColor(kwargs['SECONDARYCOLOR'])
+        self.colorList = []
+        self.degree = 2
         self.n = kwargs['N']
         self.scale = kwargs['SCALE']
         self.reset()
@@ -24,15 +26,18 @@ class Canvas(QLabel):
     def setColor(self, color, newValue):
         self.color = QColor(newValue)
 
+    def addColors(self, colorList, degree):
+        self.colorList = colorList
+        self.degree = degree
+
     # Updates image with values from entire array. SLOW
     def exportArray(self, A):
         im = QImage((self.n * self.scale), (self.n * self.scale), QImage.Format_ARGB32)
         for i in range(self.n * self.scale):
             for j in range(self.n * self.scale):
-                if A[int(i / self.scale)][int(j / self.scale)]==1:
-                    im.setPixel(i, j, self.primaryColor.rgba())
-                else:
-                    im.setPixel(i, j, self.secondaryColor.rgba())
+                num = A[int(i / self.scale)][int(j / self.scale)]
+                color = self.colorList[num]
+                im.setPixel(i, j, color)
 
         nupix = QPixmap()
         nupix.convertFromImage(im)
@@ -45,14 +50,8 @@ class Canvas(QLabel):
         for el in L:
             for i in range(self.scale):
                 for j in range(self.scale):
-                    if el[2] == 1:
-                        im.setPixel((self.scale * el[0]) + i,\
-                                    (self.scale * el[1]) + j,\
-                                     self.primaryColor.rgba())
-                    else:
-                        im.setPixel((self.scale * el[0]) + i,\
-                                    (self.scale * el[1]) + j,\
-                                     self.secondaryColor.rgba())
+                    im.setPixel((self.scale * el[0]) + i, (self.scale * el[1])\
+                                + j, self.colorList[el[2]])
 
         nupix = QPixmap()
         nupix.convertFromImage(im)

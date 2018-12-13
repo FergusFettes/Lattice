@@ -4,7 +4,10 @@ from PyQt5.QtCore import *
 from functools import partial
 
 from isingEngine import IsingEngine
+from pottsEngine import PottsEngine
 from latticeCanvas import Canvas
+
+import random as ra
 
 # Draws the main window and contains the simulation code
 # TODO: split the GUI and the simulations
@@ -41,14 +44,14 @@ class MainWindow(QWidget):
 
         self.isingButt = QPushButton('Ising')
         self.isingButt.pressed.connect(partial(self.initIsingUI, **self.kwargs))
-        self.pottButt = QPushButton('Potts')
-      # self.pottButt.pressed.connect(self.initPottUI)
+        self.pottsButt = QPushButton('Potts')
+        self.pottsButt.pressed.connect(partial(self.initPottsUI, **self.kwargs))
         self.conwayButt = QPushButton('Conway')
       # self.conwayButt.pressed.connect(self.initConwayUI)
 
         hbTop = QHBoxLayout()
         hbTop.addWidget(self.isingButt)
-        hbTop.addWidget(self.pottButt)
+        hbTop.addWidget(self.pottsButt)
         hbTop.addWidget(self.conwayButt)
 
         self.short = QPushButton()
@@ -70,9 +73,10 @@ class MainWindow(QWidget):
         self.colorList = []
         self.colorList.append(self.primaryColor.rgba())
         self.colorList.append(self.secondaryColor.rgba())
-        for i in range(4):
-            temp = QPushButton()
-            self.gr.addWidget(temp)
+        for i in range(2,4):
+            temp = QPushButton('tst')
+            self.gr.addWidget(temp, int(i / 2), i % 2)
+        self.canvas.addColors(self.colorList, 2)
 
         self.tempCtrl = QSlider(Qt.Vertical)
         self.tempCtrl.setTickPosition(QSlider.TicksLeft)
@@ -141,6 +145,43 @@ class MainWindow(QWidget):
 
         self.tempCtrl.setMinimum(10)
         self.tempCtrl.setMaximum(150)
+        self.tempCtrl.setValue(kwargs['BETA'] * 100)
+        self.tempCtrl.valueChanged.connect(self.sliderChange)
+        self.tempLabel.setText('Beta = ' + str(kwargs['BETA']))
+
+        exit_button = QPushButton('EXIT!')
+        exit_button.clicked.connect(self.exit_button_clicked)
+
+        self.speedCtrl.setMinimum(1)
+        self.speedCtrl.setMaximum(100)
+        self.speedCtrl.setValue(kwargs['SPEED'])
+        self.speedCtrl.valueChanged.connect(self.speedChange)
+        self.speedLabel.setText('Speed = ' + str(kwargs['SPEED']) + '%')
+        self.frameCtrl.setValue(kwargs['IMAGEUPDATES'])
+        self.frameCtrl.valueChanged.connect(self.frameChange)
+
+    def initPottsUI(self, **kwargs):
+        self.engine = PottsEngine()
+        self.engine.initialize(self.canvas, self.frameLabel, **kwargs)
+        self.degree = kwargs['DEGREE']
+
+        self.short.setText('Short')
+        self.short.clicked.connect(self.engine.staticRun)
+        self.equilibrate.setText('Equilibrate')
+        self.equilibrate.clicked.connect(self.engine.equilibrate)
+        self.dynamic.setText('Dynamic')
+        self.dynamic.clicked.connect(self.engine.dynamicRun)
+
+        for i in range(2, self.degree):
+            temp = QPushButton()
+            self.gr.addWidget(temp, int(i / 2), i % 2)
+            colHex = int(ra.random() * int('0xffffffff', 16))
+            temp.setStyleSheet('QPushButton { background-color: %s; }' % QColor.fromRgba(colHex).name())
+            self.colorList.append(colHex)
+        self.canvas.addColors(self.colorList, self.degree)
+
+        self.tempCtrl.setMinimum(10)
+        self.tempCtrl.setMaximum(350)
         self.tempCtrl.setValue(kwargs['BETA'] * 100)
         self.tempCtrl.valueChanged.connect(self.sliderChange)
         self.tempLabel.setText('Beta = ' + str(kwargs['BETA']))

@@ -5,6 +5,7 @@ from functools import partial
 
 from isingEngine import IsingEngine
 from pottsEngine import PottsEngine
+from conwayEngine import ConwayEngine
 from latticeCanvas import Canvas
 
 import random as ra
@@ -47,7 +48,7 @@ class MainWindow(QWidget):
         self.pottsButt = QPushButton('Potts')
         self.pottsButt.pressed.connect(partial(self.initPottsUI))
         self.conwayButt = QPushButton('Conway')
-      # self.conwayButt.pressed.connect(self.initConwayUI)
+        self.conwayButt.pressed.connect(self.initConwayUI)
 
         hbTop = QHBoxLayout()
         hbTop.addWidget(self.isingButt)
@@ -144,6 +145,11 @@ class MainWindow(QWidget):
         self.dynamic.setText('Dynamic')
         self.dynamic.clicked.connect(self.engine.dynamicRun)
 
+        # Clears the color buttons
+        for i in range(2, self.kwargs['DEGREE']):
+            temp = QPushButton()
+            self.gr.addWidget(temp, int(i / 2), i % 2)
+
         self.tempCtrl.setMinimum(10)
         self.tempCtrl.setMaximum(150)
         self.tempCtrl.setValue(kwargs['BETA'] * 100)
@@ -174,6 +180,8 @@ class MainWindow(QWidget):
         self.dynamic.setText('Dynamic')
         self.dynamic.clicked.connect(self.engine.dynamicRun)
 
+        while len(self.colorList) > 2:
+            self.colorList.pop()
         for i in range(2, self.degree):
             temp = QPushButton()
             self.gr.addWidget(temp, int(i / 2), i % 2)
@@ -199,6 +207,44 @@ class MainWindow(QWidget):
         self.frameCtrl.setValue(kwargs['IMAGEUPDATES'])
         self.frameCtrl.valueChanged.connect(self.frameChange)
 
+    def initConwayUI(self):
+        kwargs = self.kwargs
+        self.engine = ConwayEngine()
+        self.engine.initialize(self.canvas, self.frameLabel, **kwargs)
+        self.degree = 2
+
+        self.short.setText('Short')
+        self.short.clicked.connect(self.engine.staticRun)
+        self.equilibrate.setText('Clean Canvas')
+        self.equilibrate.clicked.connect(self.canvas.reset)
+        self.dynamic.setText('Dynamic')
+        self.dynamic.clicked.connect(self.engine.dynamicRun)
+
+        while len(self.colorList) > 2:
+            self.colorList.pop()
+        # Clears the buttons
+        for i in range(2, self.kwargs['DEGREE']):
+            temp = QPushButton()
+            self.gr.addWidget(temp, int(i / 2), i % 2)
+        self.canvas.addColors(self.colorList, self.degree)
+
+        self.tempCtrl.setMinimum(10)
+        self.tempCtrl.setMaximum(350)
+        self.tempCtrl.setValue(kwargs['BETA'] * 100)
+        self.tempCtrl.valueChanged.connect(self.sliderChange)
+        self.tempLabel.setText('Nuffin')
+
+        exit_button = QPushButton('EXIT!')
+        exit_button.clicked.connect(self.exit_button_clicked)
+
+        self.speedCtrl.setMinimum(1)
+        self.speedCtrl.setMaximum(100)
+        self.speedCtrl.setValue(kwargs['SPEED'])
+        self.speedCtrl.valueChanged.connect(self.speedChange)
+        self.speedLabel.setText('Speed = ' + str(kwargs['SPEED']) + '%')
+        self.frameCtrl.setValue(kwargs['IMAGEUPDATES'])
+        self.frameCtrl.valueChanged.connect(self.frameChange)
+
     def changeKwarg(self, kwarg, nuVal):
         self.kwargs[kwarg] = nuVal
         self.engine.updateKwargs(**self.kwargs)
@@ -210,7 +256,6 @@ class MainWindow(QWidget):
 
     def set_color(self, hexx, button, Num):
         self.colorList[Num] = QColor(hexx).rgba()
-        self.engine.setColor(button, QColor(hexx).rgba())
         button.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
 
     def frameChange(self):

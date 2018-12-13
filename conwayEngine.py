@@ -49,8 +49,31 @@ class ConwayEngine():
                     ARR[i, j] = alive
         return ARR
 
+    # Diarmuid Engine
+    def arrayUpdate(self):
+        A = self.canvas.Array
+        l = np.roll(A, -1, axis=0)
+        r = np.roll(A, 1, axis=0)
+        u = np.roll(A, 1 , axis=1)
+        d = np.roll(A, -1, axis=1)
+        ul = np.roll(l, 1, axis=1)
+        dl = np.roll(l, -1, axis=1)
+        ur = np.roll(r, 1, axis=1)
+        dr = np.roll(r, -1, axis=1)
+        NB = np.zeros(A.shape) + l + r + u + d + ul + dl + ur + dr
+        #cells still alive after rule 1
+        rule1 = np.bitwise_and(A, NB > 1)
+        #alive cells that will live
+        rule2 = np.bitwise_and(rule1, NB < 4)
+        #dead cells that rebirth
+        rule4 = np.bitwise_and(~A, NB == 3)
+        #should just be the live cells
+        C = rule2 + rule4
+        #np.argwhere should be a list of all the cells that have chang
+        return C, np.argwhere(C != A)
+
     # MonteCarlo Update
-    def arrayUpdate(self, A=None, **kwargs):
+    def arrayUpdateOld(self, A=None, **kwargs):
         A = A if A is not None else self.canvas.Array
         if not self.aliveList:
             print('No life!')
@@ -102,14 +125,18 @@ class ConwayEngine():
 
     # Have to add a row of ones. I guess there is a better way of doing this,
     # lets see how slow it runs.
-    def addColorRow(self, L):
+    def addColorRowOld(self, L):
         if np.shape(L)[1] == 3:
               return L
         return [el + [1] for el in L]
 
+    def addColorRow(self, L):
+        A = self.canvas.Array
+        return[[i[0], i[1], A[i[0], i[1]]] for i in L]
+
     # Run in background (waay fast)
     def staticRun(self):
-        self.canvas.Array, updateList  = self.arrayUpdate(**self.kwargs)
+        self.canvas.Array, updateList  = self.arrayUpdate()
         if updateList:
             self.canvas.exportList(self.addColorRow(updateList))
 
@@ -118,8 +145,8 @@ class ConwayEngine():
         frameNum = 0
         for _ in range(self.kwargs['IMAGEUPDATES']):
             frameNum += 1
-            self.canvas.Array, updateList = self.arrayUpdate(**self.kwargs)
-            if not updateList:
+            self.canvas.Array, updateList = self.arrayUpdate()
+            if updateList is None:
                 print('No change')
                 break
             self.canvas.exportList(self.addColorRow(updateList))

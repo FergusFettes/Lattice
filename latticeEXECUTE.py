@@ -5,8 +5,10 @@ from functools import partial
 
 from latticeGUI import MainWindow
 
+
 def initVars():
-    DEF={
+    # TODO: add a load function here
+    DEF = {
         'PRIMARYCOLOR':'#ffff557f',   # These are just random rn
         'SECONDARYCOLOR':'#ffffffa0',
         'ALLUP':0,      # Ising starts homogeneous?
@@ -15,8 +17,9 @@ def initVars():
         'BETA':1 / 8,   # Critical temp for Ising
         'SPEED':60,     # Throttle %
         'DEGREE':4,     # Degree of the Potts model
-        'IMAGEUPDATES':100,# Number of frames to run
-        'MONTEUPDATES':1000# MonteCarlo updates per frame
+        'IMAGEUPDATES':100, # Number of frames to run
+        'MONTEUPDATES':1000,# MonteCarlo updates per frame
+        'EQUILIBRATE':100000
     }
     return DEF
 

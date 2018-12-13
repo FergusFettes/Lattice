@@ -27,6 +27,9 @@ class MainWindow(QWidget):
         # Degree of the Potts model
         self.deg = DEFAULTS['DEGREE']
 
+        # Save kwargs
+        self.kwargs = DEFAULTS
+
         # INITS
         self.initDummy(**DEFAULTS)
 
@@ -37,7 +40,7 @@ class MainWindow(QWidget):
         self.canvas.initialize(**DEFAULTS)
 
         self.isingButt = QPushButton('Ising')
-        self.isingButt.pressed.connect(partial(self.initIsingUI, **DEFAULTS))
+        self.isingButt.pressed.connect(partial(self.initIsingUI, **self.kwargs))
         self.pottButt = QPushButton('Potts')
       # self.pottButt.pressed.connect(self.initPottUI)
         self.conwayButt = QPushButton('Conway')
@@ -125,33 +128,37 @@ class MainWindow(QWidget):
         # 'for_window [window_role='popup'] floating enable'
         self.setWindowRole('popup')
 
-    def initIsingUI(self, **DEFAULTS):
+    def initIsingUI(self, **kwargs):
         self.engine = IsingEngine()
-        self.engine.initialize(**DEFAULTS)
+        self.engine.initialize(self.canvas, self.frameLabel, **kwargs)
 
         self.short.setText('Short')
-        self.short.clicked.connect(partial(self.engine.staticRun, self.canvas, **DEFAULTS))
+        self.short.clicked.connect(self.engine.staticRun)
         self.equilibrate.setText('Equilibrate')
-        self.equilibrate.clicked.connect(partial(self.engine.staticRun, 100000))
+        self.equilibrate.clicked.connect(self.engine.equilibrate)
         self.dynamic.setText('Dynamic')
-        self.dynamic.clicked.connect(partial(self.engine.dynamicRun, self.canvas, **DEFAULTS))
+        self.dynamic.clicked.connect(self.engine.dynamicRun)
 
         self.tempCtrl.setMinimum(10)
         self.tempCtrl.setMaximum(150)
-        self.tempCtrl.setValue(DEFAULTS['BETA'] * 100)
+        self.tempCtrl.setValue(kwargs['BETA'] * 100)
         self.tempCtrl.valueChanged.connect(self.sliderChange)
-        self.tempLabel.setText('Beta = ' + str(DEFAULTS['BETA']))
+        self.tempLabel.setText('Beta = ' + str(kwargs['BETA']))
 
         exit_button = QPushButton('EXIT!')
         exit_button.clicked.connect(self.exit_button_clicked)
 
         self.speedCtrl.setMinimum(1)
         self.speedCtrl.setMaximum(100)
-        self.speedCtrl.setValue(DEFAULTS['SPEED'])
+        self.speedCtrl.setValue(kwargs['SPEED'])
         self.speedCtrl.valueChanged.connect(self.speedChange)
-        self.speedLabel.setText('Speed = ' + str(DEFAULTS['SPEED']) + '%')
-        self.frameCtrl.setValue(DEFAULTS['IMAGEUPDATES'])
+        self.speedLabel.setText('Speed = ' + str(kwargs['SPEED']) + '%')
+        self.frameCtrl.setValue(kwargs['IMAGEUPDATES'])
         self.frameCtrl.valueChanged.connect(self.frameChange)
+
+    def changeKwarg(self, kwarg, nuVal):
+        self.kwargs[kwarg] = nuVal
+        self.engine.updateKwargs(**self.kwargs)
 
     def choose_color(self, callback, *args):
         dlg = QColorDialog()
@@ -160,10 +167,12 @@ class MainWindow(QWidget):
 
     def set_color(self, hexx, button, Num):
         self.colorList[Num] = QColor(hexx).rgba()
+        self.engine.setColor(button, QColor(hexx).rgba())
         button.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
 
     def frameChange(self):
         self.imageUpdates = self.frameCtrl.value()
+        self.changeKwarg('IMAGEUPDATES', self.imageUpdates)
         # The following was necessary for the keyboard shortcuts to work again,
         # but it does mean that you have to type numbers longer than 2x twice
         a = self.frameCtrl.previousInFocusChain()
@@ -171,10 +180,12 @@ class MainWindow(QWidget):
 
     def speedChange(self):
         self.speed = self.speedCtrl.value()
+        self.changeKwarg('SPEED', self.speed)
         self.speedLabel.setText('Speed = ' + str(self.speed) + '%')
 
     def sliderChange(self):
         self.beta = self.tempCtrl.value() / 100
+        self.changeKwarg('BETA', self.beta)
         self.engine.costUpdate(self.beta)
         self.tempLabel.setText('Beta = ' + str(self.beta))
 
@@ -193,10 +204,18 @@ class MainWindow(QWidget):
             self.tempCtrl.triggerAction(QSlider.SliderPageStepAdd)
         elif e.key() == Qt.Key_S:
             self.tempCtrl.triggerAction(QSlider.SliderPageStepSub)
-        elif e.key() == Qt.Key_1:
+        # Change Colors, RF
+        elif e.key() == Qt.Key_R:
             self.primaryButton.click()
-        elif e.key() == Qt.Key_2:
+        elif e.key() == Qt.Key_F:
             self.secondaryButton.click()
+        # Initialise chosen model, 123
+        elif e.key() == Qt.Key_1:
+            self.isingButt.click()
+        elif e.key() == Qt.Key_2:
+            self.pottsButt.click()
+        elif e.key() == Qt.Key_3:
+            self.conwayButt.click()
         elif e.key() == Qt.Key_E:
             self.dynamic.click()
         elif e.key() == Qt.Key_Q:

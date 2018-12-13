@@ -10,11 +10,17 @@ import time
 
 class IsingEngine():
 
-    def initialize(self, nuArr=None, **kwargs):
+    def initialize(self, canvas, frameLabel, nuArr=None, **kwargs):
         nuArr = nuArr if nuArr is not None else 1
         if nuArr:
             self.Array = self.arrayInit(kwargs['N'], kwargs['ALLUP'])
             self.costUpdate(kwargs['BETA'])
+        self.kwargs = kwargs
+        self.canvas = canvas
+        self.frameLabel = frameLabel
+
+    def updateKwargs(self, **kwargs):
+        self.kwargs = kwargs
 
     def costUpdate(self, beta):
         self.cost = [0] * 3
@@ -49,14 +55,24 @@ class IsingEngine():
         time.sleep(0.001 * (100 - kwargs['SPEED']))
         return A, updateList
 
+    def equilibrate(self):
+        mont = self.kwargs['MONTEUPDATES']
+        self.kwargs['MONTEUPDATES'] = self.kwargs['EQUILIBRATE']
+        self.staticRun()
+        self.kwargs['MONTEUPDATES'] = mont
+
     # Run in background (waay fast)
-    def staticRun(self, canvas, **kwargs):
-        self.Array, updateList  = self.arrayUpdate(**kwargs)
-        canvas.exportList(updateList)
+    def staticRun(self):
+        self.Array, updateList  = self.arrayUpdate(**self.kwargs)
+        self.canvas.exportList(updateList)
 
     # Run and update image continuously
-    def dynamicRun(self, canvas, **kwargs):
-        for _ in range(kwargs['IMAGEUPDATES']):
-            self.Array, updateList = self.arrayUpdate(**kwargs)
-            canvas.exportList(updateList)
-            canvas.repaint()
+    def dynamicRun(self):
+        frameNum = 0
+        for _ in range(self.kwargs['IMAGEUPDATES']):
+            frameNum += 1
+            self.Array, updateList = self.arrayUpdate(**self.kwargs)
+            self.canvas.exportList(updateList)
+            self.canvas.repaint()
+            self.frameLabel.setText(str(frameNum) + ' / ')
+        self.frameLabel.setText('0000/')

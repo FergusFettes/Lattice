@@ -12,21 +12,24 @@ class Canvas(QLabel):
     def initialize(self, **kwargs):
         self.primaryColor = QColor(kwargs['PRIMARYCOLOR'])
         self.secondaryColor = QColor(kwargs['SECONDARYCOLOR'])
-        self.reset(**kwargs)
-        self.N = kwargs['N']
-        self.SCALE = kwargs['SCALE']
+        self.n = kwargs['N']
+        self.scale = kwargs['SCALE']
+        self.reset()
 
-    def reset(self, **kwargs):
-        self.setPixmap(QPixmap(kwargs['N'] * kwargs['SCALE'], kwargs['N'] * kwargs['SCALE']))
+    def reset(self):
+        self.setPixmap(QPixmap(self.n * self.scale, self.n * self.scale))
 
         self.pixmap().fill(self.primaryColor)
 
+    def setColor(self, color, newValue):
+        self.color = QColor(newValue)
+
     # Updates image with values from entire array. SLOW
     def exportArray(self, A):
-        im = QImage((self.N * self.SCALE), (self.N * self.SCALE), QImage.Format_ARGB32)
-        for i in range(self.N * self.SCALE):
-            for j in range(self.N * self.SCALE):
-                if A[int(i / self.SCALE)][int(j / self.SCALE)]==1:
+        im = QImage((self.n * self.scale), (self.n * self.scale), QImage.Format_ARGB32)
+        for i in range(self.n * self.scale):
+            for j in range(self.n * self.scale):
+                if A[int(i / self.scale)][int(j / self.scale)]==1:
                     im.setPixel(i, j, self.primaryColor.rgba())
                 else:
                     im.setPixel(i, j, self.secondaryColor.rgba())
@@ -40,12 +43,16 @@ class Canvas(QLabel):
     def exportList(self, L):
         im = self.pixmap().toImage()
         for el in L:
-            for i in range(self.SCALE):
-                for j in range(self.SCALE):
+            for i in range(self.scale):
+                for j in range(self.scale):
                     if el[2] == 1:
-                        im.setPixel((self.SCALE * el[0]) + i, (self.SCALE * el[1]) + j, self.primaryColor.rgba())
+                        im.setPixel((self.scale * el[0]) + i,\
+                                    (self.scale * el[1]) + j,\
+                                     self.primaryColor.rgba())
                     else:
-                        im.setPixel((self.SCALE * el[0]) + i, (self.SCALE * el[1]) + j, self.secondaryColor.rgba())
+                        im.setPixel((self.scale * el[0]) + i,\
+                                    (self.scale * el[1]) + j,\
+                                     self.secondaryColor.rgba())
 
         nupix = QPixmap()
         nupix.convertFromImage(im)

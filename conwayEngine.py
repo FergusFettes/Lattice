@@ -7,6 +7,7 @@ import numpy as np
 import random as ra
 import time
 
+from isingEngine import IsingEngine
 
 # TODO: build an awesome function that stochastically fluctuates the
 # background, killing cells when the alive list is too long and bringing them
@@ -20,6 +21,8 @@ class ConwayEngine():
         self.aliveList = []
         self.n = kwargs['N']
         self.frameLabel = frameLabel
+        self.Ising=IsingEngine()
+        self.Ising.initialize(canvas, frameLabel, **kwargs)
 
     def reset(self):
         self.canvas.Array = self.arrayInit(self.kwargs['N'], 1)
@@ -51,7 +54,8 @@ class ConwayEngine():
         return ARR
 
     # Diarmuid Engine
-    def arrayUpdate(self):
+    def arrayUpdate(self, rule):
+      # rule = 4
         A = self.canvas.Array
         l = np.roll(A, -1, axis=0)
         r = np.roll(A, 1, axis=0)
@@ -65,9 +69,20 @@ class ConwayEngine():
         #cells still alive after rule 1
         rule1 = np.bitwise_and(A, NB > 1)
         #alive cells that will live
-      # rule2 = np.bitwise_and(rule1, NB != 4)  #YES
-      # rule2 = np.bitwise_and(rule1, NB > 4)   #NotsoMuch
-        rule2 = np.bitwise_and(rule1, NB < 4)
+        if rule == 0:
+            rule2 = np.bitwise_and(rule1, NB < 4)   #NotsoMuch
+        elif rule == 1:
+            rule2 = np.bitwise_and(rule1, NB < 4)   #Default
+        elif rule == 2:
+            rule2 = np.bitwise_and(rule1, NB != 4)  #YES
+        elif rule == 3:
+            rule2 = np.bitwise_and(rule1, NB !=  5) #ALSO YES
+        elif rule == 4:
+            rule2 = np.bitwise_and(rule1, NB < 4) #ALSO YES
+        elif rule == 5:
+            rule2 = np.bitwise_and(rule1, NB < 4) #ALSO YES
+        elif rule == 9:
+            rule2 = np.bitwise_and(rule1, NB <  5)  #ALSO YES
         #dead cells that rebirth
         rule4 = np.bitwise_and(~A, NB == 3)
         #should just be the live cells
@@ -91,11 +106,13 @@ class ConwayEngine():
         frameNum = 0
         for _ in range(self.kwargs['IMAGEUPDATES']):
             frameNum += 1
-            self.canvas.Array, updateList = self.arrayUpdate()
+            self.canvas.Array, updateList = self.arrayUpdate(frameNum % 6)
             if updateList is None:
                 print('No change')
                 break
             self.canvas.exportList(self.addColorRow(updateList))
+            self.canvas.Array, updateList = self.Ising.arrayUpdate()
+            self.canvas.exportList(updateList)
             self.canvas.repaint()
             self.frameLabel.setText(str(frameNum) + ' / ')
         self.frameLabel.setText('0000/')

@@ -40,21 +40,21 @@ class IsingEngine():
 
     # Performs a monte carlo update. Could be exported to C, but this isn't
     # where the cycles go anyway
-    def arrayUpdate(self, A=None, cost=None, **kwargs):
-        A = A if A is not None else self.canvas.Array
-        cost = cost if cost is not None else self.cost
+    def arrayUpdate(self):
+        A = self.canvas.Array
+        cost = self.cost
         A = self.fattenArray(A)
-        N = kwargs['N']
+        N = self.kwargs['N']
         updateList=[]
-        for _ in range(kwargs['MONTEUPDATES']):
-            a = int(ra.random() * kwargs['N'])
-            b = int(ra.random() * kwargs['N'])
+        for _ in range(self.kwargs['MONTEUPDATES']):
+            a = int(ra.random() * self.kwargs['N'])
+            b = int(ra.random() * self.kwargs['N'])
             nb = A[a][b] * (A[(a + 1) % N][b] + A[(a - 1) % N][b] + A[a][(b + 1) % N] + A[a][(b - 1) % N])
             if nb <= 0 or ra.random() < cost[int(nb / 4)]:
                 A[a][b] = -A[a][b]
                 updateList.append([a,b,A[a][b]])
-        time.sleep(0.001 * (100 - kwargs['SPEED']))
-        return self.flattenArray(A), updateList
+        time.sleep(0.001 * (100 - self.kwargs['SPEED']))
+        return self.flattenArray(A), self.flattenForExport(updateList)
 
     def equilibrate(self):
         mont = self.kwargs['MONTEUPDATES']
@@ -65,7 +65,7 @@ class IsingEngine():
     # Run in background (waay fast)
     def staticRun(self):
         self.canvas.Array, updateList  = self.arrayUpdate(**self.kwargs)
-        self.canvas.exportList(self.flattenForExport(updateList))
+        self.canvas.exportList(updateList)
 
     # Run and update image continuously
     def dynamicRun(self):
@@ -73,7 +73,7 @@ class IsingEngine():
         for _ in range(self.kwargs['IMAGEUPDATES']):
             frameNum += 1
             self.canvas.Array, updateList = self.arrayUpdate(**self.kwargs)
-            self.canvas.exportList(self.flattenForExport(updateList))
+            self.canvas.exportList(updateList)
             self.canvas.repaint()
             self.frameLabel.setText(str(frameNum) + ' / ')
         self.frameLabel.setText('0000/')

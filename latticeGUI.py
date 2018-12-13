@@ -225,7 +225,7 @@ class MainWindow(QWidget):
         self.short.setText('Short')
         self.short.clicked.connect(self.engine.staticRun)
         self.equilibrate.setText('Clean Canvas')
-        self.equilibrate.clicked.connect(self.canvas.reset)
+        self.equilibrate.clicked.connect(self.engine.reset)
         self.dynamic.setText('Dynamic')
         self.dynamic.clicked.connect(self.engine.dynamicRun)
 

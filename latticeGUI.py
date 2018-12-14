@@ -9,6 +9,7 @@ from conwayEngine import ConwayEngine
 from latticeCanvas import Canvas
 
 import random as ra
+import re
 
 # Draws the main window and contains the simulation code
 # TODO: split the GUI and the simulations
@@ -81,6 +82,12 @@ class MainWindow(QWidget):
             self.gr.addWidget(temp, int(i / 2), i % 2)
         self.canvas.addColors(self.colorList, 2)
 
+        self.conwayLabel = QLabel()
+        self.conwayRules = QTextEdit()
+        self.textHolder = QVBoxLayout()
+        self.textHolder.addWidget(self.conwayLabel)
+        self.textHolder.addWidget(self.conwayRules)
+
         self.tempCtrl = QSlider(Qt.Vertical)
         self.tempCtrl.setTickPosition(QSlider.TicksLeft)
         self.tempCtrl.setTickInterval(20)
@@ -94,6 +101,7 @@ class MainWindow(QWidget):
         vb.addWidget(self.equilibrate)
         vb.addWidget(self.dynamic)
         vb.addLayout(self.gr)
+        vb.addLayout(self.textHolder)
         vb.addWidget(self.tempCtrl)
         vb.addWidget(self.tempLabel)
         vb.addWidget(exit_button)
@@ -236,6 +244,23 @@ class MainWindow(QWidget):
             temp = QPushButton()
             self.gr.addWidget(temp, int(i / 2), i % 2)
         self.canvas.addColors(self.colorList, self.degree)
+        self.spareButton = QPushButton('Huh?')
+        self.stochasticBox = QCheckBox('Stochi')
+        self.stochasticBox.setChecked(True)
+        self.stochasticBox.stateChanged.connect(self.stochasticChange)
+        self.gr.addWidget(self.spareButton, 1, 0)
+        self.gr.addWidget(self.stochasticBox, 1, 1)
+
+        self.conwayLabel.setText('Enter the rules below. Multiple Rules seperated\nby semicolon. NB = neighbors, P = parents')
+        self.conwayRules.setText('1 < NB < 4, P = 2;')
+        self.conwayPalette = self.conwayRules.palette()
+        self.conwayPalette.setColor(QPalette.Base, Qt.green)
+        self.conwayRules.setPalette(self.conwayPalette)
+        self.conwayRules.setAcceptRichText(False)
+        self.conwayRules.textChanged.connect(self.rulesChange)
+        regexMatchString=r'([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)((?:[0-9],\ ?)*[0-9]);'
+        ruleIter = re.finditer(regexMatchString, self.conwayRules.toPlainText())
+        self.engine.processRules(ruleIter)
 
         self.tempCtrl.disconnect()
         self.tempCtrl.setMinimum(1)
@@ -277,6 +302,25 @@ class MainWindow(QWidget):
         a = self.frameCtrl.previousInFocusChain()
         a.setFocus()
 
+    def rulesChange(self):
+        print('changin the rules')
+        regexTestString=r'^(?:([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)([0-9],\ ?)*([0-9]);[\ \n]*)+$'
+        regexMatchString=r'([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)((?:[0-9],\ ?)*[0-9]);'
+        text = self.conwayRules.toPlainText()
+        strTest = re.match(regexTestString, text)
+        if strTest is None:
+            self.conwayPalette.setColor(QPalette.Base, Qt.red)
+            self.conwayRules.setPalette(self.conwayPalette)
+        else:
+            self.conwayPalette.setColor(QPalette.Base, Qt.green)
+            self.conwayRules.setPalette(self.conwayPalette)
+            ruleIter = re.finditer(regexMatchString, text)
+            self.engine.processRules(ruleIter)
+
+    def stochasticChange(self):
+        self.stochastic = self.stochasticBox.isChecked()
+        self.changeKwarg('STOCHASTIC', self.stochastic)
+
     def speedChange(self):
         self.speed = self.speedCtrl.value()
         self.changeKwarg('SPEED', self.speed)
@@ -297,7 +341,7 @@ class MainWindow(QWidget):
         QCoreApplication.instance().quit()
 
     def keyPressEvent(self, e):
-        # print(e.key())
+        print(e.key())
         if e.key() == Qt.Key_Escape:
             QCoreApplication.instance().quit()
         elif e.key() == Qt.Key_D:

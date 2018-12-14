@@ -64,7 +64,7 @@ class IsingEngine():
 
     # Run in background (waay fast)
     def staticRun(self):
-        self.canvas.Array, updateList  = self.arrayUpdate(**self.kwargs)
+        self.canvas.Array, updateList  = self.arrayUpdate()
         self.canvas.exportList(updateList)
 
     # Run and update image continuously
@@ -72,7 +72,7 @@ class IsingEngine():
         frameNum = 0
         for _ in range(self.kwargs['IMAGEUPDATES']):
             frameNum += 1
-            self.canvas.Array, updateList = self.arrayUpdate(**self.kwargs)
+            self.canvas.Array, updateList = self.arrayUpdate()
             self.canvas.exportList(updateList)
             self.canvas.repaint()
             self.frameLabel.setText(str(frameNum) + ' / ')

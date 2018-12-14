@@ -23,7 +23,8 @@ def initVars():
         'MONTEUPDATES':1000,# MonteCarlo updates per frame
         'EQUILIBRATE':100000,
         'COVERAGE':5,
-        'NEWARR':1
+        'NEWARR':1,
+        'STOCHASTIC':True
     }
     return DEF
 

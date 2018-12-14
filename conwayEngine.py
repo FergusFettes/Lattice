@@ -19,7 +19,7 @@ class ConwayEngine():
         self.updateKwargs(**kwargs)
         self.canvas = canvas
         self.aliveList = []
-        self.n = kwargs['N']
+        self.rules = []
         self.frameLabel = frameLabel
         self.Ising=IsingEngine()
         self.Ising.initialize(canvas, frameLabel, **kwargs)
@@ -39,6 +39,8 @@ class ConwayEngine():
 
     def updateKwargs(self, **kwargs):
         self.coverage = kwargs['COVERAGE']
+        self.n = kwargs['N']
+        self.stochastic = kwargs['STOCHASTIC']
         self.kwargs = kwargs
         self.kwargs['MONTEUPDATES'] = 20
 
@@ -67,29 +69,23 @@ class ConwayEngine():
         dr = np.roll(r, -1, axis=1)
         NB = np.zeros(A.shape) + l + r + u + d + ul + dl + ur + dr
         #cells still alive after rule 1
-        rule1 = np.bitwise_and(A, NB > 1)
+        rule1 = np.bitwise_and(A, NB > self.rules[rule][0][0])
         #alive cells that will live
-        if rule == 0:
-            rule2 = np.bitwise_and(rule1, NB < 4)   #NotsoMuch
-        elif rule == 1:
-            rule2 = np.bitwise_and(rule1, NB < 4)   #Default
-        elif rule == 2:
-            rule2 = np.bitwise_and(rule1, NB != 4)  #YES
-        elif rule == 3:
-            rule2 = np.bitwise_and(rule1, NB !=  5) #ALSO YES
-        elif rule == 4:
-            rule2 = np.bitwise_and(rule1, NB < 4) #ALSO YES
-        elif rule == 5:
-            rule2 = np.bitwise_and(rule1, NB < 4) #ALSO YES
-        elif rule == 9:
-            rule2 = np.bitwise_and(rule1, NB <  5)  #ALSO YES
+        rule2 = np.bitwise_and(rule1, NB < self.rules[rule][1][0])
         #dead cells that rebirth
-        rule4 = np.bitwise_and(~A, NB == 3)
+        rule4 = np.bitwise_and(~A, NB == self.rules[rule][2][0])
         #should just be the live cells
         C = rule2 + rule4
         #np.argwhere should be a list of all the cells that have chang
         time.sleep(0.001 * (100 - self.kwargs['SPEED']))
         return C, np.argwhere(C != A)
+
+    # Is this obscene? All I am trying to do is unpack my regexes. No doubt
+    # there is a better (more readable / faster?) way of doing this.
+    # self.rules should be an array of all the values for the rules.
+    def processRules(self, rulesMatch):
+        rul = [i.group(1, 2, 3) for i in rulesMatch]
+        self.rules = [[list(map(int, j.split(','))) for j in i] for i in rul]
 
     def addColorRow(self, L):
         A = self.canvas.Array
@@ -97,22 +93,26 @@ class ConwayEngine():
 
     # Run in background (waay fast)
     def staticRun(self):
-        self.canvas.Array, updateList  = self.arrayUpdate()
+        self.canvas.Array, updateList  = self.arrayUpdate(0)
         if updateList:
             self.canvas.exportList(self.addColorRow(updateList))
+        if self.stochastic:
+            self.canvas.Array, updateList = self.Ising.arrayUpdate()
+            self.canvas.exportList(updateList)
 
     # Run and update image continuously
     def dynamicRun(self):
         frameNum = 0
         for _ in range(self.kwargs['IMAGEUPDATES']):
             frameNum += 1
-            self.canvas.Array, updateList = self.arrayUpdate(frameNum % 6)
+            self.canvas.Array, updateList = self.arrayUpdate(frameNum % len(self.rules))
             if updateList is None:
                 print('No change')
                 break
             self.canvas.exportList(self.addColorRow(updateList))
-            self.canvas.Array, updateList = self.Ising.arrayUpdate()
-            self.canvas.exportList(updateList)
+            if self.stochastic:
+                self.canvas.Array, updateList = self.Ising.arrayUpdate()
+                self.canvas.exportList(updateList)
             self.canvas.repaint()
             self.frameLabel.setText(str(frameNum) + ' / ')
         self.frameLabel.setText('0000/')

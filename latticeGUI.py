@@ -341,9 +341,11 @@ class MainWindow(QWidget):
         QCoreApplication.instance().quit()
 
     def keyPressEvent(self, e):
-        print(e.key())
+#       print(e.key())
         if e.key() == Qt.Key_Escape:
             QCoreApplication.instance().quit()
+        elif e.key() == 16777400:
+            self.speedCtrl.setFocus()
         elif e.key() == Qt.Key_D:
             self.speedCtrl.triggerAction(QSlider.SliderPageStepAdd)
         elif e.key() == Qt.Key_A:

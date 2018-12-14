@@ -231,7 +231,7 @@ class MainWindow(QWidget):
         self.coverage = kwargs['COVERAGE']
 
         self.short.setText('Short')
-        self.short.clicked.connect(self.engine.staticRun)
+      # self.short.clicked.connect(self.engine.staticRun)
         self.equilibrate.setText('Clean Canvas')
         self.equilibrate.clicked.connect(self.engine.reset)
         self.dynamic.setText('Dynamic')
@@ -260,7 +260,7 @@ class MainWindow(QWidget):
         self.conwayRules.textChanged.connect(self.rulesChange)
         regexMatchString=r'([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)((?:[0-9],\ ?)*[0-9]);'
         ruleIter = re.finditer(regexMatchString, self.conwayRules.toPlainText())
-        self.engine.processRules(ruleIter)
+        self.engine.thread.processRules(ruleIter)
 
         self.tempCtrl.disconnect()
         self.tempCtrl.setMinimum(1)
@@ -303,7 +303,6 @@ class MainWindow(QWidget):
         a.setFocus()
 
     def rulesChange(self):
-        print('changin the rules')
         regexTestString=r'^(?:([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)([0-9],\ ?)*([0-9]);[\ \n]*)+$'
         regexMatchString=r'([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)((?:[0-9],\ ?)*[0-9]);'
         text = self.conwayRules.toPlainText()
@@ -315,7 +314,7 @@ class MainWindow(QWidget):
             self.conwayPalette.setColor(QPalette.Base, Qt.green)
             self.conwayRules.setPalette(self.conwayPalette)
             ruleIter = re.finditer(regexMatchString, text)
-            self.engine.processRules(ruleIter)
+            self.engine.thread.processRules(ruleIter)
 
     def stochasticChange(self):
         self.stochastic = self.stochasticBox.isChecked()
@@ -341,9 +340,13 @@ class MainWindow(QWidget):
         QCoreApplication.instance().quit()
 
     def keyPressEvent(self, e):
-        print(e.key())
-        if e.key() == Qt.Key_Escape:
+#       print(e.key())
+        if e.key() == Qt.Key_F1:
             QCoreApplication.instance().quit()
+        elif e.key() == Qt.Key_Control:
+            self.speedCtrl.setFocus()
+        elif e.key() == Qt.Key_Escape:
+            self.engine.thread.quit()
         elif e.key() == Qt.Key_D:
             self.speedCtrl.triggerAction(QSlider.SliderPageStepAdd)
         elif e.key() == Qt.Key_A:

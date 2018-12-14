@@ -16,13 +16,10 @@ class ConwayEngine():
 
     def initialize(self, canvas, frameLabel, nuArr=None, **kwargs):
         nuArr = nuArr if nuArr is not None else 0
+        self.thread = conwayUpdateThread(canvas, frameLabel, **kwargs)
         self.updateKwargs(**kwargs)
         self.canvas = canvas
         self.aliveList = []
-        self.rules = []
-        self.frameLabel = frameLabel
-        self.Ising=IsingEngine()
-        self.Ising.initialize(canvas, frameLabel, **kwargs)
 
     def reset(self):
         self.canvas.Array = self.arrayInit(self.kwargs['N'], 1)
@@ -31,6 +28,10 @@ class ConwayEngine():
         self.findLiving(self.canvas.Array)
         self.canvas.exportList(self.addColorRow(self.aliveList))
 
+    def addColorRow(self, L):
+        A = self.canvas.Array
+        return[[i[0], i[1], A[i[0], i[1]]] for i in L]
+
     def findLiving(self, A):
         for i in range(self.n):
             for j in range(self.n):
@@ -38,11 +39,11 @@ class ConwayEngine():
                     self.aliveList.append([i, j])
 
     def updateKwargs(self, **kwargs):
+        self.thread.updateKwargs(**kwargs)
         self.coverage = kwargs['COVERAGE']
         self.n = kwargs['N']
         self.stochastic = kwargs['STOCHASTIC']
         self.kwargs = kwargs
-        self.kwargs['MONTEUPDATES'] = 20
 
     # Initialises the data array (invisible to user)
     def arrayInit(self, N, allUp):
@@ -54,6 +55,46 @@ class ConwayEngine():
                     self.aliveList.append([i, j])
                     ARR[i, j] = alive
         return ARR
+
+    # Run and update image continuously
+    def dynamicRun(self):
+        self.thread.start()
+
+# Added this as it is apparently the correct way to manage interrupts, but I'm
+# thinking maybe it also allows multithreading? Lets see.
+class conwayUpdateThread(QThread):
+
+    ArraySig = pyqtSignal(numpy.ndarray)
+    updateListSig = pyqtSignal()
+    frameLabelSig = pyqtSignal()
+
+    def __init__(self, **kwargs):
+        QThread.__init__(self)
+        self.Ising = IsingEngine()
+        self.Ising.initialize(canvas, frameLabel, **kwargs)
+        self.frameLabel = frameLabel
+        self.canvas = canvas
+        self.rules = []
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        frameNum = 0
+        for _ in range(self.imageUpdates):
+            frameNum += 1
+            self.canvas.Array, updateList = self.arrayUpdate(frameNum % len(self.rules))
+            print(updateList)
+            if updateList is None:
+                print('No change')
+                break
+            self.canvas.exportList(self.addColorRow(updateList))
+            if self.stochastic:
+                self.canvas.Array, updateList = self.Ising.arrayUpdate()
+                self.canvas.exportList(updateList)
+            self.canvas.repaint()
+            self.frameLabel.setText(str(frameNum) + ' / ')
+        self.frameLabel.setText('0000/')
 
     # Diarmuid Engine
     def arrayUpdate(self, rule):
@@ -80,6 +121,10 @@ class ConwayEngine():
         time.sleep(0.001 * (100 - self.kwargs['SPEED']))
         return C, np.argwhere(C != A)
 
+    def addColorRow(self, L):
+        A = self.canvas.Array
+        return[[i[0], i[1], A[i[0], i[1]]] for i in L]
+
     # Is this obscene? All I am trying to do is unpack my regexes. No doubt
     # there is a better (more readable / faster?) way of doing this.
     # self.rules should be an array of all the values for the rules.
@@ -87,32 +132,9 @@ class ConwayEngine():
         rul = [i.group(1, 2, 3) for i in rulesMatch]
         self.rules = [[list(map(int, j.split(','))) for j in i] for i in rul]
 
-    def addColorRow(self, L):
-        A = self.canvas.Array
-        return[[i[0], i[1], A[i[0], i[1]]] for i in L]
-
-    # Run in background (waay fast)
-    def staticRun(self):
-        self.canvas.Array, updateList  = self.arrayUpdate(0)
-        if updateList:
-            self.canvas.exportList(self.addColorRow(updateList))
-        if self.stochastic:
-            self.canvas.Array, updateList = self.Ising.arrayUpdate()
-            self.canvas.exportList(updateList)
-
-    # Run and update image continuously
-    def dynamicRun(self):
-        frameNum = 0
-        for _ in range(self.kwargs['IMAGEUPDATES']):
-            frameNum += 1
-            self.canvas.Array, updateList = self.arrayUpdate(frameNum % len(self.rules))
-            if updateList is None:
-                print('No change')
-                break
-            self.canvas.exportList(self.addColorRow(updateList))
-            if self.stochastic:
-                self.canvas.Array, updateList = self.Ising.arrayUpdate()
-                self.canvas.exportList(updateList)
-            self.canvas.repaint()
-            self.frameLabel.setText(str(frameNum) + ' / ')
-        self.frameLabel.setText('0000/')
+    def updateKwargs(self, **kwargs):
+        self.coverage = kwargs['COVERAGE']
+        self.n = kwargs['N']
+        self.imageUpdates = kwargs['IMAGEUPDATES']
+        self.stochastic = kwargs['STOCHASTIC']
+        self.kwargs = kwargs

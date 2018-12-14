@@ -15,6 +15,7 @@ class Canvas(QLabel):
     def initialize(self, **kwargs):
         self.primaryColor = QColor(kwargs['PRIMARYCOLOR'])
         self.secondaryColor = QColor(kwargs['SECONDARYCOLOR'])
+        self.interrupt = False
         self.colorList = []
         self.degree = 2
         self.n = kwargs['N']
@@ -33,6 +34,9 @@ class Canvas(QLabel):
     def addColors(self, colorList, degree):
         self.colorList = colorList
         self.degree = degree
+
+    def INTERRUPT(self, state):
+        self.interrupt
 
     # Updates image with values from entire array. SLOW
     def exportArray(self):

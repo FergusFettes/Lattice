@@ -91,6 +91,12 @@ class ConwayEngine():
         A = self.canvas.Array
         return[[i[0], i[1], A[i[0], i[1]]] for i in L]
 
+    def equilibrate(self):
+        mont = self.kwargs['MONTEUPDATES']
+        self.kwargs['MONTEUPDATES'] = self.kwargs['EQUILIBRATE']
+        self.staticRun()
+        self.kwargs['MONTEUPDATES'] = mont
+
     # Run in background (waay fast)
     def staticRun(self):
         self.canvas.Array, updateList  = self.arrayUpdate(0)

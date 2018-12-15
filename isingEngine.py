@@ -11,16 +11,17 @@ import time
 class IsingEngine():
 
     def initialize(self, canvas, frameLabel,  **kwargs):
+        self.updateKwargs(**kwargs)
         self.canvas = canvas
-        self.n = kwargs['N']
         if kwargs['NEWARR']:
             self.canvas.Array = self.arrayInit(kwargs['N'], kwargs['ALLUP'])
         self.costUpdate(kwargs['BETA'])
-        self.kwargs = kwargs
         self.frameLabel = frameLabel
 
     def updateKwargs(self, **kwargs):
         self.kwargs = kwargs
+        self.n = kwargs['N']
+        self.speed = kwargs['SPEED']
 
     def costUpdate(self, beta):
         self.cost = [0] * 3
@@ -28,33 +29,30 @@ class IsingEngine():
         self.cost[2] = self.cost[1] ** 2
 
     # Initialises the data array (invisible to user)
-    def arrayInit(self, N, allUp):
-        ARR = np.ones((N, N), int)
-        if allUp:
-            return ARR
-        for i in range(0, N):
-            for j in range(0, N):
-                if ra.random() > 0.5:
-                    ARR[i, j] = -1
-        return self.flattenArray(ARR)
+    def arrayInit(self, N, THRESHOLD):
+        return np.random.random([N,N]) > THRESHOLD
 
     # Performs a monte carlo update. Could be exported to C, but this isn't
     # where the cycles go anyway
     def arrayUpdate(self):
         A = self.canvas.Array
+        C = np.copy(A)
         cost = self.cost
-        A = self.fattenArray(A)
-        N = self.kwargs['N']
-        updateList=[]
+        N = self.n
         for _ in range(self.kwargs['MONTEUPDATES']):
-            a = int(ra.random() * self.kwargs['N'])
-            b = int(ra.random() * self.kwargs['N'])
-            nb = A[a][b] * (A[(a + 1) % N][b] + A[(a - 1) % N][b] + A[a][(b + 1) % N] + A[a][(b - 1) % N])
-            if nb <= 0 or ra.random() < cost[int(nb / 4)]:
-                A[a][b] = -A[a][b]
-                updateList.append([a,b,A[a][b]])
-        time.sleep(0.001 * (100 - self.kwargs['SPEED']))
-        return self.flattenArray(A), self.flattenForExport(updateList)
+            a = np.random.randint(self.n)
+            b = np.random.randint(self.n)
+            nb = np.sum([A[a][b] == A[(a + 1) % N][b], \
+                  A[a][b] == A[(a - 1) % N][b], \
+                  A[a][b] == A[a][(b + 1) % N], \
+                  A[a][b] == A[a][(b - 1) % N], \
+                  -2])
+            if nb <= 0 or np.random.random() < cost[nb]:
+                A[a][b] = not A[a][b]
+        time.sleep(0.001 * (100 - self.speed))
+        posList = np.argwhere(C != A)
+        updateList = [[el[0], el[1], A[el[0], el[1]]] for el in posList]
+        return A, updateList
 
     def equilibrate(self):
         mont = self.kwargs['MONTEUPDATES']
@@ -77,21 +75,3 @@ class IsingEngine():
             self.canvas.repaint()
             self.frameLabel.setText(str(frameNum) + ' / ')
         self.frameLabel.setText('0000/')
-
-    # Flattens the list so it works with the normal color scheme
-    def flattenForExport(self, listIn):
-        for idx,_ in enumerate(listIn):
-            listIn[idx][2] = int((listIn[idx][2] + 1) / 2)
-        return listIn
-
-    def flattenArray(self, A):
-        for i in range(self.n):
-            for j in range(self.n):
-                A[i][j] = int((A[i][j] + 1) / 2)
-        return A
-
-    def fattenArray(self, A):
-        for i in range(self.n):
-            for j in range(self.n):
-                A[i][j] = int((2 * A[i][j]) - 1)
-        return A

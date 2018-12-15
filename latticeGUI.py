@@ -3,7 +3,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from functools import partial
 
-from isingEngine import IsingEngine
+# from isingEngine import IsingEngine
+from latticeWorkers import *
 from pottsEngine import PottsEngine
 from conwayEngine import ConwayEngine
 from latticeCanvas import Canvas
@@ -303,7 +304,6 @@ class MainWindow(QWidget):
         a.setFocus()
 
     def rulesChange(self):
-        print('changin the rules')
         regexTestString=r'^(?:([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)([0-9],\ ?)*([0-9]);[\ \n]*)+$'
         regexMatchString=r'([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)((?:[0-9],\ ?)*[0-9]);'
         text = self.conwayRules.toPlainText()

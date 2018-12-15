@@ -3,8 +3,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from functools import partial
 
-# from isingEngine import IsingEngine
-from latticeWorkers import *
+from isingEngine import IsingEngine
+# from latticeWorkers import *
 from pottsEngine import PottsEngine
 from conwayEngine import ConwayEngine
 from latticeCanvas import Canvas

@@ -54,6 +54,52 @@ class IsingEngine():
         updateList = [[el[0], el[1], A[el[0], el[1]]] for el in posList]
         return A, updateList
 
+    # This version is not legitimate, but it certainly is fast
+    def arrayUpdateNOTWORKING(self):
+        A = self.canvas.Array
+        N = len(A)
+        updates = self.kwargs['MONTEUPDATES']
+        l = np.roll(A, -1, axis=0)
+        r = np.roll(A, 1, axis=0)
+        u = np.roll(A, 1 , axis=1)
+        d = np.roll(A, -1, axis=1)
+        NB = np.zeros(A.shape) + l + r + u + d
+        # Select a bunch of positions
+        msk = np.random.random(A.shape) > (updates / (N * N))
+        # Split them into spin dead and alive
+        mskUp = np.bitwise_and(A, msk)
+        mskDown = np.bitwise_and(~A, msk)
+        # Flip them quick if they gain energy
+        flip0U = np.bitwise_and(mskUp, NB <= 2)
+        flip0D = np.bitwise_and(mskDown, NB >= 2)
+        # Find all the ones that weren't flipped quick
+        remainU = np.bitwise_xor(mskUp, flip0U)
+        remainD = np.bitwise_xor(mskDown, flip0D)
+        # Create a random number for each remaining position
+        oddsU = np.random.random(A.shape) * remainU
+        oddsD = np.random.random(A.shape) * remainD
+        # Further split the odds into a set for NB = 3,4
+        odds3U = np.bitwise_and(remainU, NB == 3) * oddsU
+        odds3D = np.bitwise_and(remainD, NB == 1) * oddsD
+        odds4U = np.bitwise_and(remainU, NB == 4) * oddsU
+        odds4D = np.bitwise_and(remainD, NB == 0) * oddsD
+        # Finally, flip them if they satisfy the condition
+        flip3U = np.bitwise_and(A, odds3U < self.cost[1])
+        flip3U = np.bitwise_and(flip3U, odds3U > 0)
+        flip3D = np.bitwise_and(A, odds3D < self.cost[1])
+        flip3D = np.bitwise_and(flip3D, odds3D > 0)
+        flip4U = np.bitwise_and(A, odds4U < self.cost[2])
+        flip4U = np.bitwise_and(flip4U, odds4U > 0)
+        flip4D = np.bitwise_and(A, odds4D < self.cost[2])
+        flip4D = np.bitwise_and(flip4D, odds4D > 0)
+        flip = np.zeros(A.shape, bool) + flip0U + flip0D + flip3U + flip3D + flip4U + flip4D
+        B = np.bitwise_xor(A, flip)
+        self.array = B
+        time.sleep(0.001 * (100 - self.speed))
+        posList = np.argwhere(B != A)
+        updateList = [[el[0], el[1], A[el[0], el[1]]] for el in posList]
+        return B, updateList
+
     def equilibrate(self):
         mont = self.kwargs['MONTEUPDATES']
         self.kwargs['MONTEUPDATES'] = self.kwargs['EQUILIBRATE']

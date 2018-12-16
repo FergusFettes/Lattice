@@ -132,7 +132,6 @@ class conwayUpdateThread(QThread):
         rul = [i.group(1, 2, 3) for i in rulesMatch]
         self.rules = [[list(map(int, j.split(','))) for j in i] for i in rul]
 
-<<<<<<< HEAD:oldVersionIsingPotts/conwayEngine.py
     def addColorRow(self, L):
         A = self.canvas.Array
         return[[i[0], i[1], A[i[0], i[1]]] for i in L]
@@ -168,11 +167,3 @@ class conwayUpdateThread(QThread):
             self.canvas.repaint()
             self.frameLabel.setText(str(frameNum) + ' / ')
         self.frameLabel.setText('0000/')
-=======
-    def updateKwargs(self, **kwargs):
-        self.coverage = kwargs['COVERAGE']
-        self.n = kwargs['N']
-        self.imageUpdates = kwargs['IMAGEUPDATES']
-        self.stochastic = kwargs['STOCHASTIC']
-        self.kwargs = kwargs
->>>>>>> thread:conwayEngine.py

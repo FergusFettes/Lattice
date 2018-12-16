@@ -23,6 +23,7 @@ class stochasticUpdater(QObject):
 
     def change_threshold(self, threshold):
         self.threshold = threshold
+        print(threshold)
 
     def change_array(self, array):
         self.array = array
@@ -138,6 +139,7 @@ class arrayHandler(QObject):
         self.arrayOld = np.zeros([N, N], bool)
         self.living = np.zeros([0, 2], bool)
         self.change = np.zeros([0, 3], bool)
+        self.double = True
 
         self.noise_init()
         self.ising_init()
@@ -156,7 +158,11 @@ class arrayHandler(QObject):
     def update_array(self, array):
         sender = self.sender()
         self.arrayOld = self.array
-        self.array = array
+        print(self.double)
+        if self.double:
+            self.array = np.bitwise_or(self.arrayOld, array)
+        else:
+            self.array = array
         self.update_living()
         self.update_change()
         self.noiser.change_array(self.array)
@@ -270,6 +276,8 @@ class EngineOperator():
         self.breaker = True
 
     def dynamic_run(self):
+        if self.conway and self.kwargs['STOCHASTIC']:
+            self.handler.double = True
         now = time.time()
         for i in range(self.kwargs['IMAGEUPDATES']):
             if self.breaker:
@@ -288,13 +296,17 @@ class EngineOperator():
             now = time.time()
         self.framelabel.setText('0000/ ')
         self.canvas.repaint()
+        self.handler.double = False
 
     def static_run(self):
+        if self.conway and self.kwargs['STOCHASTIC']:
+            self.handler.double = True
         if self.kwargs['STOCHASTIC']:
             self.handler.isingUp.process(self.kwargs['MONTEUPDATES'])
         if self.conway:
             self.handler.conwayUp.process()
         self.canvas.export_list(self.handler.change, 0)
+        self.handler.double = False
 
     def long_run(self):
         if self.kwargs['STOCHASTIC']:

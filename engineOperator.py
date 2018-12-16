@@ -66,8 +66,8 @@ class isingUpdater(QObject):
         self.arraySig.emit(self.array)
         self.finished.emit()
 
-    def update_array_proper(self, updates):
-        A = np.copy(self.array)
+    def update_array(self, updates):
+        A = self.array
         N = len(A)
         for _ in range(updates):
             a = np.random.randint(N)
@@ -79,12 +79,12 @@ class isingUpdater(QObject):
                   -2])
             if nb <= 0 or np.random.random() < self.cost[nb]:
                 A[a][b] = not A[a][b]
+        self.array = A
         return A
 
     # Diarmuid's sneaky engine. NON-CANON, COMPUTATIONAL PHYSICISTS PLEASE LOOK AWAY
-    def update_array(self, iterations):
+    def update_arra1(self, iterations):
         a = self.array
-        print(a)
         #i think things are easier if the costs are an array
         #of masks
         top = np.roll(a,-1,axis=0)
@@ -94,7 +94,6 @@ class isingUpdater(QObject):
         NB = np.zeros(a.shape)
         for matrix in [top, bottom, left, right]:
             NB += np.equal(a, matrix)
-        print(NB)
         #I'm not sure if this is the right way to
         #calc the threshold
         threshold = iterations / (a.shape[0] ** 2)
@@ -116,7 +115,8 @@ class isingUpdater(QObject):
             #still be boolean
             flip_mask += np.bitwise_and(b,rndm_mask < self.cost[i])
 
-        return np.invert(a, where=flip_mask)
+        self.array = np.invert(a, where=flip_mask)
+        return self.array
 
 
 class conwayUpdater(QObject):

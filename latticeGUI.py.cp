@@ -3,7 +3,10 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from functools import partial
 
-from engineOperator import *
+from isingEngine import IsingEngine
+# from latticeWorkers import *
+from pottsEngine import PottsEngine
+from conwayEngine import ConwayEngine
 from latticeCanvas import Canvas
 
 import random as ra
@@ -43,23 +46,25 @@ class MainWindow(QWidget):
         self.frameLabel = QLabel()
 
         kwargs = self.kwargs
-        self.engine = EngineOperator(self.canvas, self.frameLabel, **kwargs)
+        self.engine = ConwayEngine()
+        self.engine.initialize(self.canvas, self.frameLabel, **kwargs)
 
         self.dynamic = QPushButton()
         self.dynamic.setText('Dynamic')
         self.dynamic.setStyleSheet('QPushButton { background-color: %s; }' %  \
                                          self.primaryColor.name())
-        self.dynamic.clicked.connect(self.engine.dynamic_run)
+        self.dynamic.clicked.connect(self.engine.dynamicRun)
 
         self.short = QPushButton()
         self.equilibrate = QPushButton()
         self.short.setText('Step')
-        self.short.clicked.connect(self.engine.static_run)
+        self.short.clicked.connect(self.engine.staticRun)
         self.equilibrate.setText('Long')
-        self.equilibrate.clicked.connect(self.engine.long_run)
+        self.equilibrate.clicked.connect(self.engine.equilibrate)
         self.clear = QPushButton()
         self.clear.setText('Clear')
-        self.clear.clicked.connect(self.engine.noise_array)
+        self.clear.clicked.connect(self.engine.reset)
+        #TODO add clear to engine
         self.thresholdCtrl = QSlider(Qt.Vertical)
         self.thresholdCtrl.setTickPosition(QSlider.TicksRight)
         self.thresholdCtrl.setTickInterval(20)
@@ -94,7 +99,8 @@ class MainWindow(QWidget):
         self.conwayRules.textChanged.connect(self.rulesChange)
         regexMatchString=r'([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)((?:[0-9],\ ?)*[0-9]);'
         ruleIter = re.finditer(regexMatchString, self.conwayRules.toPlainText())
-        self.engine.process_rules(ruleIter)
+        self.engine.processRules(ruleIter)
+        # TODO make the rule updater kill conway if its red, but wiats a little
 
         self.automataLabel = QLabel('Automata Rules: 0101010')
         self.automataString = QLineEdit()
@@ -177,16 +183,6 @@ class MainWindow(QWidget):
             temp = QPushButton('tst')
             self.gr.addWidget(temp, i % 2, int(i / 2))
         self.canvas.addColors(self.colorList, 2)
-#       while len(self.colorList) > 2:
-#           self.colorList.pop()
-#       for i in range(2, self.degree):
-#           temp = QPushButton()
-#           self.gr.addWidget(temp, int(i / 2), i % 2)
-#           colHex = int(ra.random() * int('0xffffffff', 16))
-#           temp.setStyleSheet('QPushButton { background-color: %s; }' %  \
-#                              QColor.fromRgba(colHex).name())
-#           self.colorList.append(colHex)
-#       self.canvas.addColors(self.colorList, self.degree)
 
         vb = QVBoxLayout()
         vb.addWidget(self.dynamic)
@@ -235,7 +231,7 @@ class MainWindow(QWidget):
         rbb.addWidget(self.frameLabel)
         rbb.addWidget(self.frameCtrl)
         self.stochasticBox = QCheckBox('Stochi')
-        self.stochasticBox.setChecked(kwargs['STOCHASTIC'])
+        self.stochasticBox.setChecked(True)
         self.stochasticBox.stateChanged.connect(self.stochasticChange)
         rbb2 = QHBoxLayout()
         rbb2.addWidget(self.tempLabel)
@@ -262,9 +258,147 @@ class MainWindow(QWidget):
         # 'for_window [window_role='popup'] floating enable'
         self.setWindowRole('popup')
 
+#   def initIsingUI(self):
+#       kwargs = self.kwargs
+#       self.engine = IsingEngine()
+#       self.engine.initialize(self.canvas, self.frameLabel, **kwargs)
+#       self.changeKwarg('NEWARR', 0)
+
+#       self.short.setText('Short')
+#       self.short.clicked.connect(self.engine.staticRun)
+#       self.equilibrate.setText('Equilibrate')
+#       self.equilibrate.clicked.connect(self.engine.equilibrate)
+#       self.dynamic.setText('Dynamic')
+#       self.dynamic.clicked.connect(self.engine.dynamicRun)
+
+#       # Clears the color buttons
+#       for i in range(2, self.kwargs['DEGREE']):
+#           temp = QPushButton()
+#           self.gr.addWidget(temp, int(i / 2), i % 2)
+
+#       self.tempCtrl.disconnect()
+#       self.tempCtrl.setMinimum(10)
+#       self.tempCtrl.setMaximum(150)
+#       self.tempCtrl.setPageStep(20)
+#       self.tempCtrl.setValue(kwargs['BETA'] * 100)
+#       self.tempCtrl.valueChanged.connect(self.sliderChange)
+#       self.tempLabel.setText('Beta = ' + str(kwargs['BETA']))
+
+#       exit_button = QPushButton('EXIT!')
+#       exit_button.clicked.connect(self.exit_button_clicked)
+
+#       self.speedCtrl.setMinimum(1)
+#       self.speedCtrl.setMaximum(100)
+#       self.speedCtrl.setValue(kwargs['SPEED'])
+#       self.speedCtrl.valueChanged.connect(self.speedChange)
+#       self.speedLabel.setText('Speed = ' + str(kwargs['SPEED']) + '%')
+#       self.frameCtrl.setValue(kwargs['IMAGEUPDATES'])
+#       self.frameCtrl.valueChanged.connect(self.frameChange)
+
+#   def initPottsUI(self):
+#       kwargs = self.kwargs
+#       self.engine = PottsEngine()
+#       self.engine.initialize(self.canvas, self.frameLabel, **kwargs)
+#       self.degree = kwargs['DEGREE']
+
+#       self.short.setText('Short')
+#       self.short.clicked.connect(self.engine.staticRun)
+#       self.equilibrate.setText('Equilibrate')
+#       self.equilibrate.clicked.connect(self.engine.equilibrate)
+#       self.dynamic.setText('Dynamic')
+#       self.dynamic.clicked.connect(self.engine.dynamicRun)
+
+#       while len(self.colorList) > 2:
+#           self.colorList.pop()
+#       for i in range(2, self.degree):
+#           temp = QPushButton()
+#           self.gr.addWidget(temp, int(i / 2), i % 2)
+#           colHex = int(ra.random() * int('0xffffffff', 16))
+#           temp.setStyleSheet('QPushButton { background-color: %s; }' %  \
+#                              QColor.fromRgba(colHex).name())
+#           self.colorList.append(colHex)
+#       self.canvas.addColors(self.colorList, self.degree)
+
+#       self.tempCtrl.disconnect()
+#       self.tempCtrl.setMinimum(10)
+#       self.tempCtrl.setMaximum(350)
+#       self.tempCtrl.setPageStep(20)
+#       self.tempCtrl.setValue(kwargs['BETA'] * 100)
+#       self.tempCtrl.valueChanged.connect(self.sliderChange)
+#       self.tempLabel.setText('Beta = ' + str(kwargs['BETA']))
+
+#       exit_button = QPushButton('EXIT!')
+#       exit_button.clicked.connect(self.exit_button_clicked)
+
+#       self.speedCtrl.setMinimum(1)
+#       self.speedCtrl.setMaximum(100)
+#       self.speedCtrl.setValue(kwargs['SPEED'])
+#       self.speedCtrl.valueChanged.connect(self.speedChange)
+#       self.speedLabel.setText('Speed = ' + str(kwargs['SPEED']) + '%')
+#       self.frameCtrl.setValue(kwargs['IMAGEUPDATES'])
+#       self.frameCtrl.valueChanged.connect(self.frameChange)
+
+#   def initConwayUI(self):
+#       kwargs = self.kwargs
+#       self.engine = ConwayEngine()
+#       self.engine.initialize(self.canvas, self.frameLabel,  **kwargs)
+#       self.degree = 2
+#       self.coverage = kwargs['COVERAGE']
+
+#       self.short.setText('Short')
+#       self.short.clicked.connect(self.engine.staticRun)
+#       self.equilibrate.setText('Clean Canvas')
+#       self.equilibrate.clicked.connect(self.engine.reset)
+#       self.dynamic.setText('Dynamic')
+#       self.dynamic.clicked.connect(self.engine.dynamicRun)
+
+#       while len(self.colorList) > 2:
+#           self.colorList.pop()
+#       # Clears the buttons
+#       for i in range(2, self.kwargs['DEGREE']):
+#           temp = QPushButton()
+#           self.gr.addWidget(temp, int(i / 2), i % 2)
+#       self.canvas.addColors(self.colorList, self.degree)
+#       self.spareButton = QPushButton('Huh?')
+#       self.stochasticBox = QCheckBox('Stochi')
+#       self.stochasticBox.setChecked(True)
+#       self.stochasticBox.stateChanged.connect(self.stochasticChange)
+#       self.gr.addWidget(self.spareButton, 1, 0)
+#       self.gr.addWidget(self.stochasticBox, 1, 1)
+
+#       self.conwayLabel.setText('Enter the rules below. Multiple Rules seperated\nby semicolon. NB = neighbors, P = parents')
+#       self.conwayRules.setText('1 < NB < 4, P = 2;')
+#       self.conwayPalette = self.conwayRules.palette()
+#       self.conwayPalette.setColor(QPalette.Base, Qt.green)
+#       self.conwayRules.setPalette(self.conwayPalette)
+#       self.conwayRules.setAcceptRichText(False)
+#       self.conwayRules.textChanged.connect(self.rulesChange)
+#       regexMatchString=r'([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)((?:[0-9],\ ?)*[0-9]);'
+#       ruleIter = re.finditer(regexMatchString, self.conwayRules.toPlainText())
+#       self.engine.processRules(ruleIter)
+
+#       self.tempCtrl.disconnect()
+#       self.tempCtrl.setMinimum(1)
+#       self.tempCtrl.setPageStep(2)
+#       self.tempCtrl.setMaximum(40)
+#       self.tempCtrl.setValue(kwargs['COVERAGE'])
+#       self.tempCtrl.valueChanged.connect(self.coverageChange)
+#       self.tempLabel.setText('Coverage')
+
+#       exit_button = QPushButton('EXIT!')
+#       exit_button.clicked.connect(self.exit_button_clicked)
+
+#       self.speedCtrl.setMinimum(1)
+#       self.speedCtrl.setMaximum(100)
+#       self.speedCtrl.setValue(kwargs['SPEED'])
+#       self.speedCtrl.valueChanged.connect(self.speedChange)
+#       self.speedLabel.setText('Speed = ' + str(kwargs['SPEED']) + '%')
+#       self.frameCtrl.setValue(kwargs['IMAGEUPDATES'])
+#       self.frameCtrl.valueChanged.connect(self.frameChange)
+
     def changeKwarg(self, kwarg, nuVal):
         self.kwargs[kwarg] = nuVal
-        self.engine.update_kwargs(**self.kwargs)
+        self.engine.updateKwargs(**self.kwargs)
 
     def choose_color(self, callback, *args):
         dlg = QColorDialog()
@@ -291,15 +425,11 @@ class MainWindow(QWidget):
         if strTest is None:
             self.conwayPalette.setColor(QPalette.Base, Qt.red)
             self.conwayRules.setPalette(self.conwayPalette)
-            ruleIter = re.finditer(regexTestString, text)
-            self.engine.process_rules(ruleIter)
-            time.sleep(0.1)
         else:
             self.conwayPalette.setColor(QPalette.Base, Qt.green)
             self.conwayRules.setPalette(self.conwayPalette)
             ruleIter = re.finditer(regexMatchString, text)
-            self.engine.process_rules(ruleIter)
-            time.sleep(0.1)
+            self.engine.processRules(ruleIter)
 
     def stochasticChange(self):
         self.stochastic = self.stochasticBox.isChecked()
@@ -313,11 +443,12 @@ class MainWindow(QWidget):
     def coverageChange(self):
         self.coverage = self.thresholdCtrl.value()
         self.changeKwarg('COVERAGE', self.coverage)
-        self.thresholdLabel.setText('Coverage = ' + str(self.coverage) + '%')
+        self.tempLabel.setText('Coverage = ' + str(self.coverage) + '%')
 
     def sliderChange(self):
         self.beta = self.tempCtrl.value() / 100
         self.changeKwarg('BETA', self.beta)
+        self.engine.costUpdate(self.beta)
         self.tempLabel.setText('Beta = ' + str(self.beta))
 
     def exit_button_clicked(self):

@@ -34,7 +34,7 @@ class stochasticUpdater(QObject):
 
     def update_array(self):
         array = self.array
-        n = np.shape(array)
+        n = array.shape
         A = np.random.random(n) > self.threshold
         B = np.bitwise_xor(array, A)
         return B
@@ -45,7 +45,7 @@ class isingUpdater(QObject):
     finished = pyqtSignal()
     error = pyqtSignal(str)
 
-    def __init__(self, array, beta):
+    def __init__(self, array, beta=1 / 8):
         """Ising-processes a given array."""
         QObject.__init__(self)
         self.change_array(array)
@@ -65,7 +65,7 @@ class isingUpdater(QObject):
         self.finished.emit()
 
     def update_array(self, updates):
-        A = self.array
+        A = np.copy(self.array)
         N = len(A)
         for _ in range(updates):
             a = np.random.randint(N)
@@ -77,7 +77,6 @@ class isingUpdater(QObject):
                   -2])
             if nb <= 0 or np.random.random() < self.cost[nb]:
                 A[a][b] = not A[a][b]
-        self.array = A # This does nothing right? Because it a shallow copy..
         return A
 
 class conwayUpdater(QObject):
@@ -144,18 +143,25 @@ class arrayHandler(QObject):
         self.ising_init()
         self.conway_init()
 
-        self.reset_array(N)
+        self.reset_array()
 
-    def reset_array(self, N):
+    def reset_array(self):
+        a = np.zeros([self.n, self.n], bool)
+        self.update_array(a)
+
+    def resize_array(self, N):
+        self.n = N
         self.update_array(np.zeros([N, N], bool))
-        self.noiser.update_array(self.array)
-        self.isingUp.update_array(self.array)
-        self.conwayUp.update_array(self.array)
 
     def update_array(self, array):
+        sender = self.sender()
         self.arrayOld = self.array
         self.array = array
         self.update_living()
+        self.update_change()
+        self.noiser.change_array(self.array)
+        self.isingUp.change_array(self.array)
+        self.conwayUp.change_array(self.array)
 
     def update_living(self):
         self.living = np.argwhere(self.array)
@@ -171,8 +177,10 @@ class arrayHandler(QObject):
         common = np.bitwise_and(self.array, self.arrayOld)
         onlyOld = np.bitwise_xor(common, self.arrayOld)
         onlyNew = np.bitwise_xor(common, self.array)
-        b = np.concatenate((np.argwhere(onlyNew), np.ones([births.shape[0], 1])), axis=1)
-        d = np.concatenate((np.argwhere(onlyOld), np.zeros([deaths.shape[0], 0])), axis=1)
+        births = np.argwhere(onlyNew)
+        deaths = np.argwhere(onlyOld)
+        b = np.concatenate((births, np.ones([births.shape[0], 1], int)), axis=1)
+        d = np.concatenate((deaths, np.zeros([deaths.shape[0], 1], int)), axis=1)
         self.change = np.concatenate((b, d))
 
     def error_string(self, error='Unlabelled Error! Oh no!'):
@@ -200,34 +208,50 @@ class arrayHandler(QObject):
         self.conwayUp.arraySig.connect(self.update_array)
         self.conwayThread.start()
 
+    def ising_init(self, beta=1 / 8):
+        self.isingThread = QThread()
+        self.isingUp = isingUpdater(self.array, beta)
+        self.isingUp.moveToThread(self.isingThread)
+        self.isingThread.started.connect(self.isingUp.process)
+        self.isingUp.error.connect(self.error_string)
+        self.isingUp.finished.connect(self.isingThread.quit)
+        self.isingThread.finished.connect(self.isingThread.deleteLater)
+        self.isingUp.arraySig.connect(self.update_array)
+        self.isingThread.start()
+
 class EngineOperator():
 # This badboy assigns the tasks to the array manager and the canvas
 
-    def __init__(self, **kwargs):#, canvas, framelabel, **kwargs):
+    def __init__(self, canvas, framelabel, **kwargs):
     # The kwargs consists of the following: speed, updates, frames, beta,
     # stochastic?, threshold/coverage.
         self.kwargs = kwargs
         self.framecounter = 0
         self.rules = []
         self.breaker = False
+        self.conway = True
 
-      #  self.canvas = canvas
+        self.canvas = canvas
         self.handler = arrayHandler(self.kwargs['N'])
       # self.handler.breakSig.connect(self.breaker)
-      # self.framelabel = framelabel
+        self.framelabel = framelabel
 
     def reset(self):
         self.handler.reset_array()
         self.framecounter = 0
-      #  self.canvas.reset()
+        self.canvas.Array = self.handler.array
+        self.canvas.reset()
+        self.canvas.export_list(self.handler.living, 1)
 
     def noise_array(self):
+        self.canvas.reset()
         self.handler.reset_array()
         self.handler.noiser.process()
+        self.canvas.export_list(self.handler.change, 0)
 
     def update_kwargs(self, **kwargs):
         self.kwargs = kwargs
-        self.handler.noiser.change_threshold(1-kwargs['COVERAGE'])
+        self.handler.noiser.change_threshold(1-(kwargs['COVERAGE'] / 100))
         self.handler.isingUp.change_cost(kwargs['BETA'])
 
     # Is this obscene? All I am trying to do is unpack my regexes. No doubt
@@ -236,7 +260,11 @@ class EngineOperator():
     def process_rules(self, rulesMatch):
         rul = [i.group(1, 2, 3) for i in rulesMatch]
         self.rules = [[list(map(int, j.split(','))) for j in i] for i in rul]
-        self.handler.conwayUp.change_rules(self.rules)
+        if self.rules == []:
+            self.conway = False
+        else:
+            self.handler.conwayUp.change_rules(self.rules)
+            self.conway = True
 
     def breaker(self):
         self.breaker = True
@@ -247,22 +275,28 @@ class EngineOperator():
             if self.breaker:
                 self.breaker = False
                 break
-            self.handler.conwayUp.process()
+            if self.conway:
+                self.handler.conwayUp.process()
             if self.kwargs['STOCHASTIC']:
                 self.handler.isingUp.process(self.kwargs['MONTEUPDATES'])
-          # self.canvas.repaint()
-            print(self.handler.array*1)
-          # self.framelabel.setText(str(i) + ' / ')
-            while time.time() - now < 0.02:
-                time.sleep(0.01)
+            self.canvas.export_list(self.handler.change, 0)
+            self.canvas.repaint()
+            self.framelabel.setText(str(i + 1) + ' / ')
+            while time.time() - now < 0.03:
                 print('waiting, round ' + str(i))
+                time.sleep(0.01)
             now = time.time()
+        self.framelabel.setText('0000/ ')
+        self.canvas.repaint()
 
     def static_run(self):
         if self.kwargs['STOCHASTIC']:
             self.handler.isingUp.process(self.kwargs['MONTEUPDATES'])
-        self.handler.conwayUp.process()
+        if self.conway:
+            self.handler.conwayUp.process()
+        self.canvas.export_list(self.handler.change, 0)
 
     def long_run(self):
         if self.kwargs['STOCHASTIC']:
             self.handler.isingUp.process(self.kwargs['EQUILIBRATE'])
+        self.canvas.export_list(self.handler.change, 0)

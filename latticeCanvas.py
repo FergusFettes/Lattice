@@ -50,13 +50,20 @@ class Canvas(QLabel):
 
     # Updates image only where the pixels have changed. FASTER
     # TODO: Make more performant, use bitdata, also QGLWidget
-    def exportList(self, L):
+    def export_list(self, L, living):
         im = self.pixmap().toImage()
-        for el in L:
-            for i in range(self.scale):
-                for j in range(self.scale):
-                    im.setPixel((self.scale * el[0]) + i, (self.scale * el[1])\
-                                + j, self.colorList[el[2]])
+        if living:
+            for el in L:
+                for i in range(self.scale):
+                    for j in range(self.scale):
+                        im.setPixel((self.scale * el[0]) + i, (self.scale * el[1])
+                                    + j, self.colorList[1])
+        else:
+            for el in L:
+                for i in range(self.scale):
+                    for j in range(self.scale):
+                        im.setPixel((self.scale * el[0]) + i, (self.scale * el[1])\
+                                    + j, self.colorList[el[2]])
 
         nupix = QPixmap()
         nupix.convertFromImage(im)

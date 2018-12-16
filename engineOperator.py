@@ -67,7 +67,7 @@ class isingUpdater(QObject):
         self.finished.emit()
 
     def update_array(self, updates):
-        A = self.array
+        A = np.copy(self.array)
         N = len(A)
         for _ in range(updates):
             a = np.random.randint(N)
@@ -79,12 +79,11 @@ class isingUpdater(QObject):
                   -2])
             if nb <= 0 or np.random.random() < self.cost[nb]:
                 A[a][b] = not A[a][b]
-        self.array = A
         return A
 
     # Diarmuid's sneaky engine. NON-CANON, COMPUTATIONAL PHYSICISTS PLEASE LOOK AWAY
     def update_arra1(self, iterations):
-        a = self.array
+        a = np.copy(self.array)
         #i think things are easier if the costs are an array
         #of masks
         top = np.roll(a,-1,axis=0)
@@ -115,8 +114,7 @@ class isingUpdater(QObject):
             #still be boolean
             flip_mask += np.bitwise_and(b,rndm_mask < self.cost[i])
 
-        self.array = np.invert(a, where=flip_mask)
-        return self.array
+        return np.invert(a, where=flip_mask)
 
 
 class conwayUpdater(QObject):

@@ -23,6 +23,7 @@ class MainWindow(QWidget):
         self.imageUpdates = DEFAULTS['IMAGEUPDATES']
         self.speed = DEFAULTS['SPEED']
         # Internal Vars
+        self.conwayMangled = False
         self.beta = DEFAULTS['BETA']
         self.colorList = []
         self.primaryColor = QColor(DEFAULTS['PRIMARYCOLOR'])
@@ -294,6 +295,16 @@ class MainWindow(QWidget):
         a = self.frameCtrl.previousInFocusChain()
         a.setFocus()
 
+    def conway_mangler(self):
+        if self.conwayMangled:
+            old = self.conwayRules.toPlainText()
+            self.conwayRules.setText(old[2:-2])
+            self.conwayMangled = False
+        else:
+            old = self.conwayRules.toPlainText()
+            self.conwayRules.setText('!!' + old + '!!')
+            self.conwayMangled = True
+
     def rulesChange(self):
         regexTestString=r'^(?:([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)([0-9],\ ?)*([0-9]);[\ \n]*)+$'
         regexMatchString=r'([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)((?:[0-9],\ ?)*[0-9]);'
@@ -343,9 +354,9 @@ class MainWindow(QWidget):
             self.speedCtrl.triggerAction(QSlider.SliderPageStepAdd)
         elif e.key() == Qt.Key_A:
             self.speedCtrl.triggerAction(QSlider.SliderPageStepSub)
-        elif e.key() == Qt.Key_X:
+        elif e.key() == Qt.Key_C:
             self.tempCtrl.triggerAction(QSlider.SliderPageStepAdd)
-        elif e.key() == Qt.Key_Z:
+        elif e.key() == Qt.Key_X:
             self.tempCtrl.triggerAction(QSlider.SliderPageStepSub)
         elif e.key() == Qt.Key_W:
             self.thresholdCtrl.triggerAction(QSlider.SliderPageStepAdd)
@@ -360,8 +371,8 @@ class MainWindow(QWidget):
         elif e.key() == Qt.Key_1:
             state = self.stochasticBox.isChecked()
             self.stochasticBox.setChecked(not state)
-#       elif e.key() == Qt.Key_2:
-#           self.pottsButt.click()
+        elif e.key() == Qt.Key_2:
+            self.conway_mangler()
 #       elif e.key() == Qt.Key_3:
 #           self.conwayButt.click()
         elif e.key() == Qt.Key_E:

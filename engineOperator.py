@@ -4,10 +4,10 @@ from PyQt5.QtCore import *
 from functools import partial
 
 import numpy as np
-import random as ra
 import time
 import sys
 import queue as queue
+
 
 # TODO add different noise distributions
 class stochasticUpdater(QObject):
@@ -15,7 +15,7 @@ class stochasticUpdater(QObject):
     finished = pyqtSignal()
     error = pyqtSignal(str)
 
-    def __init__(self, array, threshold = 0.95):
+    def __init__(self, array, threshold=0.95):
         """Adds white noise to an already existing array."""
         QObject.__init__(self)
         self.change_threshold(threshold)
@@ -39,6 +39,7 @@ class stochasticUpdater(QObject):
         A = np.random.random(n) > self.threshold
         B = np.bitwise_xor(array, A)
         return B
+
 
 # TODO add diarmuids cheaty engine
 class isingUpdater(QObject):
@@ -65,20 +66,58 @@ class isingUpdater(QObject):
         self.arraySig.emit(self.array)
         self.finished.emit()
 
-    def update_array(self, updates):
+    def update_array_proper(self, updates):
         A = np.copy(self.array)
         N = len(A)
         for _ in range(updates):
             a = np.random.randint(N)
             b = np.random.randint(N)
-            nb = np.sum([A[a][b] == A[(a + 1) % N][b], \
-                  A[a][b] == A[(a - 1) % N][b], \
-                  A[a][b] == A[a][(b + 1) % N], \
-                  A[a][b] == A[a][(b - 1) % N], \
+            nb = np.sum([A[a][b] == A[(a + 1) % N][b],
+                  A[a][b] == A[(a - 1) % N][b],
+                  A[a][b] == A[a][(b + 1) % N],
+                  A[a][b] == A[a][(b - 1) % N],
                   -2])
             if nb <= 0 or np.random.random() < self.cost[nb]:
                 A[a][b] = not A[a][b]
         return A
+
+    # Diarmuid's sneaky engine. NON-CANON, COMPUTATIONAL PHYSICISTS PLEASE LOOK AWAY
+    def update_array(self, iterations):
+        a = self.array
+        print(a)
+        #i think things are easier if the costs are an array
+        #of masks
+        top = np.roll(a,-1,axis=0)
+        bottom = np.roll(a,1,axis=0)
+        left = np.roll(a,-1,axis=1)
+        right = np.roll(a,1,axis=1)
+        NB = np.zeros(a.shape)
+        for matrix in [top, bottom, left, right]:
+            NB += np.equal(a, matrix)
+        print(NB)
+        #I'm not sure if this is the right way to
+        #calc the threshold
+        threshold = iterations / (a.shape[0] ** 2)
+        #random msk used for selecting cells
+        msk = np.random.random(a.shape) < threshold
+        #new random used for the update rules below
+        rndm_mask = np.random.random(a.shape)
+
+        #changed by zero case
+        flip_mask = np.bitwise_and(msk, NB <= 0)
+
+        for i in range(1, 3):
+            # these are the random cells with the right
+            #number of neighbors
+            b = np.bitwise_and(msk, NB == i)
+            #these are the cells in b, for which ra.random()
+            #is less than the cost function... I hope?
+            #we add them to the flip mask, which should
+            #still be boolean
+            flip_mask += np.bitwise_and(b,rndm_mask < self.cost[i])
+
+        return np.invert(a, where=flip_mask)
+
 
 class conwayUpdater(QObject):
     arraySig = pyqtSignal(np.ndarray)
@@ -106,8 +145,8 @@ class conwayUpdater(QObject):
 
     def update_array(self):
         rule = self.counter
-        self.counter+=1
-        self.counter%=self.ruleNum
+        self.counter += 1
+        self.counter %= self.ruleNum
         A = self.array
         l = np.roll(A, -1, axis=0)
         r = np.roll(A, 1, axis=0)
@@ -127,8 +166,9 @@ class conwayUpdater(QObject):
         #should just be the live cells
         return rule2 + rule4
 
+
 class arrayHandler(QObject):
-#   breakSig = pyqtSignal()
+    breakSig = pyqtSignal()
 
     def __init__(self, N):
         """ Controls workers for the array updates,
@@ -158,11 +198,12 @@ class arrayHandler(QObject):
     def update_array(self, array):
         sender = self.sender()
         self.arrayOld = self.array
-        print(self.double)
-        if self.double:
-            self.array = np.bitwise_or(self.arrayOld, array)
-        else:
-            self.array = array
+    #   print(self.double)
+    #   if self.double:
+    #       self.array = np.bitwise_or(self.arrayOld, array)
+    #   else:
+    #       self.array = array
+        self.array = array
         self.update_living()
         self.update_change()
         self.noiser.change_array(self.array)
@@ -171,8 +212,8 @@ class arrayHandler(QObject):
 
     def update_living(self):
         self.living = np.argwhere(self.array)
-#       if self.living.shape[0] == 0:
-#           self.breakSig.emit()
+        if self.living.shape[0] == 0:
+            self.breakSig.emit()
 
     def update_change(self):
         # Maybe my old method was better here? I guess not everything has to be
@@ -203,7 +244,7 @@ class arrayHandler(QObject):
         self.noiser.arraySig.connect(self.update_array)
         self.noiseThread.start()
 
-    def conway_init(self, rules=[[[1],[4],[1]]]):
+    def conway_init(self, rules=[[[1], [4], [1]]]):
         self.conwayThread = QThread()
         self.conwayUp = conwayUpdater(self.array, rules)
         self.conwayUp.moveToThread(self.conwayThread)
@@ -274,6 +315,7 @@ class EngineOperator():
 
     def breaker(self):
         self.breaker = True
+        print('No change!')
 
     def dynamic_run(self):
         if self.conway and self.kwargs['STOCHASTIC']:
@@ -285,13 +327,13 @@ class EngineOperator():
                 break
             if self.conway:
                 self.handler.conwayUp.process()
+                self.canvas.export_list(self.handler.change, 0)
             if self.kwargs['STOCHASTIC']:
                 self.handler.isingUp.process(self.kwargs['MONTEUPDATES'])
-            self.canvas.export_list(self.handler.change, 0)
+                self.canvas.export_list(self.handler.change, 0)
             self.canvas.repaint()
             self.framelabel.setText(str(i + 1) + ' / ')
             while time.time() - now < 0.03:
-                print('waiting, round ' + str(i))
                 time.sleep(0.01)
             now = time.time()
         self.framelabel.setText('0000/ ')

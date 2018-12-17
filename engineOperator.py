@@ -138,6 +138,7 @@ class conwayUpdater(QObject):
         self.array = array
 
     def process(self):
+        self.error.emit('Array Started!')
         self.array = self.update_array()
         self.arraySig.emit(self.array)
         self.finished.emit()
@@ -185,8 +186,9 @@ class arrayHandler(QObject):
 
         self.reset_array()
 
-    def process(self):
-        self.update_array()
+    def process(self, array):
+        self.error.emit('Array Started!')
+        self.update_array(array)
         self.changeSig.emit(self.change)
         self.finished.emit()
 
@@ -235,29 +237,28 @@ class EngineOperator():
     def __init__(self, canvas, framelabel, **kwargs):
     # The kwargs consists of the following: speed, updates, frames, beta,
     # stochastic?, threshold/coverage.
+        self.array = np.zeros([kwargs['N'], kwargs['N']])
+        self.kwargs = kwargs
         self.thread = []
         self.worker_init()
         self.noise_init()
         self.ising_init()
         self.conway_init()
-        self.array_init()
-        self.kwargs = kwargs
+        self.array_init(self.kwargs['N'])
         self.framecounter = 0
         self.rules = []
         self.breaker = False
         self.conway = True
 
         self.canvas = canvas
-        self.handler = arrayHandler(self.kwargs['N'])
-      # self.handler.breakSig.connect(self.breaker)
         self.framelabel = framelabel
 
     def reset(self):
     ##  self.handler.reset_array()
         self.framecounter = 0
-        self.canvas.Array = self.handler.array
+    ##  self.canvas.Array = self.handler.array
         self.canvas.reset()
-        self.canvas.export_list(self.handler.living, 1)
+    ##  self.canvas.export_list(self.handler.living, 1)
 
     def noise_array(self):
         self.canvas.reset()
@@ -282,7 +283,7 @@ class EngineOperator():
         if self.rules == []:
             self.conway = False
         else:
-            self.handler.conwayUp.change_rules(self.rules)
+         ## self.handler.conwayUp.change_rules(self.rules)
             self.conway = True
 
     def breaker(self):
@@ -316,7 +317,8 @@ class EngineOperator():
         self.handler.double = False
 
     def static_run(self):
-        self.thread.start(self.conway, self.handler)
+        self.thread.worker_setter(self.isingUp, self.handler)
+        self.thread.start()
 
     def static_run_OLD(self):
         if self.conway and self.kwargs['STOCHASTIC']:
@@ -335,13 +337,15 @@ class EngineOperator():
        #self.canvas.export_list(self.handler.change, 0)
 
     def worker_init(self):
-        self.thread = WorkHorse(self.array)
+        self.synchro = QWaitCondition()
+        self.thread = WorkHorse(self.kwargs['N'], self.synchro)
         self.thread.error.connect(self.error_string)
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.changeSig.connect(self.temp_change_handler)
         self.thread.start()
 
     def temp_change_handler(self, array):
+        print('array')
         self.canvas.export_list(array, 0)
         self.canvas.repaint()
 
@@ -370,31 +374,62 @@ class EngineOperator():
         self.isingUp.arraySig.connect(self.thread.array_handler)
 
     def array_init(self, N):
-        self.handler = arrayHandler(self.array, N)
+        self.handler = arrayHandler(N)
         self.handler.moveToThread(self.thread)
       # self.thread.started.connect(self.handler.process)
         self.handler.error.connect(self.error_string)
       # self.handler.finished.connect(self.thread.quit)
         self.handler.changeSig.connect(self.thread.change_handler)
 
+#class RunController(QObject):
+#    finished = pyqtSignal()
+#    error = pyqtSignal(str)
+#
+#    def __init__(self, array, rules):
+#        """Run controller makes sure the run doesnt get out of hand"""
+#        QObject.__init__(self)
+#        self.change_array(array)
+#        self.change_rules(rules)
+#        self.counter = 0
+
+
 class WorkHorse(QThread):
 # All the work
     changeSig = pyqtSignal(np.ndarray)
+    error = pyqtSignal(str)
 
-    def __init__(self, array, parent=None):
+    def __init__(self, N, synchro, parent=None):
         QThread.__init__(self, parent)
 
-        self.array = array
-        self.change = np.zeros([0, 3])
+        self.worker = QObject()
+        self.handler = QObject()
+        self.array = np.zeros([N, N], bool)
+        self.change = np.zeros([0, 3], bool)
+        self.synchro = synchro
+        self.mutex = QMutex
 
-    def run(self, worker, handler):
-        self.update_array(worker, handler)
-        worker.process()
-        self.update_array(worker, handler)
-        handler.process()
-        self.emit.changeSig(self.change)
+    def worker_setter(self, worker, handler):
+        self.worker = worker
+        self.handler = handler
+
+    def run(self):
+        self.mutex.lock()
+        while self.synchro.wait(self.mutex, 5000):
+            self.error.emit('Workhorse Started!')
+            self.update_array()
+            self.worker.process(2000)
+            self.update_array()
+            self.handler.process(self.array)
+            self.changeSig.emit(self.change)
+        self.mutex.unlock()
+        self.error.emit('Timeout! Shutting down.')
         self.emit.finish()
 
-    def update_array(self, worker, handler):
-        worker.change_array(self.array)
-        handler.change_array(self.array)
+    def update_array(self):
+        self.worker.change_array(self.array)
+
+    def array_handler(self, array):
+        self.array = array
+
+    def change_handler(self, array):
+        self.change = array

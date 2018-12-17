@@ -8,9 +8,9 @@ from latticeCanvas import Canvas
 
 import random as ra
 import re
+import math
 
 # Draws the main window and contains the simulation code
-# TODO: split the GUI and the simulations
 class MainWindow(QWidget):
 
     # Initialises the window and variables. Very uncertain about which
@@ -23,6 +23,7 @@ class MainWindow(QWidget):
         self.imageUpdates = DEFAULTS['IMAGEUPDATES']
         self.speed = DEFAULTS['SPEED']
         # Internal Vars
+        self.threshval = list(map((lambda x:1 - (1 / (1 + math.exp(-(x - 0.5) * 24)))), np.arange(100) / 100))
         self.conwayMangled = False
         self.beta = DEFAULTS['BETA']
         self.colorList = []
@@ -66,7 +67,7 @@ class MainWindow(QWidget):
         self.thresholdCtrl.setTickInterval(20)
         self.thresholdCtrl.setMinimum(1)
         self.thresholdCtrl.setMaximum(100)
-        self.thresholdCtrl.setPageStep(2)
+        self.thresholdCtrl.setPageStep(4)
         self.thresholdCtrl.setValue(kwargs['COVERAGE'])
         self.thresholdCtrl.valueChanged.connect(self.coverageChange)
         self.thresholdLabel= QLabel()
@@ -334,7 +335,7 @@ class MainWindow(QWidget):
 
     def coverageChange(self):
         self.coverage = self.thresholdCtrl.value()
-        self.changeKwarg('COVERAGE', self.coverage)
+        self.changeKwarg('COVERAGE', self.threshval[self.coverage])
         self.thresholdLabel.setText('Coverage = ' + str(self.coverage) + '%')
 
     def sliderChange(self):
@@ -350,13 +351,13 @@ class MainWindow(QWidget):
             QCoreApplication.instance().quit()
         elif e.key() == 16777251:
             self.speedCtrl.setFocus()
-        elif e.key() == Qt.Key_D:
-            self.speedCtrl.triggerAction(QSlider.SliderPageStepAdd)
-        elif e.key() == Qt.Key_A:
-            self.speedCtrl.triggerAction(QSlider.SliderPageStepSub)
         elif e.key() == Qt.Key_C:
-            self.tempCtrl.triggerAction(QSlider.SliderPageStepAdd)
+            self.speedCtrl.triggerAction(QSlider.SliderPageStepAdd)
         elif e.key() == Qt.Key_X:
+            self.speedCtrl.triggerAction(QSlider.SliderPageStepSub)
+        elif e.key() == Qt.Key_D:
+            self.tempCtrl.triggerAction(QSlider.SliderPageStepAdd)
+        elif e.key() == Qt.Key_A:
             self.tempCtrl.triggerAction(QSlider.SliderPageStepSub)
         elif e.key() == Qt.Key_W:
             self.thresholdCtrl.triggerAction(QSlider.SliderPageStepAdd)

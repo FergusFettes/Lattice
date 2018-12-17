@@ -16,8 +16,8 @@ def initVars():
         'PRIMARYCOLOR':QColor.fromRgba(colHex1).name(),   # These are just random rn
         'SECONDARYCOLOR':QColor.fromRgba(colHex2).name(),
         'ALLUP':0,      # Ising starts homogeneous?
-        'N':200,        # Array dimensions
-        'SCALE':3,      # Image dim = N*SCALE x N*SCALE
+        'N':350,        # Array dimensions
+        'SCALE':2,      # Image dim = N*SCALE x N*SCALE
         'BETA':1 / 8,   # Critical temp for Ising
         'SPEED':100,     # Throttle %
         'DEGREE':4,     # Degree of the Potts model
@@ -47,9 +47,9 @@ def initVars():
     return DEF
 
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
 
-    app = QApplication([])
-    DEFAULTS = initVars()
-    w = MainWindow(**DEFAULTS)
-    app.exec()
+app = QApplication([])
+DEFAULTS = initVars()
+w = MainWindow(**DEFAULTS)
+app.exec()

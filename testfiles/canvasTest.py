@@ -71,22 +71,36 @@ class StandardWindow(QWidget):
         nupix.convertFromImage(im)
         self.canvas.setPixmap(nupix)
 
+    def export_list_refactor2(self, L, living):
+        im = self.canvas.pixmap().toImage().scaled((QSize(self.n, self.n)))
+        map((lambda x: im.setPixel(x[0], x[1], self.colorList[x[2]].rgba())), L)
+
+        ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))
+        nupix = QPixmap()
+        nupix.convertFromImage(ims)
+        self.canvas.setPixmap(nupix)
+
+    # Updates image only where the pixels have changed. FASTER
+    # TODO: Make more performant, use bitdata, also QGLWidget
+    def export_list_refactor(self, L, living):
+        im = self.canvas.pixmap().toImage().scaled((QSize(self.n, self.n)))
+        for el in L:
+            im.setPixel(el[0], el[1], self.colorList[el[2]].rgba())
+
+        ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))
+        nupix = QPixmap()
+        nupix.convertFromImage(ims)
+        self.canvas.setPixmap(nupix)
+
     # Updates image only where the pixels have changed. FASTER
     # TODO: Make more performant, use bitdata, also QGLWidget
     def export_list(self, L, living):
         im = self.canvas.pixmap().toImage()
-        if living:
-            for el in L:
-                for i in range(self.scale):
-                    for j in range(self.scale):
-                        im.setPixel((self.scale * el[0]) + i, (self.scale * el[1])
-                                    + j, self.colorList[1].rgba())
-        else:
-            for el in L:
-                for i in range(self.scale):
-                    for j in range(self.scale):
-                        im.setPixel((self.scale * el[0]) + i, (self.scale * el[1])\
-                                    + j, self.colorList[el[2]].rgba())
+        for el in L:
+            for i in range(self.scale):
+                for j in range(self.scale):
+                    im.setPixel((self.scale * el[0]) + i, (self.scale * el[1])\
+                                + j, self.colorList[el[2]].rgba())
 
         nupix = QPixmap()
         nupix.convertFromImage(im)
@@ -105,6 +119,7 @@ change = [[i[0], i[1], A[i[0], i[1]]] for i in living]
 
 w = StandardWindow(N, SCALE)
 #w.export_list(change, 0)
+w.export_list_refactor(change, 0)
 #w.export_array(array)
 #w.export_list(living, 1)
 #w.canvas.repaint()

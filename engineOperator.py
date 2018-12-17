@@ -202,8 +202,8 @@ class arrayHandler(QObject):
     #   else:
     #       self.array = array
         self.array = array
-    #   self.update_living()
-    #   self.update_change()
+        self.update_living()
+        self.update_change()
         self.noiser.change_array(self.array)
         self.isingUp.change_array(self.array)
         self.conwayUp.change_array(self.array)
@@ -296,7 +296,7 @@ class EngineOperator():
 
     def update_kwargs(self, **kwargs):
         self.kwargs = kwargs
-        self.handler.noiser.change_threshold(1-(kwargs['COVERAGE'] / 100))
+        self.handler.noiser.change_threshold(kwargs['COVERAGE'])
         self.handler.isingUp.change_cost(kwargs['BETA'])
 
     # Is this obscene? All I am trying to do is unpack my regexes. No doubt

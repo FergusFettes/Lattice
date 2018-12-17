@@ -167,7 +167,6 @@ class conwayUpdater(QObject):
 
 
 class arrayHandler(QObject):
-    arraySig = pyqtSignal(np.ndarray)
     changeSig = pyqtSignal(np.ndarray)
     breakSig = pyqtSignal(str)
     finished = pyqtSignal()
@@ -188,7 +187,6 @@ class arrayHandler(QObject):
 
     def process(self):
         self.update_array()
-        self.arraySig.emit(self.array)
         self.changeSig.emit(self.change)
         self.finished.emit()
 
@@ -231,9 +229,6 @@ class arrayHandler(QObject):
         d = np.concatenate((deaths, np.zeros([deaths.shape[0], 1], int)), axis=1)
         self.change = np.concatenate((b, d))
 
-    def error_string(self, error='Unlabelled Error! Oh no!'):
-        print(error)
-
 class EngineOperator():
 # This badboy assigns the tasks to the array manager and the canvas
 
@@ -274,6 +269,9 @@ class EngineOperator():
         self.kwargs = kwargs
         self.handler.noiser.change_threshold(kwargs['COVERAGE'])
         self.handler.isingUp.change_cost(kwargs['BETA'])
+
+    def error_string(self, error='Unlabelled Error! Oh no!'):
+        print(error)
 
     # Is this obscene? All I am trying to do is unpack my regexes. No doubt
     # there is a better (more readable / faster?) way of doing this.
@@ -318,6 +316,9 @@ class EngineOperator():
         self.handler.double = False
 
     def static_run(self):
+        self.thread.start(self.conway, self.handler)
+
+    def static_run_OLD(self):
         if self.conway and self.kwargs['STOCHASTIC']:
             self.handler.double = True
         if self.kwargs['STOCHASTIC']:
@@ -380,10 +381,10 @@ class WorkHorse(QThread):
 # All the work
     changeSig = pyqtSignal(np.ndarray)
 
-    def __init__(self, parent=None):
+    def __init__(self, array, parent=None):
         QThread.__init__(self, parent)
 
-        self.array = np.zeros([N, N])
+        self.array = array
         self.change = np.zeros([0, 3])
 
     def run(self, worker, handler):

@@ -39,17 +39,17 @@ class Canvas(QLabel):
         self.interrupt
 
     # Updates image with values from entire array. SLOW
-    def exportArray(self):
-        A = self.arrayHolder
-        im = QImage((self.n * self.scale), (self.n * self.scale), QImage.Format_ARGB32)
-        for i in range(self.n * self.scale):
-            for j in range(self.n * self.scale):
-                num = A[int(i / self.scale)][int(j / self.scale)]
+    def export_array(self, A):
+        im = QImage(self.n, self.n, QImage.Format_ARGB32)
+        for i in range(self.n):
+            for j in range(self.n):
+                num = A[int(i)][int(j)]
                 color = self.colorList[num]
                 im.setPixel(i, j, color)
 
+        ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))
         nupix = QPixmap()
-        nupix.convertFromImage(im)
+        nupix.convertFromImage(ims)
         self.setPixmap(nupix)
 
     # Updates image only where the pixels have changed. FASTER

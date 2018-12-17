@@ -202,8 +202,8 @@ class arrayHandler(QObject):
     #   else:
     #       self.array = array
         self.array = array
-        self.update_living()
-        self.update_change()
+    #   self.update_living()
+    #   self.update_change()
         self.noiser.change_array(self.array)
         self.isingUp.change_array(self.array)
         self.conwayUp.change_array(self.array)
@@ -325,11 +325,14 @@ class EngineOperator():
                 break
             if self.conway:
                 self.handler.conwayUp.process()
+                #self.canvas.export_array(self.handler.array)
                 self.canvas.export_list(self.handler.change, 0)
+                self.canvas.repaint()
             if self.kwargs['STOCHASTIC']:
                 self.handler.isingUp.process(self.kwargs['MONTEUPDATES'])
+                #self.canvas.export_array(self.handler.array)
                 self.canvas.export_list(self.handler.change, 0)
-            self.canvas.repaint()
+                self.canvas.repaint()
             self.framelabel.setText(str(i + 1) + ' / ')
             while time.time() - now < 0.03:
                 time.sleep(0.01)
@@ -345,10 +348,11 @@ class EngineOperator():
             self.handler.isingUp.process(self.kwargs['MONTEUPDATES'])
         if self.conway:
             self.handler.conwayUp.process()
-        self.canvas.export_list(self.handler.change, 0)
+        self.canvas.export_array(self.handler.array)
         self.handler.double = False
 
     def long_run(self):
         if self.kwargs['STOCHASTIC']:
             self.handler.isingUp.process(self.kwargs['EQUILIBRATE'])
-        self.canvas.export_list(self.handler.change, 0)
+        self.canvas.export_array(self.handler.array)
+       #self.canvas.export_list(self.handler.change, 0)

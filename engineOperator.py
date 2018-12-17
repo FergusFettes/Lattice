@@ -240,6 +240,12 @@ class EngineOperator():
     def __init__(self, canvas, framelabel, **kwargs):
     # The kwargs consists of the following: speed, updates, frames, beta,
     # stochastic?, threshold/coverage.
+        self.thread = []
+        self.worker_init()
+        self.noise_init()
+        self.ising_init()
+        self.conway_init()
+        self.array_init()
         self.kwargs = kwargs
         self.framecounter = 0
         self.rules = []
@@ -328,58 +334,47 @@ class EngineOperator():
        #self.canvas.export_list(self.handler.change, 0)
 
     def worker_init(self):
-        self.thread = WorkHorse()
+        self.thread = WorkHorse(self.array)
         self.thread.error.connect(self.error_string)
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.changeSig.connect(self.temp_change_handler)
+        self.thread.start()
 
     def temp_change_handler(self, array):
         self.canvas.export_list(array, 0)
         self.canvas.repaint()
 
     def noise_init(self, threshold=0.95):
-        self.noiseThread = QThread()
         self.noiser = stochasticUpdater(self.array)
-        self.noiser.moveToThread(self.noiseThread)
-        self.noiseThread.started.connect(self.noiser.process)
+        self.noiser.moveToThread(self.thread)
+      # self.thread.started.connect(self.noiser.process)
         self.noiser.error.connect(self.error_string)
-        self.noiser.finished.connect(self.noiseThread.quit)
-        self.noiseThread.finished.connect(self.noiseThread.deleteLater)
-        self.noiser.arraySig.connect(self.update_array)
-        self.noiseThread.start()
+      # self.noiser.finished.connect(self.thread.quit)
+        self.noiser.arraySig.connect(self.thread.array_handler)
 
     def conway_init(self, rules=[[[1], [4], [1]]]):
-        self.conwayThread = QThread()
         self.conwayUp = conwayUpdater(self.array, rules)
-        self.conwayUp.moveToThread(self.conwayThread)
-        self.conwayThread.started.connect(self.conwayUp.process)
+        self.conwayUp.moveToThread(self.thread)
+      # self.thread.started.connect(self.conwayUp.process)
         self.conwayUp.error.connect(self.error_string)
-        self.conwayUp.finished.connect(self.conwayThread.quit)
-        self.conwayThread.finished.connect(self.conwayThread.deleteLater)
-        self.conwayUp.arraySig.connect(self.update_array)
-        self.conwayThread.start()
+      # self.conwayUp.finished.connect(self.thread.quit)
+        self.conwayUp.arraySig.connect(self.thread.array_handler)
 
     def ising_init(self, beta=1 / 8):
-        self.isingThread = QThread()
         self.isingUp = isingUpdater(self.array, beta)
-        self.isingUp.moveToThread(self.isingThread)
-        self.isingThread.started.connect(self.isingUp.process)
+        self.isingUp.moveToThread(self.thread)
+      # self.thread.started.connect(self.isingUp.process)
         self.isingUp.error.connect(self.error_string)
-        self.isingUp.finished.connect(self.isingThread.quit)
-        self.isingThread.finished.connect(self.isingThread.deleteLater)
-        self.isingUp.arraySig.connect(self.update_array)
-        self.isingThread.start()
+      # self.isingUp.finished.connect(self.thread.quit)
+        self.isingUp.arraySig.connect(self.thread.array_handler)
 
     def array_init(self, N):
-        self.isingThread = QThread()
-        self.isingUp = isingUpdater(self.array, beta)
-        self.isingUp.moveToThread(self.isingThread)
-        self.isingThread.started.connect(self.isingUp.process)
-        self.isingUp.error.connect(self.error_string)
-        self.isingUp.finished.connect(self.isingThread.quit)
-        self.isingThread.finished.connect(self.isingThread.deleteLater)
-        self.isingUp.arraySig.connect(self.update_array)
-        self.isingThread.start()
+        self.handler = arrayHandler(self.array, N)
+        self.handler.moveToThread(self.thread)
+      # self.thread.started.connect(self.handler.process)
+        self.handler.error.connect(self.error_string)
+      # self.handler.finished.connect(self.thread.quit)
+        self.handler.changeSig.connect(self.thread.change_handler)
 
 class WorkHorse(QThread):
 # All the work
@@ -388,16 +383,17 @@ class WorkHorse(QThread):
     def __init__(self, parent=None):
         QThread.__init__(self, parent)
 
-#       self.noise_init()
-#       self.ising_init()
-#       self.conway_init()
+        self.array = np.zeros([N, N])
+        self.change = np.zeros([0, 3])
 
-    def run(worker, handler):
+    def run(self, worker, handler):
+        self.update_array(worker, handler)
         worker.process()
+        self.update_array(worker, handler)
         handler.process()
-        emit
+        self.emit.changeSig(self.change)
+        self.emit.finish()
 
-    def update_array():
-        self.noiser.change_array(self.array)
-        self.isingUp.change_array(self.array)
-        self.conwayUp.change_array(self.array)
+    def update_array(self, worker, handler):
+        worker.change_array(self.array)
+        handler.change_array(self.array)

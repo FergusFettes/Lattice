@@ -8,66 +8,74 @@ import time
 import sys
 import queue as queue
 
+##==============Workers============##
+# These fellas do little tasks ON A SINGLE SHARED ARRAY
+# The array updaters all inherit the handler, so they can directly maniupalate the array
+class arrayHandler(QObject):
+    ARRAY = []      # Array, shared among workers
+    ARRAYOLD = []   # A previous copy, updated periodically
+    CHANGE = []     # The difference between the two ((Nx3), with state)
+    LIVING = []     # Currently living cells, updated periodically(?)
+
+    def __init__(self, array):
+        """ Controls workers for the array updates,
+            and processes the arrays returned. """
+        QObject.__init__(self)
+        ARRAY = array
+        ARRAYOLD = np.zeros(ARRAY.shape, bool)
+        LIVING = np.zeros([0, 2], bool)
+        CHANGE = np.zeros([0, 3], bool)
+
+    def process(self, mutex):
+        mutex.lock()
+        ARRAYOLD = ARRAY
+        self.update_living()
+        self.update_change()
+        mutex.unlock()
+
+    def update_living(self):
+        LIVING = np.argwhere(ARRAY)
+
+    def update_change(self):
+        common = np.bitwise_and(ARRAY, ARRAYOLD)
+        onlyOld = np.bitwise_xor(common, ARRAYOLD)
+        onlyNew = np.bitwise_xor(common, ARRAY)
+        births = np.argwhere(onlyNew)
+        deaths = np.argwhere(onlyOld)
+        b = np.concatenate((births, np.ones([births.shape[0], 1], int)), axis=1)
+        d = np.concatenate((deaths, np.zeros([deaths.shape[0], 1], int)), axis=1)
+        CHANGE = np.concatenate((b, d))
+
 
 # TODO add different noise distributions
-class stochasticUpdater(QObject):
-    arraySig = pyqtSignal(np.ndarray)
-    finished = pyqtSignal()
-    error = pyqtSignal(str)
+class stochasticUpdater(arrayHandler):
 
-    def __init__(self, array, threshold=0.95):
+    def __init__(self):
         """Adds white noise to an already existing array."""
         QObject.__init__(self)
-        self.change_threshold(threshold)
-        self.change_array(array)
 
-    def change_threshold(self, threshold):
-        self.threshold = threshold
-        print(threshold)
-
-    def change_array(self, array):
-        self.array = array
-
-    def process(self):
-        self.array = self.update_array()
-        self.arraySig.emit(self.array)
-        self.finished.emit()
-
-    def update_array(self):
-        array = self.array
-        n = array.shape
-        A = np.random.random(n) > self.threshold
-        B = np.bitwise_xor(array, A)
-        return B
+    def process(self, threshold, mutex):
+        A = np.random.random(ARRAY.shape) > threshold
+        mutex.lock()
+        B = np.bitwise_xor(ARRAY, A)
+        ARRAY = B
+        mutex.unlock()
 
 
-class isingUpdater(QObject):
-    arraySig = pyqtSignal(np.ndarray)
-    finished = pyqtSignal()
-    error = pyqtSignal(str)
+class isingUpdater(arrayHandler):
 
-    def __init__(self, array, beta=1 / 8):
+    def __init__(self):
         """Ising-processes a given array."""
         QObject.__init__(self)
-        self.change_array(array)
-        self.change_cost(beta)
 
-    def change_cost(self, beta):
-        self.cost = np.zeros(3, float)
-        self.cost[1] = np.exp(-4 * beta)
-        self.cost[2] = self.cost[1] ** 2
-
-    def change_array(self, array):
-        self.array = array
-
-    def process(self, updates):
-        self.array = self.update_array(updates)
-        self.arraySig.emit(self.array)
-        self.finished.emit()
-
-    def update_array(self, updates):
-        A = np.copy(self.array)
-        N = len(A)
+    def process(self, updates, beta, mutex):
+        cost = np.zeros(3, float)
+        cost[1] = np.exp(-4 * beta)
+        cost[2] = cost[1] ** 2
+        mutex.lock()
+        A = ARRAY
+        flip = np.zeros(A.shape, bool)
+        N = A.shape[0]
         for _ in range(updates):
             a = np.random.randint(N)
             b = np.random.randint(N)
@@ -78,76 +86,18 @@ class isingUpdater(QObject):
                   -2])
             if nb <= 0 or np.random.random() < self.cost[nb]:
                 A[a][b] = not A[a][b]
-        return A
-
-    # Diarmuid's sneaky engine. NON-CANON, COMPUTATIONAL PHYSICISTS PLEASE LOOK AWAY
-    # Scratch that, I doesn't work anyway (for now at least, but there are serious
-    # problems with the concept I tihnk. We'll see.
-    def update_array_NONFUNCIONING_LOL(self, iterations):
-        a = np.copy(self.array)
-        #i think things are easier if the costs are an array
-        #of masks
-        top = np.roll(a,-1,axis=0)
-        bottom = np.roll(a,1,axis=0)
-        left = np.roll(a,-1,axis=1)
-        right = np.roll(a,1,axis=1)
-        NB = np.zeros(a.shape)
-        for matrix in [top, bottom, left, right]:
-            NB += np.equal(a, matrix)
-        #I'm not sure if this is the right way to
-        #calc the threshold
-        threshold = iterations / (a.shape[0] ** 2)
-        #random msk used for selecting cells
-        msk = np.random.random(a.shape) < threshold
-        #new random used for the update rules below
-        rndm_mask = np.random.random(a.shape)
-
-        #changed by zero case
-        flip_mask = np.bitwise_and(msk, NB <= 0)
-
-        for i in range(1, 3):
-            # these are the random cells with the right
-            #number of neighbors
-            b = np.bitwise_and(msk, NB == i)
-            #these are the cells in b, for which ra.random()
-            #is less than the cost function... I hope?
-            #we add them to the flip mask, which should
-            #still be boolean
-            flip_mask += np.bitwise_and(b,rndm_mask < self.cost[i])
-
-        return np.invert(a, where=flip_mask)
+        mutex.unlock()
 
 
-class conwayUpdater(QObject):
-    arraySig = pyqtSignal(np.ndarray)
-    finished = pyqtSignal()
-    error = pyqtSignal(str)
+class conwayUpdater(arrayHandler):
 
-    def __init__(self, array, rules):
+    def __init__(self):
         """Conway-processes a given array with a given set up update rules"""
         QObject.__init__(self)
-        self.change_array(array)
-        self.change_rules(rules)
-        self.counter = 0
 
-    def change_rules(self, rules):
-        self.rules = rules
-        self.ruleNum = len(rules)
-
-    def change_array(self, array):
-        self.array = array
-
-    def process(self):
-        self.error.emit('Array Started!')
-        self.array = self.update_array()
-        self.arraySig.emit(self.array)
-        self.finished.emit()
-
-    def update_array(self):
-        rule = self.counter
-        self.counter += 1
-        self.counter %= self.ruleNum
-        A = self.array
+    def process(self, rule, mutex):
+        mutex.lock()
+        A = ARRAY
         l = np.roll(A, -1, axis=0)
         r = np.roll(A, 1, axis=0)
         u = np.roll(A, 1 , axis=1)
@@ -158,101 +108,88 @@ class conwayUpdater(QObject):
         dr = np.roll(r, -1, axis=1)
         NB = np.zeros(A.shape) + l + r + u + d + ul + dl + ur + dr
         #cells still alive after rule 1
-        rule1 = np.bitwise_and(A, NB > self.rules[rule][0][0])
+        rule1 = np.bitwise_and(A, NB > self.rule[0])
         #alive cells that will live
-        rule2 = np.bitwise_and(rule1, NB < self.rules[rule][1][0])
+        rule2 = np.bitwise_and(rule1, NB < self.rule[1])
         #dead cells that rebirth
-        rule4 = np.bitwise_and(~A, NB == self.rules[rule][2][0])
+        rule4 = np.bitwise_and(~A, NB == self.rule[2])
         #should just be the live cells
-        return rule2 + rule4
+        ARRAY = rule2 + rule4
+        mutex.unlock()
 
 
-class arrayHandler(QObject):
+##===============TaskManager===============##
+# This fancy chap goes into the thread with all the workers and controls what they do
+# Also inherits the array handler so it can send and recieve arrays.
+# All signals come in and out of this guy.
+# TODO update the taskman
+class RunController(arrayHandler):
+    arraySig = pyqtSignal(np.ndarray)
     changeSig = pyqtSignal(np.ndarray)
-    breakSig = pyqtSignal(str)
+    frameSig = pyqtSignal(int)
     finished = pyqtSignal()
+    handlerSig = pyqtSignal(QMutex)
+    isingSig = pyqtSignal(int, int, QMutex)
+    noiseSig = pyqtSignal(int, QMutex)
+    conwaySig = pyqtSignal(list, QMutex)
     error = pyqtSignal(str)
 
-    def __init__(self, N):
-        """ Controls workers for the array updates,
-            and processes the arrays returned. """
+    def __init__(self, array):
+        """Run controller makes sure the run doesnt get out of hand"""
+        arrayHandler.__init__(self, array)
         QObject.__init__(self)
-        self.n = N
-        self.array = np.zeros([N, N], bool)
-        self.arrayOld = np.zeros([N, N], bool)
-        self.living = np.zeros([0, 2], bool)
-        self.change = np.zeros([0, 3], bool)
-        self.double = True
+      # self.change_rules(rules)
+        self.counter = 0
 
-        self.reset_array()
-
-    def process(self, array):
-        self.error.emit('Array Started!')
-        self.update_array(array)
-        self.changeSig.emit(self.change)
+    def process(self):
+        self.handlerSig.emit(mutex)
+        self.changeSig.emit(CHANGE, 0)
+        mutex = QMutex()
+        self.error.emit('Controller Started!')
+        for i in range(10):
+            self.error.emit('Task Round 1')
+            self.array_frame(1000, [1,4,1], mutex)
+        self.error.emit('Shutting down!')
         self.finished.emit()
 
-    def reset_array(self):
-        a = np.zeros([self.n, self.n], bool)
-        self.update_array(a)
+    def array_frame(self, updates, rule, mutex):
+        if self.stochastic:
+            self.isingSig.emit(updates, beta, mutex)
+        if self.conway:
+            self.conwaySig.emit(rule, mutex)
+        self.handlerSig.emit(mutex)
+        self.changeSig.emit(CHANGE, 0)
 
-    def resize_array(self, N):
-        self.n = N
-        self.update_array(np.zeros([N, N], bool))
+    def dynamic_run(self):
+        now = time.time()
+        for i in range(self.frames):
+            if self.breaker:
+                self.breaker = False
+                break
+            self.array_frame()
+            self.frameSig.emit(i)
+            while time.time() - now < 0.03:
+                time.sleep(0.01)
+            now = time.time()
+        self.frameSig.emit(0)
 
-    def update_array(self, array):
-        self.arrayOld = self.array
-    #   print(self.double)
-    #   if self.double:
-    #       self.array = np.bitwise_or(self.arrayOld, array)
-    #   else:
-    #       self.array = array
-        self.array = array
-        self.update_living()
-        self.update_change()
 
-    def update_living(self):
-        self.living = np.argwhere(self.array)
-        if self.living.shape[0] == 0:
-            self.breakSig.emit('None living!')
-
-    def update_change(self):
-        # Maybe my old method was better here? I guess not everything has to be
-        # done in numpy..
-  #Old  A = self.canvas.Array
-  #Old  return[[i[0], i[1], A[i[0], i[1]]] for i in L]
-        # I guess it really depends on how full the array is.
-        common = np.bitwise_and(self.array, self.arrayOld)
-        onlyOld = np.bitwise_xor(common, self.arrayOld)
-        onlyNew = np.bitwise_xor(common, self.array)
-        births = np.argwhere(onlyNew)
-        deaths = np.argwhere(onlyOld)
-        b = np.concatenate((births, np.ones([births.shape[0], 1], int)), axis=1)
-        d = np.concatenate((deaths, np.zeros([deaths.shape[0], 1], int)), axis=1)
-        self.change = np.concatenate((b, d))
-
+##==============EngineOperator===============##
+# This is the interface between the GUI and the threads.
+# Controls the WorkHorse thread and the CanvasThread
 class EngineOperator():
-# This badboy assigns the tasks to the array manager and the canvas
 
     def __init__(self, canvas, framelabel, **kwargs):
     # The kwargs consists of the following: speed, updates, frames, beta,
     # stochastic?, threshold/coverage.
+        self.rules = []
         self.array = np.zeros([kwargs['N'], kwargs['N']])
         self.kwargs = kwargs
-        self.thread = []
-        self.worker_init()
-        self.noise_init()
-        self.ising_init()
-        self.conway_init()
-        self.array_init(self.kwargs['N'])
-        self.taskman_init()
-        self.framecounter = 0
-        self.rules = []
-        self.breaker = False
         self.conway = True
-
         self.canvas = canvas
         self.framelabel = framelabel
+
+        self.taskman_init()
 
     def reset(self):
     ##  self.handler.reset_array()
@@ -272,6 +209,9 @@ class EngineOperator():
         self.handler.noiser.change_threshold(kwargs['COVERAGE'])
         self.handler.isingUp.change_cost(kwargs['BETA'])
 
+    def frame_value_update(self, value):
+        self.frameLabel.setText(str(value))
+
     def error_string(self, error='Unlabelled Error! Oh no!'):
         print(error)
 
@@ -287,144 +227,28 @@ class EngineOperator():
          ## self.handler.conwayUp.change_rules(self.rules)
             self.conway = True
 
-    def breaker(self):
-        self.breaker = True
-        print('No change!')
+    def taskman_init(self):
+        self.thread = QThread()
+        self.taskman = RunController(self.array)
+        self.taskman.moveToThread(self.thread)
+        self.thread.started.connect(self.taskman.process)
+        self.taskman.error.connect(self.error_string)
+        self.taskman.finished.connect(self.thread.quit)
+        self.taskman.frameSig.connect(self.frame_value_update)
+        self.taskman.changeSig.connect(self.canvas.export_list)
+        self.taskman.arraySig.connect(self.canvas.export_array)
 
-    def dynamic_run(self):
-        if self.conway and self.kwargs['STOCHASTIC']:
-            self.handler.double = True
-        now = time.time()
-        for i in range(self.kwargs['IMAGEUPDATES']):
-            if self.breaker:
-                self.breaker = False
-                break
-            if self.conway:
-                self.handler.conwayUp.process()
-                #self.canvas.export_array(self.handler.array)
-                self.canvas.export_list(self.handler.change, 0)
-                self.canvas.repaint()
-            if self.kwargs['STOCHASTIC']:
-                self.handler.isingUp.process(self.kwargs['MONTEUPDATES'])
-                #self.canvas.export_array(self.handler.array)
-                self.canvas.export_list(self.handler.change, 0)
-                self.canvas.repaint()
-            self.framelabel.setText(str(i + 1) + ' / ')
-            while time.time() - now < 0.03:
-                time.sleep(0.01)
-            now = time.time()
-        self.framelabel.setText('0000/ ')
-        self.canvas.repaint()
-        self.handler.double = False
+        self.noiser = stochasticUpdater()
+        self.noiser.moveToThread(self.thread)
+
+        self.conwayUp = conwayUpdater()
+        self.conwayUp.moveToThread(self.thread)
+
+        self.isingUp = isingUpdater()
+        self.isingUp.moveToThread(self.thread)
+
+        self.handler.moveToThread(self.thread)
+
 
     def static_run(self):
-        self.thread.worker_setter(self.isingUp, self.handler)
         self.thread.start()
-
-    def static_run_OLD(self):
-        if self.conway and self.kwargs['STOCHASTIC']:
-            self.handler.double = True
-        if self.kwargs['STOCHASTIC']:
-            self.handler.isingUp.process(self.kwargs['MONTEUPDATES'])
-        if self.conway:
-            self.handler.conwayUp.process()
-        self.canvas.export_array(self.handler.array)
-        self.handler.double = False
-
-    def long_run(self):
-        if self.kwargs['STOCHASTIC']:
-            self.handler.isingUp.process(self.kwargs['EQUILIBRATE'])
-        self.canvas.export_array(self.handler.array)
-       #self.canvas.export_list(self.handler.change, 0)
-
-    def worker_init(self):
-        self.arrayObj =
-        self.thread = WorkHorse(self.kwargs['N'], self.synchro)
-        self.thread.start()
-
-    def temp_change_handler(self, array):
-        print('array')
-        self.canvas.export_list(array, 0)
-        self.canvas.repaint()
-
-    def noise_init(self, threshold=0.95):
-        self.noiser = stochasticUpdater(self.array)
-        self.noiser.moveToThread(self.thread)
-      # self.thread.started.connect(self.noiser.process)
-        self.noiser.error.connect(self.error_string)
-      # self.noiser.finished.connect(self.thread.quit)
-        self.noiser.arraySig.connect(self.thread.array_handler)
-
-    def conway_init(self, rules=[[[1], [4], [1]]]):
-        self.conwayUp = conwayUpdater(self.array, rules)
-        self.conwayUp.moveToThread(self.thread)
-      # self.thread.started.connect(self.conwayUp.process)
-        self.conwayUp.error.connect(self.error_string)
-      # self.conwayUp.finished.connect(self.thread.quit)
-        self.conwayUp.arraySig.connect(self.thread.array_handler)
-
-    def ising_init(self, beta=1 / 8):
-        self.isingUp = isingUpdater(self.array, beta)
-        self.isingUp.moveToThread(self.thread)
-      # self.thread.started.connect(self.isingUp.process)
-        self.isingUp.error.connect(self.error_string)
-      # self.isingUp.finished.connect(self.thread.quit)
-        self.isingUp.arraySig.connect(self.thread.array_handler)
-
-    def array_init(self, N):
-        self.handler = arrayHandler(N)
-        self.handler.moveToThread(self.thread)
-      # self.thread.started.connect(self.handler.process)
-        self.handler.error.connect(self.error_string)
-      # self.handler.finished.connect(self.thread.quit)
-        self.handler.changeSig.connect(self.thread.change_handler)
-
-    def taskman_init(self)
-        self.taskman = arrayHandler(N)
-        self.taskman.moveToThread(self.thread)
-      # self.thread.started.connect(self.taskman.process)
-        self.taskman.error.connect(self.error_string)
-      # self.taskman.finished.connect(self.thread.quit)
-        self.taskman.changeSig.connect(self.thread.change_handler)
-
-class RunController(QObject):
-    finished = pyqtSignal()
-    error = pyqtSignal(str)
-
-    def __init__(self, array):
-        """Run controller makes sure the run doesnt get out of hand"""
-        QObject.__init__(self)
-        self.change_array(array)
-        self.change_rules(rules)
-        self.counter = 0
-
-    def process(self)
-        self.error.emit('Controller Started!')
-        self.update_array()
-        self.worker.process(2000)
-        self.update_array()
-        self.handler.process(self.array)
-        self.changeSig.emit(self.change)
-
-class WorkHorse(QThread):
-# All the work
-    changeSig = pyqtSignal(np.ndarray)
-    error = pyqtSignal(str)
-
-    def __init__(self, N, synchro, parent=None):
-        QThread.__init__(self, parent)
-        self.error.connect(self.error_string)
-        self.finished.connect(self.deleteLater)
-        self.changeSig.connect(self.temp_change_handler)
-
-        self.waiting_for_tasks = True
-        self.worker = QObject()
-        self.handler = QObject()
-        self.array = np.zeros([N, N], bool)
-        self.change = np.zeros([0, 3], bool)
-        self.synchro = synchro
-        self.mutex = QMutex
-
-    def run(self):
-        while True:
-            self.taskman.process()

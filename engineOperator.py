@@ -82,11 +82,11 @@ class Handler(QObject):
         dr = np.roll(r, -1, axis=1)
         NB = np.zeros(A.shape) + l + r + u + d + ul + dl + ur + dr
         #cells still alive after rule 1
-        rule1 = np.bitwise_and(A, NB > rule[0])
+        rule1 = np.bitwise_and(A, NB > rule[0][0])
         #alive cells that will live
-        rule2 = np.bitwise_and(rule1, NB < rule[1])
+        rule2 = np.bitwise_and(rule1, NB < rule[1][0])
         #dead cells that rebirth
-        rule4 = np.bitwise_and(~A, NB == rule[2])
+        rule4 = np.bitwise_and(~A, NB == rule[2][0])
         #should just be the live cells
         Handler.ARRAY = rule2 + rule4
 
@@ -110,22 +110,26 @@ class RunController(QObject):
         """Run controller makes sure the run doesnt get out of hand"""
         QObject.__init__(self)
         self.st = {
-            'rules':      [[1,4,1]],
+            'rules':      [[[1],[4],[1]]],
             'counter':    0,
             'stochastic': True,
             'conway':     True,
             'equilibrate':False,
+            'threshold':  0.01,
+            'speed':      100,
             'frames':     0,
             'updates':    1000,
             'longnum':    100000,
             'beta':       1 / 8,
         }
 
-    def change_settings(self, **kwargs):
+    def change_settings(self, kwargs):
         for i in kwargs:
             self.st[i] = kwargs[i]
+        print(self.st)
 
     def process(self):
+        self.error.emit('Process Starting!')
         self.handlerSig.emit()
         self.mainTime = QTimer().setInterval(100000)
         self.mainTime.start()
@@ -154,10 +158,12 @@ class RunController(QObject):
     def dynamic_run(self):
         now = time.time()
         for i in range(self.frames):
+            rules = self.st['rules']
+            rule = rules[i % len(rules)]
             if self.breaker:
                 self.breaker = False
                 break
-            self.array_frame()
+            self.array_frame(self.st['updates'], rule, self.st['beta'])
             self.frameSig.emit(i)
             self.arrayfpsSig.emit(time.time() - now)
             while time.time() - now < 0.03:
@@ -169,13 +175,14 @@ class RunController(QObject):
 ##==============EngineOperator===============##
 # This is the interface between the GUI and the threads.
 # Controls the WorkHorse thread and the CanvasThread
-class EngineOperator():
-    settingsSig = pyqtSignal(**kwargs)
+class EngineOperator(QObject):
+    settingsSig = pyqtSignal(dict)
     breakSig = pyqtSignal()
 
     def __init__(self, canvas, framelabel, **kwargs):
     # The kwargs consists of the following: speed, updates, frames, beta,
     # stochastic?, threshold/coverage.
+        QObject.__init__(self)
         self.rules = []
         self.array = np.zeros([kwargs['N'], kwargs['N']], bool)
         self.kwargs = kwargs
@@ -192,13 +199,15 @@ class EngineOperator():
         self.canvas.export_list(self.handler.change, 0)
 
     def update_kwargs(self, **kwargs):
-        self.kwargs = kwargs
-        self.settingsSig.emit(**kwargs)
+        for i in kwargs:
+            self.kwargs[i] = kwargs[i]
 
     def array_fps_update(self, value):
-        self.arrayfpsLabel.setText(str(value))
+        pass
+#       self.arrayfpsLabel.setText(str(value))
 
     def canvas_fps_update(self, value):
+        pass
 #       self.canvasfpsLabel.setText(str(value))
 
     def frame_value_update(self, value):
@@ -239,17 +248,19 @@ class EngineOperator():
         self.handler.changeSig.connect(self.canvas.export_list)
         self.handler.arraySig.connect(self.canvas.export_array)
 
+        self.settingsSig.connect(self.taskman.change_settings)
+
     def static_run(self):
-        stat = {'frames': 1}
-        self.update_kwargs(**stat)
+        sett = {'frames': 1}
+        self.settingsSig.emit(sett)
 
     def dynamic_run(self):
-        stat = {'frames': 1000}
-        self.update_kwargs(**stat)
+        sett = {'frames': self.kwargs['IMAGEUPDATES']}
+        self.settingsSig.emit(sett)
 
     def long_run(self):
-        stat = {'frames': 0, 'long': 100000, 'equilibrate': True}
-        self.update_kwargs(**stat)
+        sett = {'frames': 0, 'long': self.kwargs['EQUILIBRATE'], 'equilibrate': True}
+        self.settingsSig.emit(sett)
 
     def clear_array(self):
         pass

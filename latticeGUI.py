@@ -275,9 +275,11 @@ class MainWindow(QWidget):
         # 'for_window [window_role='popup'] floating enable'
         self.setWindowRole('popup')
 
-    def changeKwarg(self, kwarg, nuVal):
+    def changeKwarg(self, kwarg, sett, nuVal):
         self.kwargs[kwarg] = nuVal
         self.engine.update_kwargs(**self.kwargs)
+        send = {sett:nuVal}
+        self.engine.settingsSig.emit(send)
 
     def choose_color(self, callback, *args):
         dlg = QColorDialog()
@@ -290,7 +292,7 @@ class MainWindow(QWidget):
 
     def frameChange(self):
         self.imageUpdates = self.frameCtrl.value()
-        self.changeKwarg('IMAGEUPDATES', self.imageUpdates)
+        self.changeKwarg('IMAGEUPDATES', 'frames', self.imageUpdates)
         # The following was necessary for the keyboard shortcuts to work again,
         # but it does mean that you have to type numbers longer than 2x twice
         a = self.frameCtrl.previousInFocusChain()
@@ -326,21 +328,21 @@ class MainWindow(QWidget):
 
     def stochasticChange(self):
         self.stochastic = self.stochasticBox.isChecked()
-        self.changeKwarg('STOCHASTIC', self.stochastic)
+        self.changeKwarg('STOCHASTIC', 'stochastic', self.stochastic)
 
     def speedChange(self):
         self.speed = self.speedCtrl.value()
-        self.changeKwarg('SPEED', self.speed)
+        self.changeKwarg('SPEED', 'speed', self.speed)
         self.speedLabel.setText('Speed = ' + str(self.speed) + '%')
 
     def coverageChange(self):
         self.coverage = self.thresholdCtrl.value()
-        self.changeKwarg('COVERAGE', self.threshval[self.coverage])
+        self.changeKwarg('COVERAGE', 'threshold',  self.threshval[self.coverage])
         self.thresholdLabel.setText('Coverage = ' + str(self.coverage) + '%')
 
     def sliderChange(self):
         self.beta = self.tempCtrl.value() / 100
-        self.changeKwarg('BETA', self.beta)
+        self.changeKwarg('BETA', 'beta', self.beta)
         self.tempLabel.setText('Beta = ' + str(self.beta))
 
     def exit_button_clicked(self):

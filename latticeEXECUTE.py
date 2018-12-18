@@ -40,8 +40,8 @@ def initVars():
         'IMAGEUPDATES':60, # Number of frames to run
         'MONTEUPDATES':10,# MonteCarlo updates per frame
         'EQUILIBRATE':100000,
-        'COVERAGE':5,
-        'NEWARR':0.1,
+        'COVERAGE':0.1,
+        'NEWARR':1,
         'STOCHASTIC':True
     }
     return DEF

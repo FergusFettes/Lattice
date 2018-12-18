@@ -103,39 +103,50 @@ class RunController(QObject):
     isingSig = pyqtSignal(int, float)
     noiseSig = pyqtSignal(int)
     conwaySig = pyqtSignal(list)
+    arrayfpsSig = pyqtSignal(float)
     error = pyqtSignal(str)
 
     def __init__(self, array):
         """Run controller makes sure the run doesnt get out of hand"""
         QObject.__init__(self)
-        self.settings = {
-            rules:      [[1,4,1]],
-            counter:    0.
-            stochastic: 1,
-            conway:     1,
-            equilibrate:0,
-            updates:    1000,
-            longnum:    100000,
-            beta:       1 / 8,
+        self.st = {
+            'rules':      [[1,4,1]],
+            'counter':    0,
+            'stochastic': True,
+            'conway':     True,
+            'equilibrate':False,
+            'frames':     0,
+            'updates':    1000,
+            'longnum':    100000,
+            'beta':       1 / 8,
         }
 
     def change_settings(self, **kwargs):
         for i in kwargs:
-            self.settings[i] = kwargs[i]
+            self.st[i] = kwargs[i]
 
     def process(self):
         self.handlerSig.emit()
-        while self.dynamic:
-            self.dynamic_run()
-        while self.equilibrate:
-            self.equilibrate = False
-            self.array_frame(, [1,4,1], float(1 / 8))
+        self.mainTime = QTimer().setInterval(100000)
+        self.mainTime.start()
+        while self.mainTime.isRunning():
+            while self.st['frames'] > 0:
+                self.dynamic_run()
+            while self.st['equilibrate']:
+                self.st['equilibrate'] = False
+                self.array_frame(self.st['longnum'], self.st['rules'],
+                                    self.st['beta'])
+            QThread.sleep(1000)
         self.error.emit('Shutting down!')
         self.finished.emit()
+
+    def breaker(self):
+        self.mainTime.stop()
 
     def array_frame(self, updates, rule, beta):
         if self.stochastic:
             self.isingSig.emit(updates, beta)
+# can add an extra frame in here, should add minimal time to the loop. lets see
         if self.conway:
             self.conwaySig.emit(rule)
         self.handlerSig.emit()
@@ -148,6 +159,7 @@ class RunController(QObject):
                 break
             self.array_frame()
             self.frameSig.emit(i)
+            self.arrayfpsSig.emit(time.time() - now)
             while time.time() - now < 0.03:
                 time.sleep(0.01)
             now = time.time()
@@ -158,6 +170,8 @@ class RunController(QObject):
 # This is the interface between the GUI and the threads.
 # Controls the WorkHorse thread and the CanvasThread
 class EngineOperator():
+    settingsSig = pyqtSignal(**kwargs)
+    breakSig = pyqtSignal()
 
     def __init__(self, canvas, framelabel, **kwargs):
     # The kwargs consists of the following: speed, updates, frames, beta,
@@ -171,13 +185,6 @@ class EngineOperator():
 
         self.taskman_init()
 
-    def reset(self):
-    ##  self.handler.reset_array()
-        self.framecounter = 0
-    ##  self.canvas.Array = self.handler.array
-        self.canvas.reset()
-    ##  self.canvas.export_list(self.handler.living, 1)
-
     def noise_array(self):
         self.canvas.reset()
         self.handler.reset_array()
@@ -186,8 +193,13 @@ class EngineOperator():
 
     def update_kwargs(self, **kwargs):
         self.kwargs = kwargs
-        self.handler.noiser.change_threshold(kwargs['COVERAGE'])
-        self.handler.isingUp.change_cost(kwargs['BETA'])
+        self.settingsSig.emit(**kwargs)
+
+    def array_fps_update(self, value):
+        self.arrayfpsLabel.setText(str(value))
+
+    def canvas_fps_update(self, value):
+#       self.canvasfpsLabel.setText(str(value))
 
     def frame_value_update(self, value):
         self.frameLabel.setText(str(value))
@@ -218,6 +230,7 @@ class EngineOperator():
         self.taskman.finished.connect(self.thread.quit)
         self.thread.finished.connect(self.thread.deleteLater)
         self.taskman.frameSig.connect(self.frame_value_update)
+        self.taskman.arrayfpsSig.connect(self.array_fps_update)
         self.taskman.isingSig.connect(self.handler.ising_process)
         self.taskman.noiseSig.connect(self.handler.noise_process)
         self.taskman.conwaySig.connect(self.handler.conway_process)
@@ -227,14 +240,16 @@ class EngineOperator():
         self.handler.arraySig.connect(self.canvas.export_array)
 
     def static_run(self):
-        self.runlengthSig(1)
+        stat = {'frames': 1}
+        self.update_kwargs(**stat)
 
     def dynamic_run(self):
-        self.thread.restart()
+        stat = {'frames': 1000}
+        self.update_kwargs(**stat)
 
     def long_run(self):
-        pass
-        self.thread.start()
+        stat = {'frames': 0, 'long': 100000, 'equilibrate': True}
+        self.update_kwargs(**stat)
 
     def clear_array(self):
         pass

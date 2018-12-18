@@ -16,7 +16,7 @@ def initVars():
         'PRIMARYCOLOR':QColor.fromRgba(colHex1).name(),   # These are just random rn
         'SECONDARYCOLOR':QColor.fromRgba(colHex2).name(),
         'ALLUP':0,      # Ising starts homogeneous?
-        'N':350,        # Array dimensions
+        'N':300,        # Array dimensions
         'SCALE':2,      # Image dim = N*SCALE x N*SCALE
         'BETA':1 / 8,   # Critical temp for Ising
         'SPEED':100,     # Throttle %

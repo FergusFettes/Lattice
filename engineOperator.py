@@ -104,6 +104,7 @@ class RunController(QObject):
     noiseSig = pyqtSignal(int)
     conwaySig = pyqtSignal(list)
     arrayfpsSig = pyqtSignal(float)
+    canvasfpsSig = pyqtSignal(float)
     error = pyqtSignal(str)
 
     def __init__(self, array):
@@ -124,6 +125,7 @@ class RunController(QObject):
         }
 
     def change_settings(self, kwargs):
+        print(self.st)
         for i in kwargs:
             self.st[i] = kwargs[i]
         print(self.st)
@@ -131,16 +133,21 @@ class RunController(QObject):
     def process(self):
         self.error.emit('Process Starting!')
         self.handlerSig.emit()
-        self.mainTime = QTimer().setInterval(100000)
+        self.mainTime = QTimer(self)
+        self.mainTime.setInterval(100000)
         self.mainTime.start()
-        while self.mainTime.isRunning():
+        while self.mainTime.isActive():
             while self.st['frames'] > 0:
                 self.dynamic_run()
             while self.st['equilibrate']:
                 self.st['equilibrate'] = False
                 self.array_frame(self.st['longnum'], self.st['rules'],
                                     self.st['beta'])
-            QThread.sleep(1000)
+            QThread.sleep(1)
+            interrupt = QThread.currentThread().isInterruptionRequested()
+            if interrupt:
+                break
+            print('Loop continuing!')
         self.error.emit('Shutting down!')
         self.finished.emit()
 
@@ -148,16 +155,16 @@ class RunController(QObject):
         self.mainTime.stop()
 
     def array_frame(self, updates, rule, beta):
-        if self.stochastic:
+        if self.st['stochastic']:
             self.isingSig.emit(updates, beta)
 # can add an extra frame in here, should add minimal time to the loop. lets see
-        if self.conway:
+        if self.st['conway']:
             self.conwaySig.emit(rule)
         self.handlerSig.emit()
 
     def dynamic_run(self):
         now = time.time()
-        for i in range(self.frames):
+        for i in range(self.st['frames']):
             rules = self.st['rules']
             rule = rules[i % len(rules)]
             if self.breaker:
@@ -169,6 +176,7 @@ class RunController(QObject):
             while time.time() - now < 0.03:
                 time.sleep(0.01)
             now = time.time()
+            self.st['frames'] -= 1
         self.frameSig.emit(0)
 
 
@@ -179,7 +187,7 @@ class EngineOperator(QObject):
     settingsSig = pyqtSignal(dict)
     breakSig = pyqtSignal()
 
-    def __init__(self, canvas, framelabel, **kwargs):
+    def __init__(self, canvas, frameLabel, arrayfpsLabel, canvasfpsLabel, **kwargs):
     # The kwargs consists of the following: speed, updates, frames, beta,
     # stochastic?, threshold/coverage.
         QObject.__init__(self)
@@ -188,7 +196,9 @@ class EngineOperator(QObject):
         self.kwargs = kwargs
         self.conway = True
         self.canvas = canvas
-        self.framelabel = framelabel
+        self.frameLabel = frameLabel
+        self.arrayfpsLabel = arrayfpsLabel
+        self.canvasfpsLabel = canvasfpsLabel
 
         self.taskman_init()
 
@@ -203,12 +213,11 @@ class EngineOperator(QObject):
             self.kwargs[i] = kwargs[i]
 
     def array_fps_update(self, value):
-        pass
-#       self.arrayfpsLabel.setText(str(value))
+        print('array fps')
+        self.arrayfpsLabel.setText('Array fps: ' + str(1 / value))
 
     def canvas_fps_update(self, value):
-        pass
-#       self.canvasfpsLabel.setText(str(value))
+        self.canvasfpsLabel.setText('Canvas fps: ' + str(1 / value))
 
     def frame_value_update(self, value):
         self.frameLabel.setText(str(value))
@@ -237,9 +246,10 @@ class EngineOperator(QObject):
         self.thread.started.connect(self.taskman.process)
         self.taskman.error.connect(self.error_string)
         self.taskman.finished.connect(self.thread.quit)
-        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.finished.connect(self.thread.start)
         self.taskman.frameSig.connect(self.frame_value_update)
         self.taskman.arrayfpsSig.connect(self.array_fps_update)
+        self.taskman.canvasfpsSig.connect(self.canvas_fps_update)
         self.taskman.isingSig.connect(self.handler.ising_process)
         self.taskman.noiseSig.connect(self.handler.noise_process)
         self.taskman.conwaySig.connect(self.handler.conway_process)
@@ -250,17 +260,22 @@ class EngineOperator(QObject):
 
         self.settingsSig.connect(self.taskman.change_settings)
 
+        self.thread.start()
+
     def static_run(self):
         sett = {'frames': 1}
         self.settingsSig.emit(sett)
+        self.thread.requestInterruption()
 
     def dynamic_run(self):
         sett = {'frames': self.kwargs['IMAGEUPDATES']}
         self.settingsSig.emit(sett)
+        self.thread.requestInterruption()
 
     def long_run(self):
         sett = {'frames': 0, 'long': self.kwargs['EQUILIBRATE'], 'equilibrate': True}
         self.settingsSig.emit(sett)
+        self.thread.requestInterruption()
 
     def clear_array(self):
         pass

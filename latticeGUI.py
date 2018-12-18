@@ -43,9 +43,12 @@ class MainWindow(QWidget):
         self.canvas = Canvas()
         self.canvas.initialize(**DEFAULTS)
         self.frameLabel = QLabel()
+        self.arrayfpsLabel = QLabel()
+        self.canvasfpsLabel = QLabel()
 
         kwargs = self.kwargs
-        self.engine = EngineOperator(self.canvas, self.frameLabel, **kwargs)
+        self.engine = EngineOperator(self.canvas, self.frameLabel, self.arrayfpsLabel,
+                                     self.canvasfpsLabel, **kwargs)
 
         self.dynamic = QPushButton()
         self.dynamic.setText('Dynamic')
@@ -256,7 +259,14 @@ class MainWindow(QWidget):
         rbb.addLayout(rbbM)
         rbb.addLayout(rbbR)
 
+        statBox = QHBoxLayout()
+        self.canvasfpsLabel.setText('Canvas fps: ')
+        self.arrayfpsLabel.setText('Array fps: ')
+        statBox.addWidget(self.canvasfpsLabel)
+        statBox.addWidget(self.arrayfpsLabel)
+
         rb = QVBoxLayout()
+        rb.addLayout(statBox)
         rb.addWidget(self.canvas)
         rb.addLayout(rbb)
 
@@ -264,11 +274,7 @@ class MainWindow(QWidget):
         hb.addLayout(vb)
         hb.addLayout(rb)
 
-        vbM = QVBoxLayout()
-        vbM.addLayout(vb)
-        vbM.addLayout(hb)
-
-        self.setLayout(vbM)
+        self.setLayout(hb)
         self.show()
 
         # The allows i3 to popup the window (add to i3/config)

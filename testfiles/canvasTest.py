@@ -119,7 +119,7 @@ change = [[i[0], i[1], A[i[0], i[1]]] for i in living]
 
 w = StandardWindow(N, SCALE)
 #w.export_list(change, 0)
-w.export_list_refactor(change, 0)
+w.export_list_refactor2(change, 0)
 #w.export_array(array)
 #w.export_list(living, 1)
 #w.canvas.repaint()

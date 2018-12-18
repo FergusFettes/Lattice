@@ -245,6 +245,7 @@ class EngineOperator():
         self.ising_init()
         self.conway_init()
         self.array_init(self.kwargs['N'])
+        self.taskman_init()
         self.framecounter = 0
         self.rules = []
         self.breaker = False
@@ -337,11 +338,8 @@ class EngineOperator():
        #self.canvas.export_list(self.handler.change, 0)
 
     def worker_init(self):
-        self.synchro = QWaitCondition()
+        self.arrayObj =
         self.thread = WorkHorse(self.kwargs['N'], self.synchro)
-        self.thread.error.connect(self.error_string)
-        self.thread.finished.connect(self.thread.deleteLater)
-        self.thread.changeSig.connect(self.temp_change_handler)
         self.thread.start()
 
     def temp_change_handler(self, array):
@@ -381,17 +379,32 @@ class EngineOperator():
       # self.handler.finished.connect(self.thread.quit)
         self.handler.changeSig.connect(self.thread.change_handler)
 
-#class RunController(QObject):
-#    finished = pyqtSignal()
-#    error = pyqtSignal(str)
-#
-#    def __init__(self, array, rules):
-#        """Run controller makes sure the run doesnt get out of hand"""
-#        QObject.__init__(self)
-#        self.change_array(array)
-#        self.change_rules(rules)
-#        self.counter = 0
+    def taskman_init(self)
+        self.taskman = arrayHandler(N)
+        self.taskman.moveToThread(self.thread)
+      # self.thread.started.connect(self.taskman.process)
+        self.taskman.error.connect(self.error_string)
+      # self.taskman.finished.connect(self.thread.quit)
+        self.taskman.changeSig.connect(self.thread.change_handler)
 
+class RunController(QObject):
+    finished = pyqtSignal()
+    error = pyqtSignal(str)
+
+    def __init__(self, array):
+        """Run controller makes sure the run doesnt get out of hand"""
+        QObject.__init__(self)
+        self.change_array(array)
+        self.change_rules(rules)
+        self.counter = 0
+
+    def process(self)
+        self.error.emit('Controller Started!')
+        self.update_array()
+        self.worker.process(2000)
+        self.update_array()
+        self.handler.process(self.array)
+        self.changeSig.emit(self.change)
 
 class WorkHorse(QThread):
 # All the work
@@ -400,7 +413,11 @@ class WorkHorse(QThread):
 
     def __init__(self, N, synchro, parent=None):
         QThread.__init__(self, parent)
+        self.error.connect(self.error_string)
+        self.finished.connect(self.deleteLater)
+        self.changeSig.connect(self.temp_change_handler)
 
+        self.waiting_for_tasks = True
         self.worker = QObject()
         self.handler = QObject()
         self.array = np.zeros([N, N], bool)
@@ -408,28 +425,6 @@ class WorkHorse(QThread):
         self.synchro = synchro
         self.mutex = QMutex
 
-    def worker_setter(self, worker, handler):
-        self.worker = worker
-        self.handler = handler
-
     def run(self):
-        self.mutex.lock()
-        while self.synchro.wait(self.mutex, 5000):
-            self.error.emit('Workhorse Started!')
-            self.update_array()
-            self.worker.process(2000)
-            self.update_array()
-            self.handler.process(self.array)
-            self.changeSig.emit(self.change)
-        self.mutex.unlock()
-        self.error.emit('Timeout! Shutting down.')
-        self.emit.finish()
-
-    def update_array(self):
-        self.worker.change_array(self.array)
-
-    def array_handler(self, array):
-        self.array = array
-
-    def change_handler(self, array):
-        self.change = array
+        while True:
+            self.taskman.process()

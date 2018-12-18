@@ -91,7 +91,7 @@ class MainWindow(QWidget):
         self.textHolder.addWidget(self.conwayLabel)
         self.textHolder.addWidget(self.conwayRules)
         self.conwayLabel.setText('Enter the rules below. Multiple Rules seperated\nby semicolon. NB = neighbors, P = parents')
-        self.conwayRules.setText('1 < NB < 4, P = 2;')
+        self.conwayRules.setText('2 < NB < 7, P = 2;\n2 < NB < 7, P = 3;\n2 < NB < 5, P = 3;\n2 < NB < 5, P = 2;')
         self.conwayPalette = self.conwayRules.palette()
         self.conwayPalette.setColor(QPalette.Base, Qt.green)
         self.conwayRules.setPalette(self.conwayPalette)
@@ -335,21 +335,25 @@ class MainWindow(QWidget):
     def stochasticChange(self):
         self.stochastic = self.stochasticBox.isChecked()
         self.changeKwarg('STOCHASTIC', 'stochastic', self.stochastic)
+        self.engine.thread.requestInterruption()
 
     def speedChange(self):
         self.speed = self.speedCtrl.value()
         self.changeKwarg('SPEED', 'speed', self.speed)
         self.speedLabel.setText('Speed = ' + str(self.speed) + '%')
+        self.engine.thread.requestInterruption()
 
     def coverageChange(self):
         self.coverage = self.thresholdCtrl.value()
-        self.changeKwarg('COVERAGE', 'threshold',  self.threshval[self.coverage])
+        self.changeKwarg('COVERAGE', 'threshold', self.threshval[self.coverage])
         self.thresholdLabel.setText('Coverage = ' + str(self.coverage) + '%')
+        self.engine.thread.requestInterruption()
 
     def sliderChange(self):
         self.beta = self.tempCtrl.value() / 100
         self.changeKwarg('BETA', 'beta', self.beta)
         self.tempLabel.setText('Beta = ' + str(self.beta))
+        self.engine.thread.requestInterruption()
 
     def exit_button_clicked(self):
         QCoreApplication.instance().quit()

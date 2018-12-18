@@ -11,6 +11,7 @@ import time
 # 'frames' anymore, and you can just quit a run. This is probably the best
 # place to do it?
 class Canvas(QLabel):
+    canvasfpsSig = pyqtSignal(float)
 
     def initialize(self, **kwargs):
         self.primaryColor = QColor(kwargs['PRIMARYCOLOR'])
@@ -40,6 +41,7 @@ class Canvas(QLabel):
 
     # Updates image with values from entire array. SLOW
     def export_array(self, A):
+        now = time.time()
         im = QImage(self.n, self.n, QImage.Format_ARGB32)
         for i in range(self.n):
             for j in range(self.n):
@@ -52,10 +54,12 @@ class Canvas(QLabel):
         nupix.convertFromImage(ims)
         self.setPixmap(nupix)
         self.repaint()
+        self.canvasfpsSig.emit(time.time()-now)
+
 
     # Updates image only where the pixels have changed. FASTER
     def export_list(self, L, living):
-        print('Painter Active!')
+        now = time.time()
         im = self.pixmap().toImage().scaled((QSize(self.n, self.n)))
         if living:
             for el in L:
@@ -71,6 +75,7 @@ class Canvas(QLabel):
         nupix.convertFromImage(ims)
         self.setPixmap(nupix)
         self.repaint()
+        self.canvasfpsSig.emit(time.time()-now)
 
     # Updates image only where the pixels have changed. FASTER
     # TODO: Make more performant, use bitdata, also QGLWidget

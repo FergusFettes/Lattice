@@ -11,7 +11,9 @@ import queue as queue
 ##==============Workers============##
 # These fellas do little tasks ON A SINGLE SHARED ARRAY
 # The array updaters all inherit the handler, so they can directly maniupalate the array
-class arrayHandler(QObject):
+class Handler(QObject):
+    changeSig = pyqtSignal(np.ndarray, int)
+    arraySig = pyqtSignal(np.ndarray)
     ARRAY = []      # Array, shared among workers
     ARRAYOLD = []   # A previous copy, updated periodically
     CHANGE = []     # The difference between the two ((Nx3), with state)
@@ -21,59 +23,40 @@ class arrayHandler(QObject):
         """ Controls workers for the array updates,
             and processes the arrays returned. """
         QObject.__init__(self)
-        ARRAY = array
-        ARRAYOLD = np.zeros(ARRAY.shape, bool)
-        LIVING = np.zeros([0, 2], bool)
-        CHANGE = np.zeros([0, 3], bool)
+        Handler.ARRAY = array
+        Handler.ARRAYOLD = np.zeros(Handler.ARRAY.shape, bool)
+        Handler.LIVING = np.zeros([0, 2], bool)
+        Handler.CHANGE = np.zeros([0, 3], bool)
 
-    def process(self, mutex):
-        mutex.lock()
-        ARRAYOLD = ARRAY
+    def process(self):
         self.update_living()
         self.update_change()
-        mutex.unlock()
+        self.changeSig.emit(Handler.CHANGE, 0)
+        Handler.ARRAYOLD = Handler.ARRAY
 
     def update_living(self):
-        LIVING = np.argwhere(ARRAY)
+        Handler.LIVING = np.argwhere(Handler.ARRAY)
 
     def update_change(self):
-        common = np.bitwise_and(ARRAY, ARRAYOLD)
-        onlyOld = np.bitwise_xor(common, ARRAYOLD)
-        onlyNew = np.bitwise_xor(common, ARRAY)
+        common = np.bitwise_and(Handler.ARRAY, Handler.ARRAYOLD)
+        onlyOld = np.bitwise_xor(common, Handler.ARRAYOLD)
+        onlyNew = np.bitwise_xor(common, Handler.ARRAY)
         births = np.argwhere(onlyNew)
         deaths = np.argwhere(onlyOld)
         b = np.concatenate((births, np.ones([births.shape[0], 1], int)), axis=1)
         d = np.concatenate((deaths, np.zeros([deaths.shape[0], 1], int)), axis=1)
-        CHANGE = np.concatenate((b, d))
+        Handler.CHANGE = np.concatenate((b, d))
 
+    def noise_process(self, threshold):
+        A = np.random.random(Handler.ARRAY.shape) > threshold
+        B = np.bitwise_xor(Handler.ARRAY, A)
+        Handler.ARRAY = B
 
-# TODO add different noise distributions
-class stochasticUpdater(arrayHandler):
-
-    def __init__(self):
-        """Adds white noise to an already existing array."""
-        QObject.__init__(self)
-
-    def process(self, threshold, mutex):
-        A = np.random.random(ARRAY.shape) > threshold
-        mutex.lock()
-        B = np.bitwise_xor(ARRAY, A)
-        ARRAY = B
-        mutex.unlock()
-
-
-class isingUpdater(arrayHandler):
-
-    def __init__(self):
-        """Ising-processes a given array."""
-        QObject.__init__(self)
-
-    def process(self, updates, beta, mutex):
+    def ising_process(self, updates, beta):
         cost = np.zeros(3, float)
         cost[1] = np.exp(-4 * beta)
         cost[2] = cost[1] ** 2
-        mutex.lock()
-        A = ARRAY
+        A = Handler.ARRAY
         flip = np.zeros(A.shape, bool)
         N = A.shape[0]
         for _ in range(updates):
@@ -84,20 +67,12 @@ class isingUpdater(arrayHandler):
                   A[a][b] == A[a][(b + 1) % N],
                   A[a][b] == A[a][(b - 1) % N],
                   -2])
-            if nb <= 0 or np.random.random() < self.cost[nb]:
+            if nb <= 0 or np.random.random() < cost[nb]:
                 A[a][b] = not A[a][b]
-        mutex.unlock()
+        Handler.ARRAY = A
 
-
-class conwayUpdater(arrayHandler):
-
-    def __init__(self):
-        """Conway-processes a given array with a given set up update rules"""
-        QObject.__init__(self)
-
-    def process(self, rule, mutex):
-        mutex.lock()
-        A = ARRAY
+    def conway_process(self, rule):
+        A = Handler.ARRAY
         l = np.roll(A, -1, axis=0)
         r = np.roll(A, 1, axis=0)
         u = np.roll(A, 1 , axis=1)
@@ -108,14 +83,13 @@ class conwayUpdater(arrayHandler):
         dr = np.roll(r, -1, axis=1)
         NB = np.zeros(A.shape) + l + r + u + d + ul + dl + ur + dr
         #cells still alive after rule 1
-        rule1 = np.bitwise_and(A, NB > self.rule[0])
+        rule1 = np.bitwise_and(A, NB > rule[0])
         #alive cells that will live
-        rule2 = np.bitwise_and(rule1, NB < self.rule[1])
+        rule2 = np.bitwise_and(rule1, NB < rule[1])
         #dead cells that rebirth
-        rule4 = np.bitwise_and(~A, NB == self.rule[2])
+        rule4 = np.bitwise_and(~A, NB == rule[2])
         #should just be the live cells
-        ARRAY = rule2 + rule4
-        mutex.unlock()
+        Handler.ARRAY = rule2 + rule4
 
 
 ##===============TaskManager===============##
@@ -123,54 +97,48 @@ class conwayUpdater(arrayHandler):
 # Also inherits the array handler so it can send and recieve arrays.
 # All signals come in and out of this guy.
 # TODO update the taskman
-class RunController(arrayHandler):
-    arraySig = pyqtSignal(np.ndarray)
-    changeSig = pyqtSignal(np.ndarray)
+class RunController(QObject):
     frameSig = pyqtSignal(int)
     finished = pyqtSignal()
-    handlerSig = pyqtSignal(QMutex)
-    isingSig = pyqtSignal(int, int, QMutex)
-    noiseSig = pyqtSignal(int, QMutex)
-    conwaySig = pyqtSignal(list, QMutex)
+    handlerSig = pyqtSignal()
+    isingSig = pyqtSignal(int, float)
+    noiseSig = pyqtSignal(int)
+    conwaySig = pyqtSignal(list)
     error = pyqtSignal(str)
 
     def __init__(self, array):
         """Run controller makes sure the run doesnt get out of hand"""
-        arrayHandler.__init__(self, array)
         QObject.__init__(self)
       # self.change_rules(rules)
         self.counter = 0
+        self.stochastic = 1
+        self.conway = 1
 
     def process(self):
-        self.handlerSig.emit(mutex)
-        self.changeSig.emit(CHANGE, 0)
-        mutex = QMutex()
-        self.error.emit('Controller Started!')
-        for i in range(10):
-            self.error.emit('Task Round 1')
-            self.array_frame(1000, [1,4,1], mutex)
+        self.handlerSig.emit()
+        for i in range(100):
+            self.array_frame(1000, [1,4,1], float(1 / 8))
         self.error.emit('Shutting down!')
         self.finished.emit()
 
-    def array_frame(self, updates, rule, mutex):
+    def array_frame(self, updates, rule, beta):
         if self.stochastic:
-            self.isingSig.emit(updates, beta, mutex)
+            self.isingSig.emit(updates, beta)
         if self.conway:
-            self.conwaySig.emit(rule, mutex)
-        self.handlerSig.emit(mutex)
-        self.changeSig.emit(CHANGE, 0)
+            self.conwaySig.emit(rule)
+        self.handlerSig.emit()
 
     def dynamic_run(self):
-        now = time.time()
+#       now = time.time()
         for i in range(self.frames):
             if self.breaker:
                 self.breaker = False
                 break
             self.array_frame()
             self.frameSig.emit(i)
-            while time.time() - now < 0.03:
-                time.sleep(0.01)
-            now = time.time()
+#           while time.time() - now < 0.03:
+#               time.sleep(0.01)
+#           now = time.time()
         self.frameSig.emit(0)
 
 
@@ -183,7 +151,7 @@ class EngineOperator():
     # The kwargs consists of the following: speed, updates, frames, beta,
     # stochastic?, threshold/coverage.
         self.rules = []
-        self.array = np.zeros([kwargs['N'], kwargs['N']])
+        self.array = np.zeros([kwargs['N'], kwargs['N']], bool)
         self.kwargs = kwargs
         self.conway = True
         self.canvas = canvas
@@ -229,26 +197,35 @@ class EngineOperator():
 
     def taskman_init(self):
         self.thread = QThread()
+        self.handler = Handler(self.array)
+        self.handler.moveToThread(self.thread)
         self.taskman = RunController(self.array)
         self.taskman.moveToThread(self.thread)
         self.thread.started.connect(self.taskman.process)
         self.taskman.error.connect(self.error_string)
         self.taskman.finished.connect(self.thread.quit)
+        self.thread.finished.connect(self.thread.deleteLater)
         self.taskman.frameSig.connect(self.frame_value_update)
-        self.taskman.changeSig.connect(self.canvas.export_list)
-        self.taskman.arraySig.connect(self.canvas.export_array)
+        self.taskman.isingSig.connect(self.handler.ising_process)
+        self.taskman.noiseSig.connect(self.handler.noise_process)
+        self.taskman.conwaySig.connect(self.handler.conway_process)
+        self.taskman.handlerSig.connect(self.handler.process)
+      # self.taskman.arraySig.connect(self.canvas.export_array)
 
-        self.noiser = stochasticUpdater()
-        self.noiser.moveToThread(self.thread)
-
-        self.conwayUp = conwayUpdater()
-        self.conwayUp.moveToThread(self.thread)
-
-        self.isingUp = isingUpdater()
-        self.isingUp.moveToThread(self.thread)
-
-        self.handler.moveToThread(self.thread)
-
+        self.handler.changeSig.connect(self.canvas.export_list)
+        self.handler.arraySig.connect(self.canvas.export_array)
 
     def static_run(self):
+        self.thread.start()
+
+    def dynamic_run(self):
+        pass
+        self.thread.start()
+
+    def long_run(self):
+        pass
+        self.thread.start()
+
+    def clear_array(self):
+        pass
         self.thread.start()

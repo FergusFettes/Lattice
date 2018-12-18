@@ -51,9 +51,11 @@ class Canvas(QLabel):
         nupix = QPixmap()
         nupix.convertFromImage(ims)
         self.setPixmap(nupix)
+        self.repaint()
 
     # Updates image only where the pixels have changed. FASTER
     def export_list(self, L, living):
+        print('Painter Active!')
         im = self.pixmap().toImage().scaled((QSize(self.n, self.n)))
         if living:
             for el in L:
@@ -68,6 +70,7 @@ class Canvas(QLabel):
         nupix = QPixmap()
         nupix.convertFromImage(ims)
         self.setPixmap(nupix)
+        self.repaint()
 
     # Updates image only where the pixels have changed. FASTER
     # TODO: Make more performant, use bitdata, also QGLWidget
@@ -89,3 +92,4 @@ class Canvas(QLabel):
         nupix = QPixmap()
         nupix.convertFromImage(im)
         self.setPixmap(nupix)
+        self.repaint()

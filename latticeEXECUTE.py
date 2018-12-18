@@ -44,7 +44,7 @@ def initVars():
         'NEWARR':1,
         'STOCHASTIC':True
     }
-    return TST
+    return DEF
 
 
 #if __name__ == '__main__':

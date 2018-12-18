@@ -8,6 +8,9 @@ import time
 import sys
 import queue as queue
 
+# TODO: get a threadpool on the go so you dont need to artifically keep the thread alive
+# TODO: use pythons 'queue' to move settings into the task managet in a timely fashion
+# TODO: maybe use a mutex to share the array with the canvas? maybe not necc.
 ##==============Workers============##
 # These fellas do little tasks ON A SINGLE SHARED ARRAY
 # The array updaters all inherit the handler, so they can directly maniupalate the array

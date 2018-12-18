@@ -16,12 +16,12 @@ def initVars():
         'PRIMARYCOLOR':QColor.fromRgba(colHex1).name(),   # These are just random rn
         'SECONDARYCOLOR':QColor.fromRgba(colHex2).name(),
         'ALLUP':0,      # Ising starts homogeneous?
-        'N':300,        # Array dimensions
+        'N':450,        # Array dimensions
         'SCALE':2,      # Image dim = N*SCALE x N*SCALE
         'BETA':1 / 8,   # Critical temp for Ising
         'SPEED':100,     # Throttle %
         'DEGREE':4,     # Degree of the Potts model
-        'IMAGEUPDATES':60, # Number of frames to run
+        'IMAGEUPDATES':600, # Number of frames to run
         'MONTEUPDATES':1000,# MonteCarlo updates per frame
         'EQUILIBRATE':100000,
         'COVERAGE':0.1,

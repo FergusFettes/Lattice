@@ -57,16 +57,15 @@ class Handler(QObject):
         cost[1] = np.exp(-4 * beta)
         cost[2] = cost[1] ** 2
         A = Handler.ARRAY
-        flip = np.zeros(A.shape, bool)
         N = A.shape[0]
         for _ in range(updates):
             a = np.random.randint(N)
             b = np.random.randint(N)
             nb = np.sum([A[a][b] == A[(a + 1) % N][b],
-                  A[a][b] == A[(a - 1) % N][b],
-                  A[a][b] == A[a][(b + 1) % N],
-                  A[a][b] == A[a][(b - 1) % N],
-                  -2])
+                            A[a][b] == A[(a - 1) % N][b],
+                            A[a][b] == A[a][(b + 1) % N],
+                            A[a][b] == A[a][(b - 1) % N],
+                            -2])
             if nb <= 0 or np.random.random() < cost[nb]:
                 A[a][b] = not A[a][b]
         Handler.ARRAY = A
@@ -109,15 +108,28 @@ class RunController(QObject):
     def __init__(self, array):
         """Run controller makes sure the run doesnt get out of hand"""
         QObject.__init__(self)
-      # self.change_rules(rules)
-        self.counter = 0
-        self.stochastic = 1
-        self.conway = 1
+        self.settings = {
+            rules:      [[1,4,1]],
+            counter:    0.
+            stochastic: 1,
+            conway:     1,
+            equilibrate:0,
+            updates:    1000,
+            longnum:    100000,
+            beta:       1 / 8,
+        }
+
+    def change_settings(self, **kwargs):
+        for i in kwargs:
+            self.settings[i] = kwargs[i]
 
     def process(self):
         self.handlerSig.emit()
-        for i in range(100):
-            self.array_frame(1000, [1,4,1], float(1 / 8))
+        while self.dynamic:
+            self.dynamic_run()
+        while self.equilibrate:
+            self.equilibrate = False
+            self.array_frame(, [1,4,1], float(1 / 8))
         self.error.emit('Shutting down!')
         self.finished.emit()
 
@@ -129,16 +141,16 @@ class RunController(QObject):
         self.handlerSig.emit()
 
     def dynamic_run(self):
-#       now = time.time()
+        now = time.time()
         for i in range(self.frames):
             if self.breaker:
                 self.breaker = False
                 break
             self.array_frame()
             self.frameSig.emit(i)
-#           while time.time() - now < 0.03:
-#               time.sleep(0.01)
-#           now = time.time()
+            while time.time() - now < 0.03:
+                time.sleep(0.01)
+            now = time.time()
         self.frameSig.emit(0)
 
 
@@ -210,17 +222,15 @@ class EngineOperator():
         self.taskman.noiseSig.connect(self.handler.noise_process)
         self.taskman.conwaySig.connect(self.handler.conway_process)
         self.taskman.handlerSig.connect(self.handler.process)
-      # self.taskman.arraySig.connect(self.canvas.export_array)
 
         self.handler.changeSig.connect(self.canvas.export_list)
         self.handler.arraySig.connect(self.canvas.export_array)
 
     def static_run(self):
-        self.thread.start()
+        self.runlengthSig(1)
 
     def dynamic_run(self):
-        pass
-        self.thread.start()
+        self.thread.restart()
 
     def long_run(self):
         pass

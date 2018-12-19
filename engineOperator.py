@@ -57,7 +57,7 @@ class Handler(QObject):
 
     def noise_process(self, threshold):
         Handler.ARRAY = np.zeros(Handler.ARRAY.shape, bool)
-        Handler.ARRAYOLD = Handler.ARRAY
+        Handler.ARRAYOLD = np.copy(Handler.ARRAY)
         A = np.random.random(Handler.ARRAY.shape) > threshold
         B = np.bitwise_xor(Handler.ARRAY, A)
         Handler.ARRAY = B
@@ -122,6 +122,10 @@ class RunController(QObject):
         """Run controller makes sure the run doesnt get out of hand"""
         QObject.__init__(self)
         self.st = kwargs
+        self.fpsTimer = QTimer(self)
+        self.fpsTimer.setInterval(100)
+        self.mainTime = QTimer(self)
+        self.mainTime.setInterval(3000)
 
     def change_settings(self, kwargs):
         for i in kwargs:
@@ -130,8 +134,6 @@ class RunController(QObject):
     def process(self):
         self.error.emit('Process Starting!')
     #   self.handlerSig.emit()
-        self.mainTime = QTimer(self)
-        self.mainTime.setInterval(3000)
         self.mainTime.start()
         while self.mainTime.remainingTime() > 0:  #Can use this to check on the settings
             # every X seconds, then save the interrupt thing below for special things.
@@ -167,23 +169,22 @@ class RunController(QObject):
         self.handlerSig.emit()
 
     def dynamic_run(self):
-        now = float(self.mainTime.remainingTime())
-        print(now)
         rule = []
+        self.fpsTimer.start()
         while self.st['RUNFRAMES'] < self.st['IMAGEUPDATES']:
             if self.st['CONWAY']:
                 rules = self.st['RULES']
                 rule = rules[self.st['RUNFRAMES'] % len(rules)]
             self.array_frame(self.st['MONTEUPDATES'], rule, self.st['BETA'])
-            self.arrayfpsSig.emit(now - self.mainTime.remainingTime())
-            now = self.mainTime.remainingTime()
+            self.arrayfpsSig.emit(self.mainTime.remainingTime())
             self.st['RUNFRAMES'] += 1
             self.frameSig.emit(self.st['RUNFRAMES'])
-            print(now - self.mainTime.remainingTime())
-            while (now - self.mainTime.remainingTime()) < 0.000003:
-                QThread.msleep(10)
+            while self.fpsTimer.remainingTime():
+                self.arrayfpsSig.emit(100 - self.fpsTimer.remainingTime())
+                QThread.msleep(1)
                 if not self.mainTime.remainingTime():
                     return
+            self.arrayfpsSig.emit(0)
             if not self.mainTime.remainingTime():
                 break
 
@@ -227,7 +228,10 @@ class EngineOperator(QObject):
             self.kwargs['INTERRUPT'] = False
 
     def array_fps_update(self, value):
-        self.arrayfpsLabel.setText('Array fps: ' + str(1 / value))
+        if not value:
+            self.arrayfpsLabel.setText('Array fps < 10')
+        else:
+            self.arrayfpsLabel.setText('Array fps: ' + str(1 / value))
 
     def canvas_fps_update(self, value):
         self.canvasfpsLabel.setText('Canvas fps: ' + str(1 / value))
@@ -258,8 +262,8 @@ class EngineOperator(QObject):
         self.temp_kwargs(IMAGEUPDATES=self.kwargs['LONGNUM'], EQUILIBRATE=True)
 
     def clear_array(self):
-        pass
         self.thread.start()
+        self.temp_kwargs(THRESHOLD=self.kwargs['THRESHOLD'], CLEAR=True)
 
     def noise_array(self):
         pass

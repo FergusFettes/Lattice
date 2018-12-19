@@ -62,14 +62,14 @@ class MainWindow(QWidget):
         self.equilibrate.clicked.connect(self.engine.long_run)
         self.clear = QPushButton()
         self.clear.setText('Clear')
-        self.clear.clicked.connect(self.engine.noise_array)
+        self.clear.clicked.connect(self.engine.clear_array)
         self.thresholdCtrl = QSlider(Qt.Vertical)
         self.thresholdCtrl.setTickPosition(QSlider.TicksRight)
         self.thresholdCtrl.setTickInterval(20)
-        self.thresholdCtrl.setMinimum(1)
-        self.thresholdCtrl.setMaximum(100)
+        self.thresholdCtrl.setMinimum(0)
+        self.thresholdCtrl.setMaximum(99)
         self.thresholdCtrl.setPageStep(4)
-        self.thresholdCtrl.setValue(self.kwargs['THRESHOLD'])
+        self.thresholdCtrl.setValue(self.kwargs['THRESHOLD'] + 1)
         self.thresholdCtrl.valueChanged.connect(self.coverageChange)
         self.thresholdLabel= QLabel()
         self.thresholdLabel.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -395,7 +395,7 @@ class MainWindow(QWidget):
         rul = [i.group(1,2,3,4) for i in self.ruleIter]
         rules = [[int(j) for j in i] for i in rul]
         self.changeKwarg('RULES', rules)
-        self.changeKwarg('CONWAY', not self.rules == [])
+        self.changeKwarg('CONWAY', not rules == [])
 
     def stochasticChange(self):
         self.changeKwarg('STOCHASTIC', self.stochasticBox.isChecked())
@@ -407,7 +407,7 @@ class MainWindow(QWidget):
     def coverageChange(self):
         coverage = self.thresholdCtrl.value()
         self.changeKwarg('THRESHOLD', self.threshval[coverage])
-        self.thresholdLabel.setText('Coverage = ' + str(coverage) + '%')
+        self.thresholdLabel.setText('Coverage = ' + str(coverage + 1) + '%')
 
     def sliderChange(self):
         self.changeKwarg('BETA', self.tempCtrl.value() / 100)

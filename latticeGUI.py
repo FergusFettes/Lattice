@@ -115,36 +115,35 @@ class MainWindow(QWidget):
         self.NCtrl = QSpinBox()
         self.NCtrl.setRange(10, 1000)
         self.NCtrl.setSingleStep(10)
-        self.NCtrl.setValue(100)
+        self.NCtrl.setValue(self.kwargs['N'])
         self.NCtrl.setMaximumSize(100, 40)
-        self.NCtrl.valueChanged.connect(partial(self.changeKwarg, 'N', self.NCtrl.value()))
+        self.NCtrl.valueChanged.connect(partial(self.NKwarg, 'N'))
         MonteUpLab = QLabel('Up/Frame= ')
         MonteUpLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.MonteUpCtrl = QSpinBox()
         self.MonteUpCtrl.setRange(100, 5000)
         self.MonteUpCtrl.setSingleStep(100)
-        self.MonteUpCtrl.setValue(1000)
+        self.MonteUpCtrl.setValue(self.kwargs['MONTEUPDATES'])
         self.MonteUpCtrl.setMaximumSize(100, 40)
-        self.MonteUpCtrl.valueChanged.connect(partial(self.changeKwarg, 'MONTEUPDATES', self.MonteUpCtrl.value()))
+        self.MonteUpCtrl.valueChanged.connect(partial(self.MonteUpKwarg, 'MONTEUPDATES'))
         LongLab = QLabel('Long#= ')
         LongLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.LongCtrl = QSpinBox()
         self.LongCtrl.setRange(10000, 1000000)
         self.LongCtrl.setSingleStep(10000)
-        self.LongCtrl.setValue(100000)
+        self.LongCtrl.setValue(self.kwargs['EQUILIBRATE'])
         self.LongCtrl.setMaximumSize(100, 40)
-        self.LongCtrl.valueChanged.connect(partial(self.changeKwarg, 'EQUILIBRATE', self.LongCtrl.value()))
+        self.LongCtrl.valueChanged.connect(partial(self.LongKwarg, 'EQUILIBRATE'))
         DegreeLab = QLabel('Degree= ')
         DegreeLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.DegreeCtrl = QSpinBox()
         self.DegreeCtrl.setRange(2, 10)
         self.DegreeCtrl.setSingleStep(1)
-        self.DegreeCtrl.setValue(2)
+        self.DegreeCtrl.setValue(self.kwargs['DEGREE'])
         self.DegreeCtrl.setMaximumSize(100, 40)
-        self.DegreeCtrl.valueChanged.connect(partial(self.changeKwarg, 'DEGREE', self.DegreeCtrl.value()))
+        self.DegreeCtrl.valueChanged.connect(partial(self.DegreeKwarg, 'DEGREE'))
         SaveDefaults = QPushButton('Save Defaults')
         SaveDefaults.clicked.connect(self.save_defaults)
-        #TODO make this actualy save the defaults
         defGr = QGridLayout()
         defGr.addWidget(NLab, 0, 0)
         defGr.addWidget(self.NCtrl, 0, 1)
@@ -311,6 +310,22 @@ class MainWindow(QWidget):
         # 'for_window [window_role='popup'] floating enable'
         self.setWindowRole('popup')
 
+    # This is stupid, I can't believe I cant figure out a better way to do this. Tried
+    # using partial funcitons and lambdas but that didn't work, then tried sender() but
+    # I couldnt get it working either.
+    # Ah! Just use a callback, do self.callback.value()! Easy peasy. TODO
+    def NKwarg(self, kwarg):
+        self.changeKwarg(kwarg, self.NCtrl.value())
+
+    def LongKwarg(self, kwarg):
+        self.changeKwarg(kwarg, self.LongCtrl.value())
+
+    def MonteUpKwarg(self, kwarg):
+        self.changeKwarg(kwarg, self.MonteUpCtrl.value())
+
+    def DegreeKwarg(self, kwarg):
+        self.changeKwarg(kwarg, self.DegreeCtrl.value())
+
     def changeKwarg(self, kwarg, nuVal):
         print('Changing ' + kwarg)
         self.kwargs[kwarg] = nuVal
@@ -385,10 +400,9 @@ class MainWindow(QWidget):
 
     #TODO: make it save the previous configuration before overwriting
     def save_defaults(self):
-        save = open('.\saves\save.txt', 'w')
-        savestr = '\n'.join(['{0}:{1},'.format(i, self.kwargs[i]) for i in self.kwargs])
-        save.write(savestr)
-        save.close()
+        with open('save.txt', 'w') as file:
+            savestr = ''.join(['{0}:{1};'.format(i, self.kwargs[i]) for i in self.kwargs])
+            file.write(savestr)
 
     def keyPressEvent(self, e):
         # TODO: make this a dictonary

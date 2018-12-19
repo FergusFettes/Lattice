@@ -9,7 +9,6 @@ import random as ra
 
 
 def initVars():
-    # TODO: add a load function here
     colHex1 = int(ra.random() * int('0xffffffff', 16))
     colHex2 = int(ra.random() * int('0xffffffff', 16))
     colHex3 = int(ra.random() * int('0xffffffff', 16))
@@ -17,12 +16,12 @@ def initVars():
     colHex5 = int('0xffffffff', 16)
     colHex6 = int('0xffffffff', 16)
     DEF = {
-        'BACKCOLOR1':   QColor.fromRgba(colHex1).name(),    # These are just random rn
-        'BACKCOLOR2':   QColor.fromRgba(colHex2).name(),
-        'UPDATECOLOR1': QColor.fromRgba(colHex3).name(),    # To make fancy transitions,
-        'UPDATECOLOR2': QColor.fromRgba(colHex4).name(),    # change these.
-        'MOUSECOLOR1':  QColor.fromRgba(colHex5).name(),    # Not used rn. But soon?
-        'MOUSECOLOR2':  QColor.fromRgba(colHex6).name(),
+        'BACKCOLOR1':   QColor.fromRgba(colHex1).rgba(),    # These are just random rn
+        'BACKCOLOR2':   QColor.fromRgba(colHex2).rgba(),
+        'UPDATECOLOR1': QColor.fromRgba(colHex3).rgba(),    # To make fancy transitions,
+        'UPDATECOLOR2': QColor.fromRgba(colHex4).rgba(),    # change these.
+        'MOUSECOLOR1':  QColor.fromRgba(colHex5).rgba(),    # Not used rn. But soon?
+        'MOUSECOLOR2':  QColor.fromRgba(colHex6).rgba(),
         'SATURATION':   80,     # This leaves changes on the image shortly
         'N':            350,    # Array dimensions
         'SCALE':        2,      # Image dim = N*SCALE x N*SCALE
@@ -48,11 +47,16 @@ def initVars():
         'INTERRUPT':    False,  # Used to interrupt a run
     }
     try:
-        saved=open('.\saves\save.txt',r)
+        with open('save.txt', 'r') as file:
+            pass
     except:
         print('No saved file, using defaults')
         return DEF
-    return {i[:-2].split(':')[0]:i[:-2].split(':')[1] for i in list(saved)}
+    with open('save.txt', 'r') as file:
+        li = file.read().split(';')
+        lin = [el.split(':') for el in li]
+        DEF = {i[0]:eval(i[1]) for i in lin[:-1]}
+        return DEF
 
 if __name__ == '__main__':
 

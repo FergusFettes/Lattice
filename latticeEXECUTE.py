@@ -25,7 +25,7 @@ def initVars():
         'BETA':         1 / 8,  # Critical temp for Ising
         'SPEED':        100,    # Throttle %
         'DEGREE':       4,      # Degree of the Potts model
-        'IMAGEUPDATES': 60,    # Number of frames to run
+        'IMAGEUPDATES': 600,    # Max number of frames to run
         'RUNFRAMES':    0,      # Frames in current run
         'MONTEUPDATES': 333,    # MonteCarlo updates per frame
         'LONGNUM':      100000, # MonteCarlo update to equilibrium
@@ -34,12 +34,14 @@ def initVars():
         'STOCHASTIC':   True,   # Noise on?
         'CONWAY':       True,   # Conway on?
         'EQUILIBRATE':  False,  # Equilibrate array?
+        'RUN':          True,   # Run the simulation
         'CLEAR':        False,  # Clear array?
                                 # Update rules for conway
         'RULES':        [[3,6,2,2],\
                          [3,6,3,3],\
                          [3,4,3,3],\
-                         [3,4,2,2]]
+                         [3,4,2,2]],
+        'INTERRUPT':    False,  # Used to interrupt a run
     }
     return DEF
 

@@ -363,9 +363,10 @@ class MainWindow(QWidget):
         self.tempLabel.setText('Beta = ' + str(self.tempCtrl.value() / 100))
 
     def keyPressEvent(self, e):
+        # TODO: make this a dictonary
         if e.key() == Qt.Key_Escape:
             if self.engine.thread.isRunning():
-                self.engine.interruptSig.emit()
+                self.changeKwarg('INTERRUPT', True)
                 # TODO: add a 'interrupted by user' popup (after a 'interrupting!'?)
             else:
                 QCoreApplication.instance().quit()

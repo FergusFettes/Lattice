@@ -14,8 +14,8 @@ class Canvas(QLabel):
     canvasfpsSig = pyqtSignal(float)
 
     def initialize(self, **kwargs):
-        self.primaryColor = QColor(kwargs['PRIMARYCOLOR'])
-        self.secondaryColor = QColor(kwargs['SECONDARYCOLOR'])
+        self.primaryColor = QColor(kwargs['BACKCOLOR1'])
+        self.secondaryColor = QColor(kwargs['BACKCOLOR2'])
         self.interrupt = False
         self.colorList = []
         self.degree = 2

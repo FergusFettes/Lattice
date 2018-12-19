@@ -56,6 +56,7 @@ def initVars():
         li = file.read().split(';')
         lin = [el.split(':') for el in li]
         DEF = {i[0]:eval(i[1]) for i in lin[:-1]}
+        DEF['INTERRUPT'] = False
         return DEF
 
 if __name__ == '__main__':

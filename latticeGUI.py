@@ -50,7 +50,7 @@ class MainWindow(QWidget):
         self.dynamic = QPushButton()
         self.dynamic.setText('Dynamic')
         self.dynamic.setStyleSheet('QPushButton { background-color: %s; }' %  \
-                                         QColor(DEFAULTS['MOUSECOLOR1']).name())
+                                         QColor('#ffff00ff').name())
         self.dynamic.clicked.connect(self.engine.dynamic_run)
 
         # Buttons and slier in the top left
@@ -142,6 +142,14 @@ class MainWindow(QWidget):
         self.DegreeCtrl.setValue(self.kwargs['DEGREE'])
         self.DegreeCtrl.setMaximumSize(100, 40)
         self.DegreeCtrl.valueChanged.connect(partial(self.DegreeKwarg, 'DEGREE'))
+        ScaleLab = QLabel('Scale= ')
+        ScaleLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.ScaleCtrl = QSpinBox()
+        self.ScaleCtrl.setRange(1, 20)
+        self.ScaleCtrl.setSingleStep(1)
+        self.ScaleCtrl.setValue(self.kwargs['SCALE'])
+        self.ScaleCtrl.setMaximumSize(100, 40)
+        self.ScaleCtrl.valueChanged.connect(partial(self.ScaleKwarg, 'SCALE'))
         SaveDefaults = QPushButton('Save Defaults')
         SaveDefaults.clicked.connect(self.save_defaults)
         defGr = QGridLayout()
@@ -153,7 +161,9 @@ class MainWindow(QWidget):
         defGr.addWidget(self.LongCtrl, 0, 3)
         defGr.addWidget(DegreeLab, 1, 2)
         defGr.addWidget(self.DegreeCtrl, 1, 3)
-        defGr.addWidget(SaveDefaults, 2, 0, 1, 4)
+        defGr.addWidget(ScaleLab, 2, 0)
+        defGr.addWidget(self.ScaleCtrl, 2, 1)
+        defGr.addWidget(SaveDefaults, 2, 2, 1, 2)
 
         # 'Fixed Defaults' concept superceded, delete XXX
         self.fixedBox = QCheckBox('Fixed')
@@ -205,6 +215,7 @@ class MainWindow(QWidget):
         self.mouse2Button.pressed.connect(
             partial(self.choose_color, self.set_color, self.mouse2Button, 0))
         self.colorList = []
+        self.canvas.addColors(self.colorList, 2)
         self.colorList.append(QColor(DEFAULTS['BACKCOLOR1']).rgba())
         self.colorList.append(QColor(DEFAULTS['BACKCOLOR2']).rgba())
         self.colorList.append(QColor(DEFAULTS['UPDATECOLOR1']).rgba())
@@ -326,6 +337,9 @@ class MainWindow(QWidget):
     def DegreeKwarg(self, kwarg):
         self.changeKwarg(kwarg, self.DegreeCtrl.value())
 
+    def ScaleKwarg(self, kwarg):
+        self.changeKwarg(kwarg, self.ScaleCtrl.value())
+
     def changeKwarg(self, kwarg, nuVal):
         print('Changing ' + kwarg)
         self.kwargs[kwarg] = nuVal
@@ -381,6 +395,7 @@ class MainWindow(QWidget):
         rul = [i.group(1,2,3,4) for i in self.ruleIter]
         rules = [[int(j) for j in i] for i in rul]
         self.changeKwarg('RULES', rules)
+        self.changeKwarg('CONWAY', not self.rules == [])
 
     def stochasticChange(self):
         self.changeKwarg('STOCHASTIC', self.stochasticBox.isChecked())

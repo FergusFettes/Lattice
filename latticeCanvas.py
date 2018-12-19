@@ -16,28 +16,20 @@ class Canvas(QLabel):
     def initialize(self, **kwargs):
         self.primaryColor = QColor(kwargs['BACKCOLOR1'])
         self.secondaryColor = QColor(kwargs['BACKCOLOR2'])
-        self.interrupt = False
         self.colorList = []
         self.degree = 2
         self.n = kwargs['N']
         self.scale = kwargs['SCALE']
         self.reset()
-        self.Array = np.zeros((self.n * self.scale, self.n * self.scale), int)
 
     def reset(self):
         self.setPixmap(QPixmap(self.n * self.scale, self.n * self.scale))
 
         self.pixmap().fill(self.primaryColor)
 
-    def setColor(self, color, newValue):
-        self.color = QColor(newValue)
-
     def addColors(self, colorList, degree):
         self.colorList = colorList
         self.degree = degree
-
-    def INTERRUPT(self, state):
-        self.interrupt
 
     # Updates image with values from entire array. SLOW
     def export_array(self, A):
@@ -45,7 +37,7 @@ class Canvas(QLabel):
         im = QImage(self.n, self.n, QImage.Format_ARGB32)
         for i in range(self.n):
             for j in range(self.n):
-                num = A[int(i)][int(j)]
+                num = A[i][j]
                 color = self.colorList[num]
                 im.setPixel(i, j, color)
 
@@ -76,25 +68,3 @@ class Canvas(QLabel):
         self.setPixmap(nupix)
         self.repaint()
         self.canvasfpsSig.emit(time.time()-now)
-
-    # Updates image only where the pixels have changed. FASTER
-    # TODO: Make more performant, use bitdata, also QGLWidget
-    def export_list2(self, L, living):
-        im = self.pixmap().toImage()
-        if living:
-            for el in L:
-                for i in range(self.scale):
-                    for j in range(self.scale):
-                        im.setPixel((self.scale * el[0]) + i, (self.scale * el[1])
-                                    + j, self.colorList[1])
-        else:
-            for el in L:
-                for i in range(self.scale):
-                    for j in range(self.scale):
-                        im.setPixel((self.scale * el[0]) + i, (self.scale * el[1])\
-                                    + j, self.colorList[el[2]])
-
-        nupix = QPixmap()
-        nupix.convertFromImage(im)
-        self.setPixmap(nupix)
-        self.repaint()

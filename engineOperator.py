@@ -36,7 +36,8 @@ class Handler(QObject):
 #       self.update_living()
         self.update_change()
         self.changeSig.emit(Handler.CHANGE, 0)
-        Handler.ARRAYOLD = Handler.ARRAY
+#       self.arraySig.emit(Handler.ARRAY)
+        Handler.ARRAYOLD = np.copy(Handler.ARRAY)
 
     def update_living(self):
         Handler.LIVING = np.argwhere(Handler.ARRAY)
@@ -50,8 +51,8 @@ class Handler(QObject):
         b = np.concatenate((births, np.ones([births.shape[0], 1], int)), axis=1)
         d = np.concatenate((deaths, np.zeros([deaths.shape[0], 1], int)), axis=1)
         Handler.CHANGE = np.concatenate((b, d))
-       #print(Handler.CHANGE)
-        if Handler.CHANGE == []:
+        if not Handler.CHANGE.size:
+            print('No change')
             self.breakSig.emit()
 
     def noise_process(self, threshold):
@@ -97,7 +98,7 @@ class Handler(QObject):
         rule2 = np.bitwise_and(rule1, NB <= rule[1])
         #dead cells that rebirth
         rule4 = np.bitwise_and(~A, NB >= rule[2])
-        rule5 = np.bitwise_and(~A, NB <= rule[3])
+        rule5 = np.bitwise_and(rule4, NB <= rule[3])
         #should just be the live cells
         Handler.ARRAY = rule2 + rule4 + rule5
 
@@ -123,7 +124,6 @@ class RunController(QObject):
         self.st = kwargs
 
     def change_settings(self, kwargs):
-       #print(kwargs)
         for i in kwargs:
             self.st[i] = kwargs[i]
 
@@ -136,26 +136,22 @@ class RunController(QObject):
         while self.mainTime.remainingTime() > 0:  #Can use this to check on the settings
             # every X seconds, then save the interrupt thing below for special things.
             if self.st['RUN']:
-                print('Run')
                 self.dynamic_run()
-                if self.st['IMAGEUPDATES'] == self.st['RUNFRAMES']:
+                if self.st['IMAGEUPDATES'] <= self.st['RUNFRAMES']:
                     self.st['RUN'] = False
             if self.st['EQUILIBRATE']:
-                print('Eqi')
                 self.st['EQUILIBRATE'] = False
                 self.st['CONWAY'] = False
                 self.array_frame(self.st['LONGNUM'], self.st['RULES'],
                                     self.st['BETA'])
                 self.st['CONWAY'] = True
             if self.st['CLEAR']:
-                print('Clr')
                 self.st['CLEAR'] = False
                 self.noiseSig.emit(self.st['THRESHOLD'])
             QThread.msleep(10)
             interrupt = QThread.currentThread().isInterruptionRequested()
             if interrupt:
                 QThread.currentThread().quit()
-                print('Interrupted accepted!')
                 break
         self.error.emit('Checking settings')
         self.finished.emit()
@@ -171,20 +167,24 @@ class RunController(QObject):
         self.handlerSig.emit()
 
     def dynamic_run(self):
-        now = time.time()
+        now = float(self.mainTime.remainingTime())
+        print(now)
         rule = []
         while self.st['RUNFRAMES'] < self.st['IMAGEUPDATES']:
             if self.st['CONWAY']:
                 rules = self.st['RULES']
                 rule = rules[self.st['RUNFRAMES'] % len(rules)]
             self.array_frame(self.st['MONTEUPDATES'], rule, self.st['BETA'])
-            self.frameSig.emit(self.st['RUNFRAMES'])
-            self.arrayfpsSig.emit(time.time() - now)
-            while time.time() - now < 0.03:
-                time.sleep(0.01)
-            now = time.time()
+            self.arrayfpsSig.emit(now - self.mainTime.remainingTime())
+            now = self.mainTime.remainingTime()
             self.st['RUNFRAMES'] += 1
-            if not self.mainTime:
+            self.frameSig.emit(self.st['RUNFRAMES'])
+            print(now - self.mainTime.remainingTime())
+            while (now - self.mainTime.remainingTime()) < 0.000003:
+                QThread.msleep(10)
+                if not self.mainTime.remainingTime():
+                    return
+            if not self.mainTime.remainingTime():
                 break
 
 
@@ -224,8 +224,7 @@ class EngineOperator(QObject):
         if self.kwargs['INTERRUPT'] == False:
             self.thread.start()
         else:
-            print('Thread sucessfully exited!')
-            self.kwargs['INTERRUPT'] == False
+            self.kwargs['INTERRUPT'] = False
 
     def array_fps_update(self, value):
         self.arrayfpsLabel.setText('Array fps: ' + str(1 / value))
@@ -237,7 +236,7 @@ class EngineOperator(QObject):
         self.frameLabel.setText(str(value))
         if value == self.kwargs['MONTEUPDATES']:
             # Reset the kwargs
-            self.update_kwargs(self.kwargs)
+            self.update_kwargs(**self.kwargs)
 
     def error_string(self, error='Unlabelled Error! Oh no!'):
         print(error)
@@ -246,22 +245,13 @@ class EngineOperator(QObject):
         self.thread.requestInterruption()
         print('Interrupt sent!')
 
-    # Is this obscene? All I am trying to do is unpack my regexes. No doubt
-    # there is a better (more readable / faster?) way of doing this.
-    # self.rules should be an array of all the values for the rules.
-    def process_rules(self, rulesMatch):
-        rul = [i.group(1, 2, 3) for i in rulesMatch]
-        self.rules = [[list(map(int, j.split(','))) for j in i] for i in rul]
-
-        self.update_kwargs(RULES=self.rules, CONWAY= not self.rules==[])
-
     def static_run(self):
         self.thread.start()
-        self.temp_kwargs(RUN=True, IMAGEUPDATES=1)
+        self.temp_kwargs(RUN=True, RUNFRAMES=0, IMAGEUPDATES=1)
 
     def dynamic_run(self):
         self.thread.start()
-        self.temp_kwargs(RUN=True, IMAGEUPDATES=self.kwargs['IMAGEUPDATES'])
+        self.temp_kwargs(RUN=True, RUNFRAMES=0, IMAGEUPDATES=self.kwargs['IMAGEUPDATES'])
 
     def long_run(self):
         self.thread.start()

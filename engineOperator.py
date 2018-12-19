@@ -118,7 +118,7 @@ class RunController(QObject):
         self.st = kwargs
 
     def change_settings(self, **kwargs):
-     ## print(self.st)
+        print(kwargs)
         for i in kwargs:
             self.st[i] = kwargs[i]
         print(self.st)
@@ -127,11 +127,11 @@ class RunController(QObject):
         self.error.emit('Process Starting!')
         self.handlerSig.emit()
         self.mainTime = QTimer(self)
-        self.mainTime.setInterval(10000)
+        self.mainTime.setInterval(3000)
         self.mainTime.start()
         while self.mainTime.remainingTime() > 0:  #Can use this to check on the settings
             # every X seconds, then save the interrupt thing below for special things.
-            while self.st['RUNFRAME'] > 0:
+            while self.st['RUNFRAMES'] > 0:
                 if self.st['EQUILIBRATE']:
                     self.st['EQUILIBRATE'] = False
                     self.array_frame(self.st['LONGNUM'], self.st['RULES'],
@@ -143,7 +143,6 @@ class RunController(QObject):
                 self.noiseSig.emit(self.st['THRESHOLD'])
             QThread.msleep(10)
             interrupt = QThread.currentThread().isInterruptionRequested()
-            print(self.mainTime.remainingTime())
             if interrupt:
                 QThread.currentThread().quit()
                 print('Interrupted accepted!')
@@ -177,7 +176,7 @@ class RunController(QObject):
             while time.time() - now < 0.03:
                 time.sleep(0.01)
             now = time.time()
-            self.framecounter -= 1
+            self.st['RUNFRAMES'] -= 1
         self.frameSig.emit(0)
 
 
@@ -205,9 +204,15 @@ class EngineOperator(QObject):
     def update_kwargs(self, **kwargs):
         for i in kwargs:
             self.kwargs[i] = kwargs[i]
+        dicc = {i:kwargs[i] for i in kwargs}
+        print(dicc)
+        smoldicc = {'FRAMERUN':10}
+        print(smoldicc)
+        self.settingsSig.emit(smoldicc)
+        self.thread.requestInterruption()
 
     def clear_temp_kwargs(self, **kwargs):
-        update_kwargs('CLEAR'=False, 'EQUILIBRATE'=False)
+        self.update_kwargs(CLEAR=False, EQUILIBRATE=False)
 
     def array_fps_update(self, value):
         self.arrayfpsLabel.setText('Array fps: ' + str(1 / value))
@@ -232,16 +237,16 @@ class EngineOperator(QObject):
         rul = [i.group(1, 2, 3) for i in rulesMatch]
         self.rules = [[list(map(int, j.split(','))) for j in i] for i in rul]
 
-        self.update_kwargs('RULES'=self.rules, 'CONWAY'= not self.rules==[])
+        self.update_kwargs(RULES=self.rules, CONWAY= not self.rules==[])
 
     def static_run(self):
-        self.update_kwargs('RUNFRAMES'=1)
+        self.update_kwargs(RUNFRAMES=1)
 
     def dynamic_run(self):
-        self.update_kwargs('RUNFRAMES'=self.kwargs['IMAGEUPDATES'])
+        self.update_kwargs(RUNFRAMES=self.kwargs['IMAGEUPDATES'])
 
     def long_run(self):
-        self.update_kwargs('RUNFRAMES'=self.kwargs['LONGNUM'], 'EQUILIBRATE'=True)
+        self.update_kwargs(RUNFRAMES=self.kwargs['LONGNUM'], EQUILIBRATE=True)
 
     def clear_array(self):
         pass
@@ -254,12 +259,12 @@ class EngineOperator(QObject):
         self.thread = QThread()
         self.handler = Handler(self.array)
         self.handler.moveToThread(self.thread)
-        self.taskman = RunController(self.array)
+        self.taskman = RunController(self.array, **self.kwargs)
         self.taskman.moveToThread(self.thread)
         self.thread.started.connect(self.taskman.process)
         self.taskman.error.connect(self.error_string)
         self.taskman.finished.connect(self.thread.quit)
-        self.taskman.finihsed.connect(self.clear_temp_kwargs)
+        self.taskman.finished.connect(self.clear_temp_kwargs)
         self.thread.finished.connect(self.thread.start)
         self.taskman.frameSig.connect(self.frame_value_update)
         self.taskman.arrayfpsSig.connect(self.array_fps_update)

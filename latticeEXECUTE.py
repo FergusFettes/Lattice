@@ -36,9 +36,9 @@ def initVars():
         'EQUILIBRATE':  False,  # Equilibrate array?
         'CLEAR':        False,  # Clear array?
                                 # Update rules for conway
-        'RULES':        [[3,6,2,2]\
-                         [3,6,3,3]\
-                         [3,4,3,3]\
+        'RULES':        [[3,6,2,2],\
+                         [3,6,3,3],\
+                         [3,4,3,3],\
                          [3,4,2,2]]
     }
     return DEF

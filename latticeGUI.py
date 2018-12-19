@@ -50,7 +50,7 @@ class MainWindow(QWidget):
         self.dynamic = QPushButton()
         self.dynamic.setText('Dynamic')
         self.dynamic.setStyleSheet('QPushButton { background-color: %s; }' %  \
-                                         QColor(DEFAULTS['MOUSECOLOR1']))
+                                         QColor(DEFAULTS['MOUSECOLOR1']).name())
         self.dynamic.clicked.connect(self.engine.dynamic_run)
 
         # Buttons and slier in the top left
@@ -111,7 +111,7 @@ class MainWindow(QWidget):
         self.textHolder.addWidget(self.automataString)
         self.automataPalette = self.automataString.palette()
         self.automataPalette.setColor(QPalette.Base, Qt.red)
-        self.automataString.setColor(self.automataPalette)
+        self.automataString.setPalette(self.automataPalette)
        #self.automataString.textChanged.connect(self.automataStringChange)
         # TODO write the function for this baby
 
@@ -178,12 +178,12 @@ class MainWindow(QWidget):
         # TODO: rework the whole color organisation throughout.
         self.primaryButton = QPushButton()
         self.primaryButton.setStyleSheet('QPushButton { background-color: %s; }' %
-                                         QColor(DEFAULTS['BACKCOLOR1']))
+                                         QColor(DEFAULTS['BACKCOLOR1']).name())
         self.primaryButton.pressed.connect(
             partial(self.choose_color, self.set_color, self.primaryButton, 0))
         self.secondaryButton = QPushButton()
         self.secondaryButton.setStyleSheet('QPushButton { background-color: %s; }' %
-                                           QColor(DEFAULTS['BACKCOLOR2']))
+                                           QColor(DEFAULTS['BACKCOLOR2']).name())
         self.secondaryButton.pressed.connect(
             partial(self.choose_color, self.set_color, self.secondaryButton, 1))
         self.gr = QGridLayout()

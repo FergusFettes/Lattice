@@ -12,13 +12,17 @@ def initVars():
     # TODO: add a load function here
     colHex1 = int(ra.random() * int('0xffffffff', 16))
     colHex2 = int(ra.random() * int('0xffffffff', 16))
+    colHex3 = int(ra.random() * int('0xffffffff', 16))
+    colHex4 = int(ra.random() * int('0xffffffff', 16))
+    colHex5 = int('0xffffffff', 16)
+    colHex6 = int('0xffffffff', 16)
     DEF = {
         'BACKCOLOR1':   QColor.fromRgba(colHex1).name(),    # These are just random rn
         'BACKCOLOR2':   QColor.fromRgba(colHex2).name(),
-        'UPDATECOLOR1': QColor.fromRgba(colHex1).name(),    # To make fancy transitions,
-        'UPDATECOLOR2': QColor.fromRgba(colHex2).name(),    # change these.
-        'MOUSECOLOR1':  QColor.fromRgba(colHex1).name(),    # Not used rn. But soon?
-        'MOUSECOLOR2':  QColor.fromRgba(colHex2).name(),
+        'UPDATECOLOR1': QColor.fromRgba(colHex3).name(),    # To make fancy transitions,
+        'UPDATECOLOR2': QColor.fromRgba(colHex4).name(),    # change these.
+        'MOUSECOLOR1':  QColor.fromRgba(colHex5).name(),    # Not used rn. But soon?
+        'MOUSECOLOR2':  QColor.fromRgba(colHex6).name(),
         'SATURATION':   80,     # This leaves changes on the image shortly
         'N':            350,    # Array dimensions
         'SCALE':        2,      # Image dim = N*SCALE x N*SCALE
@@ -34,7 +38,7 @@ def initVars():
         'STOCHASTIC':   True,   # Noise on?
         'CONWAY':       True,   # Conway on?
         'EQUILIBRATE':  False,  # Equilibrate array?
-        'RUN':          True,   # Run the simulation
+        'RUN':          False,   # Run the simulation
         'CLEAR':        False,  # Clear array?
                                 # Update rules for conway
         'RULES':        [[3,6,2,2],\
@@ -43,8 +47,12 @@ def initVars():
                          [3,4,2,2]],
         'INTERRUPT':    False,  # Used to interrupt a run
     }
-    return DEF
-
+    try:
+        saved=open('.\saves\save.txt',r)
+    except:
+        print('No saved file, using defaults')
+        return DEF
+    return {i[:-2].split(':')[0]:i[:-2].split(':')[1] for i in list(saved)}
 
 if __name__ == '__main__':
 

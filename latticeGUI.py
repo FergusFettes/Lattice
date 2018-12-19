@@ -91,18 +91,12 @@ class MainWindow(QWidget):
         self.textHolder.addWidget(self.conwayLabel)
         self.textHolder.addWidget(self.conwayRules)
         self.conwayLabel.setText('Enter the rules below. Multiple Rules seperated\nby semicolon. #1 <= NB <= #2, #3 <= P <= #4')
-        self.conwayRules.setText('2 < NB < 7, P = 2;\n2 < NB < 7, P = 3;\n2 < NB < 5, P = 3;\n2 < NB < 5, P = 2;')
+        self.conwayRules.setText(''.join(['{0},{1},{2},{3};'.format(*i) for i in self.kwargs['RULES']]))
         self.conwayPalette = self.conwayRules.palette()
         self.conwayPalette.setColor(QPalette.Base, Qt.green)
         self.conwayRules.setPalette(self.conwayPalette)
         self.conwayRules.setAcceptRichText(False)
         self.conwayRules.textChanged.connect(self.rulesChange)
-        # Processes whatever is written above and sends it to the rules. TODO: this needs
-        # to update the kwarg too, and anyway the box needs to be written by formatting
-        # the default value instead of manually above.
-        regexMatchString=r'([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)((?:[0-9],\ ?)*[0-9]);'
-        ruleIter = re.finditer(regexMatchString, self.conwayRules.toPlainText())
-        self.engine.process_rules(ruleIter)
 
         # Rules controller for cellular automata
         self.automataLabel = QLabel('Automata Rules: 0101010')
@@ -123,6 +117,7 @@ class MainWindow(QWidget):
         self.NCtrl.setSingleStep(10)
         self.NCtrl.setValue(100)
         self.NCtrl.setMaximumSize(100, 40)
+        self.NCtrl.valueChanged.connect(partial(self.changeKwarg, 'N', self.NCtrl.value()))
         MonteUpLab = QLabel('Up/Frame= ')
         MonteUpLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.MonteUpCtrl = QSpinBox()
@@ -130,6 +125,7 @@ class MainWindow(QWidget):
         self.MonteUpCtrl.setSingleStep(100)
         self.MonteUpCtrl.setValue(1000)
         self.MonteUpCtrl.setMaximumSize(100, 40)
+        self.MonteUpCtrl.valueChanged.connect(partial(self.changeKwarg, 'MONTEUPDATES', self.MonteUpCtrl.value()))
         LongLab = QLabel('Long#= ')
         LongLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.LongCtrl = QSpinBox()
@@ -137,6 +133,7 @@ class MainWindow(QWidget):
         self.LongCtrl.setSingleStep(10000)
         self.LongCtrl.setValue(100000)
         self.LongCtrl.setMaximumSize(100, 40)
+        self.LongCtrl.valueChanged.connect(partial(self.changeKwarg, 'EQUILIBRATE', self.LongCtrl.value()))
         DegreeLab = QLabel('Degree= ')
         DegreeLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.DegreeCtrl = QSpinBox()
@@ -144,7 +141,9 @@ class MainWindow(QWidget):
         self.DegreeCtrl.setSingleStep(1)
         self.DegreeCtrl.setValue(2)
         self.DegreeCtrl.setMaximumSize(100, 40)
+        self.DegreeCtrl.valueChanged.connect(partial(self.changeKwarg, 'DEGREE', self.DegreeCtrl.value()))
         SaveDefaults = QPushButton('Save Defaults')
+        SaveDefaults.clicked.connect(self.save_defaults)
         #TODO make this actualy save the defaults
         defGr = QGridLayout()
         defGr.addWidget(NLab, 0, 0)
@@ -186,26 +185,40 @@ class MainWindow(QWidget):
                                            QColor(DEFAULTS['BACKCOLOR2']).name())
         self.secondaryButton.pressed.connect(
             partial(self.choose_color, self.set_color, self.secondaryButton, 1))
-        self.gr = QGridLayout()
-        self.gr.addWidget(self.primaryButton, 0, 0)
-        self.gr.addWidget(self.secondaryButton, 1, 0)
+        self.updateButton = QPushButton()
+        self.updateButton.setStyleSheet('QPushButton { background-color: %s; }' %
+                                         QColor(DEFAULTS['UPDATECOLOR1']).name())
+        self.updateButton.pressed.connect(
+            partial(self.choose_color, self.set_color, self.updateButton, 0))
+        self.update2Button = QPushButton()
+        self.update2Button.setStyleSheet('QPushButton { background-color: %s; }' %
+                                         QColor(DEFAULTS['UPDATECOLOR2']).name())
+        self.update2Button.pressed.connect(
+            partial(self.choose_color, self.set_color, self.update2Button, 0))
+        self.mouseButton = QPushButton()
+        self.mouseButton.setStyleSheet('QPushButton { background-color: %s; }' %
+                                         QColor(DEFAULTS['MOUSECOLOR1']).name())
+        self.mouseButton.pressed.connect(
+            partial(self.choose_color, self.set_color, self.mouseButton, 0))
+        self.mouse2Button = QPushButton()
+        self.mouse2Button.setStyleSheet('QPushButton { background-color: %s; }' %
+                                         QColor(DEFAULTS['MOUSECOLOR2']).name())
+        self.mouse2Button.pressed.connect(
+            partial(self.choose_color, self.set_color, self.mouse2Button, 0))
         self.colorList = []
         self.colorList.append(QColor(DEFAULTS['BACKCOLOR1']).rgba())
         self.colorList.append(QColor(DEFAULTS['BACKCOLOR2']).rgba())
-        for i in range(2, 6):
-            temp = QPushButton('tst')
-            self.gr.addWidget(temp, i % 2, int(i / 2))
-        self.canvas.addColors(self.colorList, 2)
-#       while len(self.colorList) > 2:
-#           self.colorList.pop()
-#       for i in range(2, self.degree):
-#           temp = QPushButton()
-#           self.gr.addWidget(temp, int(i / 2), i % 2)
-#           colHex = int(ra.random() * int('0xffffffff', 16))
-#           temp.setStyleSheet('QPushButton { background-color: %s; }' %  \
-#                              QColor.fromRgba(colHex).name())
-#           self.colorList.append(colHex)
-#       self.canvas.addColors(self.colorList, self.degree)
+        self.colorList.append(QColor(DEFAULTS['UPDATECOLOR1']).rgba())
+        self.colorList.append(QColor(DEFAULTS['UPDATECOLOR2']).rgba())
+        self.colorList.append(QColor(DEFAULTS['MOUSECOLOR1']).rgba())
+        self.colorList.append(QColor(DEFAULTS['MOUSECOLOR2']).rgba())
+        self.gr = QGridLayout()
+        self.gr.addWidget(self.primaryButton, 0, 0)
+        self.gr.addWidget(self.secondaryButton, 1, 0)
+        self.gr.addWidget(self.updateButton, 0, 1)
+        self.gr.addWidget(self.update2Button, 1, 1)
+        self.gr.addWidget(self.mouseButton, 0, 2)
+        self.gr.addWidget(self.mouse2Button, 1, 2)
 
         # Collects all of the above into a column.
         vb = QVBoxLayout()
@@ -299,7 +312,9 @@ class MainWindow(QWidget):
         self.setWindowRole('popup')
 
     def changeKwarg(self, kwarg, nuVal):
+        print('Changing ' + kwarg)
         self.kwargs[kwarg] = nuVal
+        print(self.kwargs[kwarg])
         self.engine.update_kwargs(**self.kwargs)
 
     def choose_color(self, callback, *args):
@@ -329,22 +344,28 @@ class MainWindow(QWidget):
             self.conwayMangled = True
 
     def rulesChange(self):
-        regexTestString=r'^(?:([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)([0-9],\ ?)*([0-9]);[\ \n]*)+$'
-        regexMatchString=r'([0-9])(?:\ ?<\ ?[Nn][Bb]\ ?<\ ?)([0-9])(?:,\ ?[Pp]\ ?=\ ?)((?:[0-9],\ ?)*[0-9]);'
+        regexTestString=r'^(?:([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:;\ ?)[\ \n]*)+$'
+        regexMatchString=r'([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:;\ ?)'
         text = self.conwayRules.toPlainText()
         strTest = re.match(regexTestString, text)
-        # TODO: use a timer to emit this information after a pause (with a LIFO?) so it
-        # only sends once when you are editing it
+        # This timer waits for ten seconds for you to dick about with the rules before
+        # sending them to the engine. If you get caught with your pants down, conway will
+        # turn off for some seconds.
+        QTimer.singleShot(10000, self.send_rule)
         if strTest is None:
             self.conwayPalette.setColor(QPalette.Base, Qt.red)
             self.conwayRules.setPalette(self.conwayPalette)
-            ruleIter = re.finditer(regexTestString, text)
-            self.engine.process_rules(ruleIter)
+            self.ruleIter = re.finditer(regexTestString, text)
         else:
             self.conwayPalette.setColor(QPalette.Base, Qt.green)
             self.conwayRules.setPalette(self.conwayPalette)
-            ruleIter = re.finditer(regexMatchString, text)
-            self.engine.process_rules(ruleIter)
+            self.ruleIter = re.finditer(regexMatchString, text)
+
+    def send_rule(self):
+        print('Rule sending!')
+        rul = [i.group(1,2,3,4) for i in self.ruleIter]
+        rules = [[int(j) for j in i] for i in rul]
+        self.changeKwarg('RULES', rules)
 
     def stochasticChange(self):
         self.changeKwarg('STOCHASTIC', self.stochasticBox.isChecked())
@@ -362,14 +383,24 @@ class MainWindow(QWidget):
         self.changeKwarg('BETA', self.tempCtrl.value() / 100)
         self.tempLabel.setText('Beta = ' + str(self.tempCtrl.value() / 100))
 
+    #TODO: make it save the previous configuration before overwriting
+    def save_defaults(self):
+        save = open('.\saves\save.txt', 'w')
+        savestr = '\n'.join(['{0}:{1},'.format(i, self.kwargs[i]) for i in self.kwargs])
+        save.write(savestr)
+        save.close()
+
     def keyPressEvent(self, e):
         # TODO: make this a dictonary
         if e.key() == Qt.Key_Escape:
             if self.engine.thread.isRunning():
                 self.changeKwarg('INTERRUPT', True)
+                print('Attempting to interrupt!')
                 # TODO: add a 'interrupted by user' popup (after a 'interrupting!'?)
             else:
+                self.engine.thread.deleteLater()
                 QCoreApplication.instance().quit()
+                print('Threads shutting down and powering off')
                 # TODO: add a 'are you sure?' popup
         # left alt key. guess i could just look this up?
         elif e.key() == 16777251:

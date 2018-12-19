@@ -50,7 +50,7 @@ class Handler(QObject):
         b = np.concatenate((births, np.ones([births.shape[0], 1], int)), axis=1)
         d = np.concatenate((deaths, np.zeros([deaths.shape[0], 1], int)), axis=1)
         Handler.CHANGE = np.concatenate((b, d))
-        print(Handler.CHANGE)
+       #print(Handler.CHANGE)
         if Handler.CHANGE == []:
             self.breakSig.emit()
 
@@ -123,29 +123,32 @@ class RunController(QObject):
         self.st = kwargs
 
     def change_settings(self, kwargs):
-        print(kwargs)
+       #print(kwargs)
         for i in kwargs:
             self.st[i] = kwargs[i]
 
     def process(self):
         self.error.emit('Process Starting!')
-        self.handlerSig.emit()
+    #   self.handlerSig.emit()
         self.mainTime = QTimer(self)
         self.mainTime.setInterval(3000)
         self.mainTime.start()
         while self.mainTime.remainingTime() > 0:  #Can use this to check on the settings
             # every X seconds, then save the interrupt thing below for special things.
             if self.st['RUN']:
+                print('Run')
                 self.dynamic_run()
-                if self.st['EQUILIBRATE'] == self.st['RUNFRAMES']:
+                if self.st['IMAGEUPDATES'] == self.st['RUNFRAMES']:
                     self.st['RUN'] = False
             if self.st['EQUILIBRATE']:
+                print('Eqi')
                 self.st['EQUILIBRATE'] = False
                 self.st['CONWAY'] = False
                 self.array_frame(self.st['LONGNUM'], self.st['RULES'],
                                     self.st['BETA'])
                 self.st['CONWAY'] = True
             if self.st['CLEAR']:
+                print('Clr')
                 self.st['CLEAR'] = False
                 self.noiseSig.emit(self.st['THRESHOLD'])
             QThread.msleep(10)
@@ -221,7 +224,6 @@ class EngineOperator(QObject):
         if self.kwargs['INTERRUPT'] == False:
             self.thread.start()
         else:
-            self.thread.deleteLater()
             print('Thread sucessfully exited!')
             self.kwargs['INTERRUPT'] == False
 
@@ -254,12 +256,15 @@ class EngineOperator(QObject):
         self.update_kwargs(RULES=self.rules, CONWAY= not self.rules==[])
 
     def static_run(self):
+        self.thread.start()
         self.temp_kwargs(RUN=True, IMAGEUPDATES=1)
 
     def dynamic_run(self):
+        self.thread.start()
         self.temp_kwargs(RUN=True, IMAGEUPDATES=self.kwargs['IMAGEUPDATES'])
 
     def long_run(self):
+        self.thread.start()
         self.temp_kwargs(IMAGEUPDATES=self.kwargs['LONGNUM'], EQUILIBRATE=True)
 
     def clear_array(self):
@@ -268,6 +273,7 @@ class EngineOperator(QObject):
 
     def noise_array(self):
         pass
+        self.thread.start()
 
     def taskman_init(self):
         self.thread = QThread()

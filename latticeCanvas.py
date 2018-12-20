@@ -21,6 +21,7 @@ class Canvas(QLabel):
         self.n = kwargs['N']
         self.scale = kwargs['SCALE']
         self.reset()
+        self.array = np.random.random([self.n, self.n]) > 0.5
 
     def reset(self):
         self.setPixmap(QPixmap(self.n * self.scale, self.n * self.scale))

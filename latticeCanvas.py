@@ -55,11 +55,11 @@ class Canvas(QLabel):
         im = self.pixmap().toImage().scaled((QSize(self.n, self.n)))
         if living:
             for el in L:
-                im.setPixel(el[0], el[1], self.colorList[1])
+                im.setPixel(el[0], el[1], self.colorList[0])
            #map((lambda x: im.setPixel(x[0], x[1], self.colorList[1])), L)
         else:
             for el in L:
-                im.setPixel(el[0], el[1], self.colorList[el[2]])
+                im.setPixel(el[0], el[1], self.colorList[el[1]])
            #map((lambda x: im.setPixel(x[0], x[1], self.colorList[x[2]])), L)
 
         ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))

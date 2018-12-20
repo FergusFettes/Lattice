@@ -30,7 +30,143 @@ class MainWindow(QWidget):
         self.kwargs = DEFAULTS
 
         # INITS
+        self.kwarg_send_timer = QTimer()
+        self.kwarg_send_timer.timeout.connect(self.kwarg_send)
+        # This means that you have to stop manipulating the controls for a full three
+        # seconds for the changes to be sent to the thread. This stops uneccesary
+        # restarts, but needs to be tuned for comfort.
+        self.kwarg_send_timer.setInterval(3000)
         self.initGUI(**DEFAULTS)
+
+    def Kwarger(self, kwarg, callback):
+        self.changeKwarg(kwarg, callback())
+
+    def changeKwarg(self, kwarg, nuVal):
+        print('Changing ' + kwarg)
+        self.kwargs[kwarg] = nuVal
+        print(self.kwargs[kwarg])
+        self.kwarg_send_timer.start()
+
+    def kwarg_send(self):
+        self.engine.update_kwargs(**self.kwargs)
+        self.kwarg_send_timer.stop()
+
+    def frameChange(self):
+        self.changeKwarg('IMAGEUPDATES', self.frameCtrl.value())
+        # The following was necessary for the keyboard shortcuts to work again,
+        # but it does mean that you have to type numbers longer than 2x twice
+        a = self.frameCtrl.previousInFocusChain()
+        a.setFocus()
+
+    def speedChange(self):
+        self.changeKwarg('SPEED', self.speedCtrl.value())
+        self.speedLabel.setText('Speed = ' + str(self.speedCtrl.value()) + '%')
+
+    def coverageChange(self):
+        coverage = self.thresholdCtrl.value()
+        self.changeKwarg('THRESHOLD', self.threshval[coverage])
+        self.thresholdLabel.setText('Coverage = ' + str(coverage + 1) + '%')
+
+    def sliderChange(self):
+        self.changeKwarg('BETA', self.tempCtrl.value() / 100)
+        self.tempLabel.setText('Beta = ' + str(self.tempCtrl.value() / 100))
+
+    def choose_color(self, callback, *args):
+        dlg = QColorDialog()
+        if dlg.exec():
+            callback(dlg.selectedColor().name(), *args)
+
+    def set_color(self, hexx, button, Num):
+        self.colorList[Num] = QColor(hexx).rgba()
+        button.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
+
+    def conway_mangler(self):
+        if self.conwayMangled:
+            old = self.conwayRules.toPlainText()
+            self.conwayRules.setText(old[2:-2])
+            self.conwayMangled = False
+        else:
+            old = self.conwayRules.toPlainText()
+            self.conwayRules.setText('!!' + old + '!!')
+            self.conwayMangled = True
+
+    def rulesChange(self):
+        regexTestString=r'^(?:([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:;\ ?)[\ \n]*)+$'
+        regexMatchString=r'([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:;\ ?)'
+        text = self.conwayRules.toPlainText()
+        strTest = re.match(regexTestString, text)
+        # This timer waits for ten seconds for you to dick about with the rules before
+        # sending them to the engine. If you get caught with your pants down, conway will
+        # turn off for some seconds.
+        QTimer.singleShot(10000, self.send_rule)
+        if strTest is None:
+            self.conwayPalette.setColor(QPalette.Base, Qt.red)
+            self.conwayRules.setPalette(self.conwayPalette)
+            self.ruleIter = re.finditer(regexTestString, text)
+        else:
+            self.conwayPalette.setColor(QPalette.Base, Qt.green)
+            self.conwayRules.setPalette(self.conwayPalette)
+            self.ruleIter = re.finditer(regexMatchString, text)
+
+    def send_rule(self):
+        print('Rule sending!')
+        rul = [i.group(1,2,3,4) for i in self.ruleIter]
+        rules = [[int(j) for j in i] for i in rul]
+        self.changeKwarg('RULES', rules)
+        self.changeKwarg('CONWAY', not rules == [])
+
+    #TODO: make it save the previous configuration before overwriting
+    def save_defaults(self):
+        with open('save.txt', 'w') as file:
+            savestr = ''.join(['{0}:{1};'.format(i, self.kwargs[i]) for i in self.kwargs])
+            file.write(savestr)
+
+    def keyPressEvent(self, e):
+        # TODO: make this a dictonary
+        if e.key() == Qt.Key_Escape:
+            if self.engine.thread.isRunning():
+                self.changeKwarg('EQUILIBRATE', False)
+                self.changeKwarg('CLEAR', False)
+                self.changeKwarg('RUN', False)
+                print('Attempting to interrupt!')
+                # TODO: add a 'interrupted by user' popup (after a 'interrupting!'?)
+            else:
+                self.engine.thread.deleteLater()
+                QCoreApplication.instance().quit()
+                print('Threads shutting down and powering off')
+                # TODO: add a 'are you sure?' popup
+        # left alt key. guess i could just look this up?
+        elif e.key() == 16777251:
+            self.speedCtrl.setFocus()
+        elif e.key() == Qt.Key_C:
+            self.speedCtrl.triggerAction(QSlider.SliderPageStepAdd)
+        elif e.key() == Qt.Key_X:
+            self.speedCtrl.triggerAction(QSlider.SliderPageStepSub)
+        elif e.key() == Qt.Key_D:
+            self.tempCtrl.triggerAction(QSlider.SliderPageStepAdd)
+        elif e.key() == Qt.Key_A:
+            self.tempCtrl.triggerAction(QSlider.SliderPageStepSub)
+        elif e.key() == Qt.Key_W:
+            self.thresholdCtrl.triggerAction(QSlider.SliderPageStepAdd)
+        elif e.key() == Qt.Key_S:
+            self.thresholdCtrl.triggerAction(QSlider.SliderPageStepSub)
+        # Change Colors, RF
+        elif e.key() == Qt.Key_R:
+            self.primaryButton.click()
+        elif e.key() == Qt.Key_F:
+            self.secondaryButton.click()
+        # Initialise chosen model, 123
+        elif e.key() == Qt.Key_1:
+            state = self.stochasticBox.isChecked()
+            self.stochasticBox.setChecked(not state)
+        elif e.key() == Qt.Key_2:
+            self.conway_mangler()
+#       elif e.key() == Qt.Key_3:
+#           self.conwayButt.click()
+        elif e.key() == Qt.Key_E:
+            self.dynamic.click()
+        elif e.key() == Qt.Key_Q:
+            self.clear.click()
 
     # Initialise GUI
     def initGUI(self, **DEFAULTS):
@@ -117,7 +253,7 @@ class MainWindow(QWidget):
         self.NCtrl.setSingleStep(10)
         self.NCtrl.setValue(self.kwargs['N'])
         self.NCtrl.setMaximumSize(100, 40)
-        self.NCtrl.valueChanged.connect(partial(self.NKwarg, 'N'))
+        self.NCtrl.valueChanged.connect(partial(self.Kwarger, 'N', self.NCtrl.value))
         MonteUpLab = QLabel('Up/Frame= ')
         MonteUpLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.MonteUpCtrl = QSpinBox()
@@ -125,7 +261,8 @@ class MainWindow(QWidget):
         self.MonteUpCtrl.setSingleStep(100)
         self.MonteUpCtrl.setValue(self.kwargs['MONTEUPDATES'])
         self.MonteUpCtrl.setMaximumSize(100, 40)
-        self.MonteUpCtrl.valueChanged.connect(partial(self.MonteUpKwarg, 'MONTEUPDATES'))
+        self.MonteUpCtrl.valueChanged.connect(partial(self.Kwarger, 'MONTEUPDATES',
+                                                      self.MonteUpCtrl.value))
         LongLab = QLabel('Long#= ')
         LongLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.LongCtrl = QSpinBox()
@@ -133,7 +270,8 @@ class MainWindow(QWidget):
         self.LongCtrl.setSingleStep(10000)
         self.LongCtrl.setValue(self.kwargs['EQUILIBRATE'])
         self.LongCtrl.setMaximumSize(100, 40)
-        self.LongCtrl.valueChanged.connect(partial(self.LongKwarg, 'EQUILIBRATE'))
+        self.LongCtrl.valueChanged.connect(partial(self.Kwarger, 'EQUILIBRATE',
+                                                   self.LongCtrl.value))
         DegreeLab = QLabel('Degree= ')
         DegreeLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.DegreeCtrl = QSpinBox()
@@ -141,7 +279,8 @@ class MainWindow(QWidget):
         self.DegreeCtrl.setSingleStep(1)
         self.DegreeCtrl.setValue(self.kwargs['DEGREE'])
         self.DegreeCtrl.setMaximumSize(100, 40)
-        self.DegreeCtrl.valueChanged.connect(partial(self.DegreeKwarg, 'DEGREE'))
+        self.DegreeCtrl.valueChanged.connect(partial(self.Kwarger, 'DEGREE',
+                                                     self.DegreeCtrl.value))
         ScaleLab = QLabel('Scale= ')
         ScaleLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.ScaleCtrl = QSpinBox()
@@ -149,7 +288,8 @@ class MainWindow(QWidget):
         self.ScaleCtrl.setSingleStep(1)
         self.ScaleCtrl.setValue(self.kwargs['SCALE'])
         self.ScaleCtrl.setMaximumSize(100, 40)
-        self.ScaleCtrl.valueChanged.connect(partial(self.ScaleKwarg, 'SCALE'))
+        self.ScaleCtrl.valueChanged.connect(partial(self.Kwarger, 'SCALE',
+                                                    self.ScaleCtrl.value))
         SaveDefaults = QPushButton('Save Defaults')
         SaveDefaults.clicked.connect(self.save_defaults)
         defGr = QGridLayout()
@@ -165,7 +305,6 @@ class MainWindow(QWidget):
         defGr.addWidget(self.ScaleCtrl, 2, 1)
         defGr.addWidget(SaveDefaults, 2, 2, 1, 2)
 
-        # 'Fixed Defaults' concept superceded, delete XXX
         self.fixedBox = QCheckBox('Fixed')
         self.fixedBox.setChecked(True)
        #self.fixedBox.stateChanged.connect(self.fixedChange)
@@ -278,7 +417,7 @@ class MainWindow(QWidget):
         self.frameCtrl = QSpinBox()
         self.frameCtrl.setValue(self.kwargs['IMAGEUPDATES'])
         self.frameCtrl.valueChanged.connect(self.frameChange)
-        self.frameCtrl.setRange(10, 1000)
+        self.frameCtrl.setRange(10, 2000)
         self.frameCtrl.setSingleStep(10)
         self.frameCtrl.setMaximumSize(100, 20)
 
@@ -295,7 +434,8 @@ class MainWindow(QWidget):
         rbbRt.addWidget(self.frameCtrl)
         self.stochasticBox = QCheckBox('Stochi')
         self.stochasticBox.setChecked(self.kwargs['STOCHASTIC'])
-        self.stochasticBox.stateChanged.connect(self.stochasticChange)
+        self.stochasticBox.stateChanged.connect(partial(self.Kwarger, 'STOCHASTIC',
+                                                self.stochasticBox.isChecked))
         rbbR.addLayout(rbbRt)
         rbbR.addWidget(self.stochasticBox)
         rbb = QHBoxLayout()
@@ -320,146 +460,3 @@ class MainWindow(QWidget):
         # The allows i3 to popup the window (add to i3/config)
         # 'for_window [window_role='popup'] floating enable'
         self.setWindowRole('popup')
-
-    # This is stupid, I can't believe I cant figure out a better way to do this. Tried
-    # using partial funcitons and lambdas but that didn't work, then tried sender() but
-    # I couldnt get it working either.
-    # Ah! Just use a callback, do self.callback.value()! Easy peasy. TODO
-    def NKwarg(self, kwarg):
-        self.changeKwarg(kwarg, self.NCtrl.value())
-
-    def LongKwarg(self, kwarg):
-        self.changeKwarg(kwarg, self.LongCtrl.value())
-
-    def MonteUpKwarg(self, kwarg):
-        self.changeKwarg(kwarg, self.MonteUpCtrl.value())
-
-    def DegreeKwarg(self, kwarg):
-        self.changeKwarg(kwarg, self.DegreeCtrl.value())
-
-    def ScaleKwarg(self, kwarg):
-        self.changeKwarg(kwarg, self.ScaleCtrl.value())
-
-    def changeKwarg(self, kwarg, nuVal):
-        print('Changing ' + kwarg)
-        self.kwargs[kwarg] = nuVal
-        print(self.kwargs[kwarg])
-        self.engine.update_kwargs(**self.kwargs)
-
-    def choose_color(self, callback, *args):
-        dlg = QColorDialog()
-        if dlg.exec():
-            callback(dlg.selectedColor().name(), *args)
-
-    def set_color(self, hexx, button, Num):
-        self.colorList[Num] = QColor(hexx).rgba()
-        button.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
-
-    def frameChange(self):
-        self.changeKwarg('IMAGEUPDATES', self.frameCtrl.value())
-        # The following was necessary for the keyboard shortcuts to work again,
-        # but it does mean that you have to type numbers longer than 2x twice
-        a = self.frameCtrl.previousInFocusChain()
-        a.setFocus()
-
-    def conway_mangler(self):
-        if self.conwayMangled:
-            old = self.conwayRules.toPlainText()
-            self.conwayRules.setText(old[2:-2])
-            self.conwayMangled = False
-        else:
-            old = self.conwayRules.toPlainText()
-            self.conwayRules.setText('!!' + old + '!!')
-            self.conwayMangled = True
-
-    def rulesChange(self):
-        regexTestString=r'^(?:([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:;\ ?)[\ \n]*)+$'
-        regexMatchString=r'([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:;\ ?)'
-        text = self.conwayRules.toPlainText()
-        strTest = re.match(regexTestString, text)
-        # This timer waits for ten seconds for you to dick about with the rules before
-        # sending them to the engine. If you get caught with your pants down, conway will
-        # turn off for some seconds.
-        QTimer.singleShot(10000, self.send_rule)
-        if strTest is None:
-            self.conwayPalette.setColor(QPalette.Base, Qt.red)
-            self.conwayRules.setPalette(self.conwayPalette)
-            self.ruleIter = re.finditer(regexTestString, text)
-        else:
-            self.conwayPalette.setColor(QPalette.Base, Qt.green)
-            self.conwayRules.setPalette(self.conwayPalette)
-            self.ruleIter = re.finditer(regexMatchString, text)
-
-    def send_rule(self):
-        print('Rule sending!')
-        rul = [i.group(1,2,3,4) for i in self.ruleIter]
-        rules = [[int(j) for j in i] for i in rul]
-        self.changeKwarg('RULES', rules)
-        self.changeKwarg('CONWAY', not rules == [])
-
-    def stochasticChange(self):
-        self.changeKwarg('STOCHASTIC', self.stochasticBox.isChecked())
-
-    def speedChange(self):
-        self.changeKwarg('SPEED', self.speedCtrl.value())
-        self.speedLabel.setText('Speed = ' + str(self.speedCtrl.value()) + '%')
-
-    def coverageChange(self):
-        coverage = self.thresholdCtrl.value()
-        self.changeKwarg('THRESHOLD', self.threshval[coverage])
-        self.thresholdLabel.setText('Coverage = ' + str(coverage + 1) + '%')
-
-    def sliderChange(self):
-        self.changeKwarg('BETA', self.tempCtrl.value() / 100)
-        self.tempLabel.setText('Beta = ' + str(self.tempCtrl.value() / 100))
-
-    #TODO: make it save the previous configuration before overwriting
-    def save_defaults(self):
-        with open('save.txt', 'w') as file:
-            savestr = ''.join(['{0}:{1};'.format(i, self.kwargs[i]) for i in self.kwargs])
-            file.write(savestr)
-
-    def keyPressEvent(self, e):
-        # TODO: make this a dictonary
-        if e.key() == Qt.Key_Escape:
-            if self.engine.thread.isRunning():
-                self.changeKwarg('INTERRUPT', True)
-                print('Attempting to interrupt!')
-                # TODO: add a 'interrupted by user' popup (after a 'interrupting!'?)
-            else:
-                self.engine.thread.deleteLater()
-                QCoreApplication.instance().quit()
-                print('Threads shutting down and powering off')
-                # TODO: add a 'are you sure?' popup
-        # left alt key. guess i could just look this up?
-        elif e.key() == 16777251:
-            self.speedCtrl.setFocus()
-        elif e.key() == Qt.Key_C:
-            self.speedCtrl.triggerAction(QSlider.SliderPageStepAdd)
-        elif e.key() == Qt.Key_X:
-            self.speedCtrl.triggerAction(QSlider.SliderPageStepSub)
-        elif e.key() == Qt.Key_D:
-            self.tempCtrl.triggerAction(QSlider.SliderPageStepAdd)
-        elif e.key() == Qt.Key_A:
-            self.tempCtrl.triggerAction(QSlider.SliderPageStepSub)
-        elif e.key() == Qt.Key_W:
-            self.thresholdCtrl.triggerAction(QSlider.SliderPageStepAdd)
-        elif e.key() == Qt.Key_S:
-            self.thresholdCtrl.triggerAction(QSlider.SliderPageStepSub)
-        # Change Colors, RF
-        elif e.key() == Qt.Key_R:
-            self.primaryButton.click()
-        elif e.key() == Qt.Key_F:
-            self.secondaryButton.click()
-        # Initialise chosen model, 123
-        elif e.key() == Qt.Key_1:
-            state = self.stochasticBox.isChecked()
-            self.stochasticBox.setChecked(not state)
-        elif e.key() == Qt.Key_2:
-            self.conway_mangler()
-#       elif e.key() == Qt.Key_3:
-#           self.conwayButt.click()
-        elif e.key() == Qt.Key_E:
-            self.dynamic.click()
-        elif e.key() == Qt.Key_Q:
-            self.clear.click()

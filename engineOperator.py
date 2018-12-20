@@ -123,9 +123,11 @@ class RunController(QObject):
         QObject.__init__(self)
         self.st = kwargs
         self.fpsTimer = QTimer(self)
+        # Maximum fps = 1000 / the following
         self.fpsTimer.setInterval(100)
         self.mainTime = QTimer(self)
-        self.mainTime.setInterval(3000)
+        # How often does a dynamic run break to look for new settings?
+        self.mainTime.setInterval(2000)
 
     def change_settings(self, kwargs):
         for i in kwargs:
@@ -133,36 +135,27 @@ class RunController(QObject):
 
     def process(self):
         self.error.emit('Process Starting!')
-    #   self.handlerSig.emit()
         self.mainTime.start()
-        while self.mainTime.remainingTime() > 0:  #Can use this to check on the settings
-            # every X seconds, then save the interrupt thing below for special things.
-            if self.st['RUN']:
+        if self.st['CLEAR']:
+            self.noiseSig.emit(self.st['THRESHOLD'])
+            self.finished.exit()
+            self.error.emit('Cleared')
+            return
+        if self.st['EQUILIBRATE']:
+            self.st['CONWAY'] = False
+            self.array_frame(self.st['LONGNUM'], self.st['RULES'], self.st['BETA'])
+            self.finished.exit()
+            return
+        if self.st['RUN']:
+            while not QThread.currentThread().isInterruptionRequested():
                 self.dynamic_run()
                 if self.st['IMAGEUPDATES'] <= self.st['RUNFRAMES']:
-                    self.st['RUN'] = False
-            if self.st['EQUILIBRATE']:
-                self.st['EQUILIBRATE'] = False
-                self.st['CONWAY'] = False
-                self.array_frame(self.st['LONGNUM'], self.st['RULES'],
-                                    self.st['BETA'])
-                self.st['CONWAY'] = True
-            if self.st['CLEAR']:
-                self.st['CLEAR'] = False
-                self.noiseSig.emit(self.st['THRESHOLD'])
-            QThread.msleep(10)
-            interrupt = QThread.currentThread().isInterruptionRequested()
-            if interrupt:
-                QThread.currentThread().quit()
-                break
-        self.error.emit('Checking settings')
-        self.finished.emit()
+                    self.finished.exit()
+                    return
 
     def array_frame(self, updates, rule, beta):
         if self.st['STOCHASTIC']:
             self.isingSig.emit(updates, beta)
-# can add an extra frame in here, should add minimal time to the loop. lets see
-# SEEMS TO WORK PRETTY DARN GOOD
         self.handlerSig.emit()
         if self.st['CONWAY']:
             self.conwaySig.emit(rule)
@@ -176,22 +169,20 @@ class RunController(QObject):
                 rules = self.st['RULES']
                 rule = rules[self.st['RUNFRAMES'] % len(rules)]
             self.array_frame(self.st['MONTEUPDATES'], rule, self.st['BETA'])
-            self.arrayfpsSig.emit(self.mainTime.remainingTime())
             self.st['RUNFRAMES'] += 1
             self.frameSig.emit(self.st['RUNFRAMES'])
+            self.arrayfpsSig.emit(100 - self.fpsTimer.remainingTime())
             while self.fpsTimer.remainingTime():
-                self.arrayfpsSig.emit(100 - self.fpsTimer.remainingTime())
                 QThread.msleep(1)
                 if not self.mainTime.remainingTime():
                     return
-            self.arrayfpsSig.emit(0)
             if not self.mainTime.remainingTime():
-                break
+                return
 
 
 ##==============EngineOperator===============##
 # This is the interface between the GUI and the threads.
-# Controls the WorkHorse thread and the CanvasThread
+# Controls the Updater thread and the CanvasThread
 class EngineOperator(QObject):
     settingsSig = pyqtSignal(dict)
     interruptSig = pyqtSignal()
@@ -200,7 +191,6 @@ class EngineOperator(QObject):
     # The kwargs consists of the following: speed, updates, frames, beta,
     # stochastic?, threshold/coverage.
         QObject.__init__(self)
-        self.rules = []
         self.array = np.zeros([kwargs['N'], kwargs['N']], bool)
         self.kwargs = kwargs
         self.canvas = canvas
@@ -210,10 +200,13 @@ class EngineOperator(QObject):
 
         self.taskman_init()
 
+#=============Thread Communicators======#
     def update_kwargs(self, **kwargs):
+        print('Updating Threads')
         for i in kwargs:
             self.kwargs[i] = kwargs[i]
         self.settingsSig.emit({i:kwargs[i] for i in kwargs})
+        self.thread.requestInterruption()
 
     def temp_kwargs(self, **kwargs):
         self.settingsSig.emit({i:kwargs[i] for i in kwargs})
@@ -222,13 +215,17 @@ class EngineOperator(QObject):
         self.update_kwargs(RUN=False)
 
     def thread_looper(self):
-        if self.kwargs['INTERRUPT'] == False:
+        if self.kwargs['RUN'] and self.kwargs['RUNFRAMES'] < self.kwargs['IMAGEUPDATES']:
             self.thread.start()
         else:
-            self.kwargs['INTERRUPT'] = False
+            self.kwargs['RUN'] = False
+            self.update_kwargs(**self.kwargs)
+            print('Thread standing by.')
 
+#===============GUI updaters=============#
     def array_fps_update(self, value):
-        if not value:
+        print(value)
+        if value == 100:
             self.arrayfpsLabel.setText('Array fps < 10')
         else:
             self.arrayfpsLabel.setText('Array fps: ' + str(1 / value))
@@ -238,37 +235,46 @@ class EngineOperator(QObject):
 
     def frame_value_update(self, value):
         self.frameLabel.setText(str(value))
-        if value == self.kwargs['MONTEUPDATES']:
-            # Reset the kwargs
-            self.update_kwargs(**self.kwargs)
+        if not value % 10:
+            self.kwargs['RUNFRAMES'] = values
 
     def error_string(self, error='Unlabelled Error! Oh no!'):
         print(error)
 
-    def interrupt_thread(self):
-        self.thread.requestInterruption()
-        print('Interrupt sent!')
-
+#===============Run Initiators=============#
     def static_run(self):
-        self.thread.start()
+        self.thread.requestInterruption()
+        self.kwargs['RUNFRAMES'] = 0
+        self.update_kwargs(**self.kwargs)
         self.temp_kwargs(RUN=True, RUNFRAMES=0, IMAGEUPDATES=1)
+        self.thread.start()
 
     def dynamic_run(self):
-        self.thread.start()
+        self.thread.requestInterruption()
+        self.kwargs['RUNFRAMES'] = 0
+        self.update_kwargs(**self.kwargs)
         self.temp_kwargs(RUN=True, RUNFRAMES=0, IMAGEUPDATES=self.kwargs['IMAGEUPDATES'])
+        self.thread.start()
 
     def long_run(self):
-        self.thread.start()
+        self.thread.requestInterruption()
+        self.kwargs['RUNFRAMES'] = 0
+        self.update_kwargs(**self.kwargs)
         self.temp_kwargs(IMAGEUPDATES=self.kwargs['LONGNUM'], EQUILIBRATE=True)
+        self.thread.start()
 
     def clear_array(self):
-        self.thread.start()
+        self.thread.requestInterruption()
+        self.kwargs['RUNFRAMES'] = 0
+        self.update_kwargs(**self.kwargs)
         self.temp_kwargs(THRESHOLD=self.kwargs['THRESHOLD'], CLEAR=True)
+        self.thread.start()
 
     def noise_array(self):
         pass
         self.thread.start()
 
+#=================Thread Initiator============#
     def taskman_init(self):
         self.thread = QThread()
         self.handler = Handler(self.array)
@@ -292,6 +298,6 @@ class EngineOperator(QObject):
         self.handler.breakSig.connect(self.breaker)
 
         self.settingsSig.connect(self.taskman.change_settings)
-        self.interruptSig.connect(self.interrupt_thread)
+        self.interruptSig.connect(self.breaker)
 
         self.thread.start()

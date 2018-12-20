@@ -38,6 +38,7 @@ class MainWindow(QWidget):
         self.kwarg_send_timer.setInterval(3000)
         self.initGUI(**DEFAULTS)
 
+#=====================Settings controllers================#
     def Kwarger(self, kwarg, callback):
         self.changeKwarg(kwarg, callback())
 
@@ -48,6 +49,7 @@ class MainWindow(QWidget):
         self.kwarg_send_timer.start()
 
     def kwarg_send(self):
+        print('Sending new kwargs')
         self.engine.update_kwargs(**self.kwargs)
         self.kwarg_send_timer.stop()
 
@@ -115,6 +117,7 @@ class MainWindow(QWidget):
         self.changeKwarg('RULES', rules)
         self.changeKwarg('CONWAY', not rules == [])
 
+#=====================Save defaults and GUI ket controls===============#
     #TODO: make it save the previous configuration before overwriting
     def save_defaults(self):
         with open('save.txt', 'w') as file:

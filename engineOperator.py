@@ -130,6 +130,7 @@ class RunController(QObject):
         self.mainTime.setInterval(2000)
 
     def change_settings(self, kwargs):
+        print(kwargs)
         for i in kwargs:
             self.st[i] = kwargs[i]
 
@@ -138,20 +139,24 @@ class RunController(QObject):
         self.mainTime.start()
         if self.st['CLEAR']:
             self.noiseSig.emit(self.st['THRESHOLD'])
-            self.finished.exit()
             self.error.emit('Cleared')
+            self.finished.emit()
             return
         if self.st['EQUILIBRATE']:
             self.st['CONWAY'] = False
             self.array_frame(self.st['LONGNUM'], self.st['RULES'], self.st['BETA'])
-            self.finished.exit()
+            self.error.emit('Equilibrated')
+            self.finished.emit()
             return
         if self.st['RUN']:
             while not QThread.currentThread().isInterruptionRequested():
                 self.dynamic_run()
                 if self.st['IMAGEUPDATES'] <= self.st['RUNFRAMES']:
-                    self.finished.exit()
+                    self.error.emit('Run finished')
+                    self.finished.emit()
                     return
+            self.error.emit('Interrupted')
+        self.finished.emit()
 
     def array_frame(self, updates, rule, beta):
         if self.st['STOCHASTIC']:
@@ -197,6 +202,7 @@ class EngineOperator(QObject):
         self.frameLabel = frameLabel
         self.arrayfpsLabel = arrayfpsLabel
         self.canvasfpsLabel = canvasfpsLabel
+        self.mainUpdates = 0
 
         self.taskman_init()
 
@@ -205,26 +211,56 @@ class EngineOperator(QObject):
         print('Updating Threads')
         for i in kwargs:
             self.kwargs[i] = kwargs[i]
-        self.settingsSig.emit({i:kwargs[i] for i in kwargs})
-        self.thread.requestInterruption()
+        if self.thread.isRunning():
+            print('Requesting Interrution')
+            self.thread.requestInterruption()
+        else:
+            self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
 
-    def temp_kwargs(self, **kwargs):
-        self.settingsSig.emit({i:kwargs[i] for i in kwargs})
+    def simple_update(self, **kwargs):
+        for i in kwargs:
+            self.kwargs[i] = kwargs[i]
 
     def breaker(self):
         self.update_kwargs(RUN=False)
 
     def thread_looper(self):
-        if self.kwargs['RUN'] and self.kwargs['RUNFRAMES'] < self.kwargs['IMAGEUPDATES']:
+        if self.kwargs['RUN'] is True and self.kwargs['RUNFRAMES'] < self.kwargs['IMAGEUPDATES']:
+            self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
             self.thread.start()
+        elif self.kwargs['CLEAR'] is True or self.kwargs['EQUILIBRATE'] is True:
+            self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
+            self.thread.start()
+            self.simple_update(CLEAR=False, EQUILIBRATE=False)
         else:
-            self.kwargs['RUN'] = False
-            self.update_kwargs(**self.kwargs)
+            self.simple_update(RUN=False)
             print('Thread standing by.')
+
+#===============Run Initiators=============#
+    def static_run(self):
+        self.update_kwargs(RUN=True, RUNFRAMES=(self.kwargs['IMAGEUPDATES']-1))
+        self.thread.start()
+
+    def dynamic_run(self):
+        self.update_kwargs(RUN=True, RUNFRAMES=0)
+        self.thread.start()
+
+    def long_run(self):
+        self.update_kwargs(RUN=False, EQUILIBRATE=True)
+        self.thread.start()
+        self.simple_update(RUN=False, EQUILIBRATE=False)
+
+    def clear_array(self):
+        self.update_kwargs(RUN=False, CLEAR=True)
+        self.thread.start()
+        self.simple_update(RUN=False, CLEAR=False)
+
+    def noise_array(self):
+        pass
+        self.thread.start()
 
 #===============GUI updaters=============#
     def array_fps_update(self, value):
-        print(value)
         if value == 100:
             self.arrayfpsLabel.setText('Array fps < 10')
         else:
@@ -236,43 +272,10 @@ class EngineOperator(QObject):
     def frame_value_update(self, value):
         self.frameLabel.setText(str(value))
         if not value % 10:
-            self.kwargs['RUNFRAMES'] = values
+            self.kwargs['RUNFRAMES'] = value
 
     def error_string(self, error='Unlabelled Error! Oh no!'):
         print(error)
-
-#===============Run Initiators=============#
-    def static_run(self):
-        self.thread.requestInterruption()
-        self.kwargs['RUNFRAMES'] = 0
-        self.update_kwargs(**self.kwargs)
-        self.temp_kwargs(RUN=True, RUNFRAMES=0, IMAGEUPDATES=1)
-        self.thread.start()
-
-    def dynamic_run(self):
-        self.thread.requestInterruption()
-        self.kwargs['RUNFRAMES'] = 0
-        self.update_kwargs(**self.kwargs)
-        self.temp_kwargs(RUN=True, RUNFRAMES=0, IMAGEUPDATES=self.kwargs['IMAGEUPDATES'])
-        self.thread.start()
-
-    def long_run(self):
-        self.thread.requestInterruption()
-        self.kwargs['RUNFRAMES'] = 0
-        self.update_kwargs(**self.kwargs)
-        self.temp_kwargs(IMAGEUPDATES=self.kwargs['LONGNUM'], EQUILIBRATE=True)
-        self.thread.start()
-
-    def clear_array(self):
-        self.thread.requestInterruption()
-        self.kwargs['RUNFRAMES'] = 0
-        self.update_kwargs(**self.kwargs)
-        self.temp_kwargs(THRESHOLD=self.kwargs['THRESHOLD'], CLEAR=True)
-        self.thread.start()
-
-    def noise_array(self):
-        pass
-        self.thread.start()
 
 #=================Thread Initiator============#
     def taskman_init(self):

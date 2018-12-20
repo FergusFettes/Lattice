@@ -35,7 +35,7 @@ class MainWindow(QWidget):
         # This means that you have to stop manipulating the controls for a full three
         # seconds for the changes to be sent to the thread. This stops uneccesary
         # restarts, but needs to be tuned for comfort.
-        self.kwarg_send_timer.setInterval(3000)
+        self.kwarg_send_timer.setInterval(500)
         self.initGUI(**DEFAULTS)
 
 #=====================Settings controllers================#

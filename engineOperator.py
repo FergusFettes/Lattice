@@ -12,6 +12,7 @@ import queue as queue
 # TODO: use pythons 'queue' to move settings into the task managet in a timely fashion
 # TODO: maybe use a mutex to share the array with the canvas? maybe not necc.
 ##==============Workers============##
+##=================================##
 # These fellas do little tasks ON A SINGLE SHARED ARRAY
 # The array updaters all inherit the handler, so they can directly maniupalate the array
 class Handler(QObject):
@@ -52,7 +53,6 @@ class Handler(QObject):
         d = np.concatenate((deaths, np.zeros([deaths.shape[0], 1], int)), axis=1)
         Handler.CHANGE = np.concatenate((b, d))
         if not Handler.CHANGE.size:
-            print('No change')
             self.breakSig.emit()
 
     def noise_process(self, threshold):
@@ -104,6 +104,7 @@ class Handler(QObject):
 
 
 ##===============TaskManager===============##
+##=========================================##
 # This fancy chap goes into the thread with all the workers and controls what they do
 # Also inherits the array handler so it can send and recieve arrays.
 # All signals come in and out of this guy.
@@ -113,7 +114,9 @@ class RunController(QObject):
     finished = pyqtSignal()
     handlerSig = pyqtSignal()
     isingSig = pyqtSignal(int, float)
-    noiseSig = pyqtSignal(int)
+    # Note to self, remember how much time you wasted on signals that were converting
+    # float to int.
+    noiseSig = pyqtSignal(float)
     conwaySig = pyqtSignal(list)
     arrayfpsSig = pyqtSignal(float)
     error = pyqtSignal(str)
@@ -129,12 +132,16 @@ class RunController(QObject):
         # How often does a dynamic run break to look for new settings?
         self.mainTime.setInterval(2000)
 
+#==============Changes the internal settings================#
+# Should make the event queue feeding this baby LIFO
     def change_settings(self, kwargs):
-        print(kwargs)
         for i in kwargs:
             self.st[i] = kwargs[i]
 
+#===============MAIN PROCESS OF THE THREAD===================#
     def process(self):
+        ## THE FOLLOWING LINE WAS ALL I NEEDED two days of reading lol
+        QCoreApplication.processEvents()
         self.error.emit('Process Starting!')
         self.mainTime.start()
         if self.st['CLEAR']:
@@ -158,14 +165,7 @@ class RunController(QObject):
             self.error.emit('Interrupted')
         self.finished.emit()
 
-    def array_frame(self, updates, rule, beta):
-        if self.st['STOCHASTIC']:
-            self.isingSig.emit(updates, beta)
-        self.handlerSig.emit()
-        if self.st['CONWAY']:
-            self.conwaySig.emit(rule)
-        self.handlerSig.emit()
-
+#===============This handles the standard run method===================#
     def dynamic_run(self):
         rule = []
         self.fpsTimer.start()
@@ -184,8 +184,18 @@ class RunController(QObject):
             if not self.mainTime.remainingTime():
                 return
 
+#==============='One' frame (actually two image updates occur)=========#
+    def array_frame(self, updates, rule, beta):
+        if self.st['STOCHASTIC']:
+            self.isingSig.emit(updates, beta)
+        self.handlerSig.emit()
+        if self.st['CONWAY']:
+            self.conwaySig.emit(rule)
+        self.handlerSig.emit()
+
 
 ##==============EngineOperator===============##
+##===========================================##
 # This is the interface between the GUI and the threads.
 # Controls the Updater thread and the CanvasThread
 class EngineOperator(QObject):
@@ -207,17 +217,17 @@ class EngineOperator(QObject):
         self.taskman_init()
 
 #=============Thread Communicators======#
-    def update_kwargs(self, **kwargs):
-        print('Updating Threads')
-        for i in kwargs:
-            self.kwargs[i] = kwargs[i]
-        if self.thread.isRunning():
-            print('Requesting Interrution')
-            self.thread.requestInterruption()
-        else:
-            self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
+#   def update_kwargs(self, **kwargs):
+#       print('Updating Threads')
+#       for i in kwargs:
+#           self.kwargs[i] = kwargs[i]
+#       if self.thread.isRunning():
+#           print('Requesting Interrution')
+#           self.thread.requestInterruption()
+#       else:
+#           self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
 
-    def simple_update(self, **kwargs):
+    def update_kwargs(self, **kwargs):
         for i in kwargs:
             self.kwargs[i] = kwargs[i]
 
@@ -225,35 +235,43 @@ class EngineOperator(QObject):
         self.update_kwargs(RUN=False)
 
     def thread_looper(self):
-        if self.kwargs['RUN'] is True and self.kwargs['RUNFRAMES'] < self.kwargs['IMAGEUPDATES']:
-            self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-            self.thread.start()
-        elif self.kwargs['CLEAR'] is True or self.kwargs['EQUILIBRATE'] is True:
-            self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-            self.thread.start()
-            self.simple_update(CLEAR=False, EQUILIBRATE=False)
-        else:
-            self.simple_update(RUN=False)
-            print('Thread standing by.')
+#       if self.kwargs['RUN'] is True and self.kwargs['RUNFRAMES'] < self.kwargs['IMAGEUPDATES']:
+#           self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
+#           self.thread.start()
+#       elif self.kwargs['CLEAR'] is True or self.kwargs['EQUILIBRATE'] is True:
+#           self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
+#           self.thread.start()
+#           self.simple_update(CLEAR=False, EQUILIBRATE=False)
+#       else:
+#           self.simple_update(RUN=False)
+        print('Thread standing by.')
 
 #===============Run Initiators=============#
     def static_run(self):
+        self.thread.requestInterruption()
         self.update_kwargs(RUN=True, RUNFRAMES=(self.kwargs['IMAGEUPDATES']-1))
+        self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
         self.thread.start()
 
     def dynamic_run(self):
+        self.thread.requestInterruption()
         self.update_kwargs(RUN=True, RUNFRAMES=0)
+        self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
         self.thread.start()
 
     def long_run(self):
+        self.thread.requestInterruption()
         self.update_kwargs(RUN=False, EQUILIBRATE=True)
+        self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
         self.thread.start()
-        self.simple_update(RUN=False, EQUILIBRATE=False)
+        self.update_kwargs(EQUILIBRATE=False)
 
     def clear_array(self):
+        self.thread.requestInterruption()
         self.update_kwargs(RUN=False, CLEAR=True)
+        self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
         self.thread.start()
-        self.simple_update(RUN=False, CLEAR=False)
+        self.update_kwargs(CLEAR=False)
 
     def noise_array(self):
         pass

@@ -37,7 +37,7 @@ class Canvas(QLabel):
         im = QImage(self.n, self.n, QImage.Format_ARGB32)
         for i in range(self.n):
             for j in range(self.n):
-                num = A[i][j]
+                num = int(A[i][j])
                 color = self.colorList[num]
                 im.setPixel(i, j, color)
 

@@ -11,6 +11,7 @@ import random as ra
 import re
 import math
 import numpy as np
+import time
 
 class Handler(QObject):
     ARRAY = []      # Array, shared among workers
@@ -22,7 +23,7 @@ class Handler(QObject):
         """ Controls workers for the array updates,
             and processes the arrays returned. """
         QObject.__init__(self)
-        Handler.ARRAY = np.random.random([20,20]) > 0.3
+        Handler.ARRAY = np.random.random([500,500]) > 0.3
         Handler.ARRAYOLD = np.zeros(Handler.ARRAY.shape, bool)
         Handler.LIVING = np.zeros([0, 2], bool)
         Handler.CHANGE = np.zeros([0, 3], bool)
@@ -68,7 +69,19 @@ class Canvas(QLabel, Handler):
         self.n = kwargs['N']
         self.scale = kwargs['SCALE']
         self.reset()
-        self.export_array(Handler.ARRAY)
+       #self.export_array(Handler.ARRAY)
+       #self.export_list(Handler.CHANGE, 0)
+        self.wolfram()
+
+    def wolfram(self):
+        import pdb; pdb.set_trace()  # XXX BREAKPOINT
+        line = np.random.randint(0, 2, (self.n,1))
+        rule = str(bin(30))[2:]
+        while len(rule) < 8:
+            rule = '0' + rule
+        nb = [sum(line[(i-1) % self.n], line[i], line[(i + 1) % self.n])\
+              for i in range(self.n)]
+        out = [int(rule[i]) for i in nb]
 
     def reset(self):
         self.setPixmap(QPixmap(self.n * self.scale, self.n * self.scale))
@@ -81,14 +94,14 @@ class Canvas(QLabel, Handler):
 
     # Updates image with values from entire array. SLOW
     def export_array(self, A):
-        import pdb; pdb.set_trace()  # XXX BREAKPOINT
         im = QImage(self.n, self.n, QImage.Format_ARGB32)
+        now = time.time()
         for i in range(self.n):
             for j in range(self.n):
                 num = int(A[i][j])
                 color = self.colorList[num]
                 im.setPixel(i, j, color)
-
+        print(time.time() - now)
         ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))
         nupix = QPixmap()
         nupix.convertFromImage(ims)
@@ -97,16 +110,16 @@ class Canvas(QLabel, Handler):
 
     # Updates image only where the pixels have changed. FASTER
     def export_list(self, L, living):
+        now = time.time()
         im = self.pixmap().toImage().scaled((QSize(self.n, self.n)))
         if living:
             for el in L:
                 im.setPixel(el[0], el[1], self.colorList[1])
-           #map((lambda x: im.setPixel(x[0], x[1], self.colorList[1])), L)
         else:
             for el in L:
                 im.setPixel(el[0], el[1], self.colorList[el[2]])
-           #map((lambda x: im.setPixel(x[0], x[1], self.colorList[x[2]])), L)
 
+        print(time.time() - now)
         ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))
         nupix = QPixmap()
         nupix.convertFromImage(ims)
@@ -153,7 +166,7 @@ def initVars():
         'MOUSECOLOR1':  QColor.fromRgba(colHex5).rgba(),    # Not used rn. But soon?
         'MOUSECOLOR2':  QColor.fromRgba(colHex6).rgba(),
         'SATURATION':   80,     # This leaves changes on the image shortly
-        'N':            20,    # Array dimensions
+        'N':            500,    # Array dimensions
         'SCALE':        2,      # Image dim = N*SCALE x N*SCALE
         'BETA':         1 / 8,  # Critical temp for Ising
         'SPEED':        100,    # Throttle %

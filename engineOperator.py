@@ -127,10 +127,10 @@ class RunController(QObject):
         self.st = kwargs
         self.fpsTimer = QTimer(self)
         # Maximum fps = 1000 / the following
-        self.fpsTimer.setInterval(100)
+        self.fpsTimer.setInterval(1)
         self.mainTime = QTimer(self)
         # How often does a dynamic run break to look for new settings?
-        self.mainTime.setInterval(2000)
+        self.mainTime.setInterval(99000)
 
 #==============Changes the internal settings================#
 # Should make the event queue feeding this baby LIFO
@@ -168,7 +168,7 @@ class RunController(QObject):
 #===============This handles the standard run method===================#
     def dynamic_run(self):
         rule = []
-        self.fpsTimer.start()
+        now = time.time()
         while self.st['RUNFRAMES'] < self.st['IMAGEUPDATES']:
             if self.st['CONWAY']:
                 rules = self.st['RULES']
@@ -176,13 +176,16 @@ class RunController(QObject):
             self.array_frame(self.st['MONTEUPDATES'], rule, self.st['BETA'])
             self.st['RUNFRAMES'] += 1
             self.frameSig.emit(self.st['RUNFRAMES'])
-            self.arrayfpsSig.emit(100 - self.fpsTimer.remainingTime())
-            while self.fpsTimer.remainingTime():
+            self.arrayfpsSig.emit(time.time() - now)
+            while time.time() - now < 0.05:
                 QThread.msleep(1)
                 if not self.mainTime.remainingTime():
                     return
+            now = time.time()
             if not self.mainTime.remainingTime():
                 return
+            # I tried replacing the calsl to time() with a QTimer and obvious did
+            # everything wrong, but this is fine anyway.
 
 #==============='One' frame (actually two image updates occur)=========#
     def array_frame(self, updates, rule, beta):
@@ -279,10 +282,8 @@ class EngineOperator(QObject):
 
 #===============GUI updaters=============#
     def array_fps_update(self, value):
-        if value == 100:
-            self.arrayfpsLabel.setText('Array fps < 10')
-        else:
-            self.arrayfpsLabel.setText('Array fps: ' + str(1 / value))
+        print(value)
+        self.arrayfpsLabel.setText('Array fps: ' + str(1 / value))
 
     def canvas_fps_update(self, value):
         self.canvasfpsLabel.setText('Canvas fps: ' + str(1 / value))

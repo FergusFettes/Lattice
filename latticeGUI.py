@@ -100,20 +100,21 @@ class MainWindow(QWidget):
         # This timer waits for ten seconds for you to dick about with the rules before
         # sending them to the engine. If you get caught with your pants down, conway will
         # turn off for some seconds.
-        QTimer.singleShot(10000, self.send_rule)
         if strTest is None:
             self.conwayPalette.setColor(QPalette.Base, Qt.red)
             self.conwayRules.setPalette(self.conwayPalette)
-            self.ruleIter = re.finditer(regexTestString, text)
+            ruleIter = re.finditer(regexTestString, text)
+            self.rul = [i.group(1,2,3,4) for i in ruleIter]
         else:
             self.conwayPalette.setColor(QPalette.Base, Qt.green)
             self.conwayRules.setPalette(self.conwayPalette)
-            self.ruleIter = re.finditer(regexMatchString, text)
+            ruleIter = re.finditer(regexMatchString, text)
+            self.rul = [i.group(1,2,3,4) for i in ruleIter]
+        self.send_rule()
 
     def send_rule(self):
         print('Rule sending!')
-        rul = [i.group(1,2,3,4) for i in self.ruleIter]
-        rules = [[int(j) for j in i] for i in rul]
+        rules = [[int(j) for j in i] for i in self.rul]
         self.changeKwarg('RULES', rules)
         self.changeKwarg('CONWAY', not rules == [])
 
@@ -131,6 +132,7 @@ class MainWindow(QWidget):
                 self.changeKwarg('EQUILIBRATE', False)
                 self.changeKwarg('CLEAR', False)
                 self.changeKwarg('RUN', False)
+                self.engine.thread.requestInterrupt()
                 print('Attempting to interrupt!')
                 # TODO: add a 'interrupted by user' popup (after a 'interrupting!'?)
             else:

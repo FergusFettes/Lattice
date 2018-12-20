@@ -21,6 +21,7 @@ class Canvas(QLabel):
         self.n = kwargs['N']
         self.scale = kwargs['SCALE']
         self.reset()
+        self.array = np.random.random([self.n, self.n]) > 0.5
 
     def reset(self):
         self.setPixmap(QPixmap(self.n * self.scale, self.n * self.scale))
@@ -51,16 +52,17 @@ class Canvas(QLabel):
 
     # Updates image only where the pixels have changed. FASTER
     def export_list(self, L, living):
+        import pdb; pdb.set_trace()  # XXX BREAKPOINT
         now = time.time()
         im = self.pixmap().toImage().scaled((QSize(self.n, self.n)))
         if living:
-            for el in L:
-                im.setPixel(el[0], el[1], self.colorList[1])
-           #map((lambda x: im.setPixel(x[0], x[1], self.colorList[1])), L)
+           #for el in L:
+           #    im.setPixel(el[0], el[1], self.colorList[1])
+            map((lambda x: im.setPixel(x[0], x[1], self.colorList[1])), L)
         else:
-            for el in L:
-                im.setPixel(el[0], el[1], self.colorList[el[2]])
-           #map((lambda x: im.setPixel(x[0], x[1], self.colorList[x[2]])), L)
+           #for el in L:
+           #    im.setPixel(el[0], el[1], self.colorList[el[2]])
+            map((lambda x: im.setPixel(x[0], x[1], self.colorList[x[2]])), L)
 
         ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))
         nupix = QPixmap()

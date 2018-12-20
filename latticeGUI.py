@@ -128,17 +128,17 @@ class MainWindow(QWidget):
     def keyPressEvent(self, e):
         # TODO: make this a dictonary
         if e.key() == Qt.Key_Escape:
-            if self.engine.thread.isRunning():
-                self.changeKwarg('EQUILIBRATE', False)
-                self.changeKwarg('CLEAR', False)
-                self.changeKwarg('RUN', False)
-                self.engine.thread.requestInterruption()
-                print('Attempting to interrupt!')
+#           if self.engine.thread.isRunning():
+            self.changeKwarg('EQUILIBRATE', False)
+            self.changeKwarg('CLEAR', False)
+            self.changeKwarg('RUN', False)
+#           self.engine.thread.requestInterruption()
+            print('Attempting to interrupt!')
                 # TODO: add a 'interrupted by user' popup (after a 'interrupting!'?)
-            else:
-                self.engine.thread.deleteLater()
-                QCoreApplication.instance().quit()
-                print('Threads shutting down and powering off')
+#           else:
+#               self.engine.thread.deleteLater()
+            QCoreApplication.instance().quit()
+            print('Threads shutting down and powering off')
                 # TODO: add a 'are you sure?' popup
         # left alt key. guess i could just look this up?
         elif e.key() == 16777251:
@@ -424,7 +424,7 @@ class MainWindow(QWidget):
         self.frameCtrl.valueChanged.connect(self.frameChange)
         self.frameCtrl.setRange(10, 2000)
         self.frameCtrl.setSingleStep(10)
-        self.frameCtrl.setMaximumSize(100, 20)
+        self.frameCtrl.setMaximumSize(150, 20)
 
         # 'right bottom box [LEFT/MID/RIGHT]' -- sorts out the sliders
         rbbL = QVBoxLayout()

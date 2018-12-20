@@ -251,34 +251,38 @@ class EngineOperator(QObject):
 
 #===============Run Initiators=============#
     def static_run(self):
-        self.thread.requestInterruption()
+#       self.thread.requestInterruption()
         self.update_kwargs(RUN=True, RUNFRAMES=(self.kwargs['IMAGEUPDATES']-1))
         self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-        self.thread.start()
+#       self.thread.start()
+        self.handler.process()
 
     def dynamic_run(self):
-        self.thread.requestInterruption()
+#       self.thread.requestInterruption()
         self.update_kwargs(RUN=True, RUNFRAMES=0)
         self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-        self.thread.start()
+#       self.thread.start()
+        self.handler.process()
 
     def long_run(self):
-        self.thread.requestInterruption()
+#       self.thread.requestInterruption()
         self.update_kwargs(RUN=False, EQUILIBRATE=True)
         self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-        self.thread.start()
+#       self.thread.start()
+        self.handler.process()
         self.update_kwargs(EQUILIBRATE=False)
 
     def clear_array(self):
-        self.thread.requestInterruption()
+#       self.thread.requestInterruption()
         self.update_kwargs(RUN=False, CLEAR=True)
         self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-        self.thread.start()
+        self.handler.process()
+#       self.thread.start()
         self.update_kwargs(CLEAR=False)
 
     def noise_array(self):
         pass
-        self.thread.start()
+#       self.thread.start()
 
 #===============GUI updaters=============#
     def array_fps_update(self, value):
@@ -297,15 +301,15 @@ class EngineOperator(QObject):
 
 #=================Thread Initiator============#
     def taskman_init(self):
-        self.thread = QThread()
+#       self.thread = QThread()
         self.handler = Handler(self.array)
         self.taskman = RunController(self.array, **self.kwargs)
-        self.taskman.moveToThread(self.thread)
-        self.thread.started.connect(self.taskman.process)
+#       self.taskman.moveToThread(self.thread)
+#       self.thread.started.connect(self.taskman.process)
         self.taskman.error.connect(self.error_string)
-        self.taskman.finished.connect(self.thread.quit)
+#       self.taskman.finished.connect(self.thread.quit)
       # self.taskman.finished.connect(self.clear_temp_kwargs)
-        self.thread.finished.connect(self.thread_looper)
+#       self.thread.finished.connect(self.thread_looper)
         self.taskman.frameSig.connect(self.frame_value_update)
         self.taskman.arrayfpsSig.connect(self.array_fps_update)
         self.canvas.canvasfpsSig.connect(self.canvas_fps_update)
@@ -321,4 +325,4 @@ class EngineOperator(QObject):
         self.settingsSig.connect(self.taskman.change_settings)
         self.interruptSig.connect(self.breaker)
 
-        self.thread.start()
+#       self.thread.start()

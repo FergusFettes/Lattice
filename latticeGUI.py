@@ -132,7 +132,7 @@ class MainWindow(QWidget):
                 self.changeKwarg('EQUILIBRATE', False)
                 self.changeKwarg('CLEAR', False)
                 self.changeKwarg('RUN', False)
-                self.engine.thread.requestInterrupt()
+                self.engine.thread.requestInterruption()
                 print('Attempting to interrupt!')
                 # TODO: add a 'interrupted by user' popup (after a 'interrupting!'?)
             else:

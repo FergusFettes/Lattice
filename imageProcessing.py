@@ -10,17 +10,18 @@ import time
 class ImageCreator(QObject):
     imageSig = pyqtSignal(QPixmap)
     breakSig = pyqtSignal()
+    error = pyqtSignal(str)
+    finished = pyqtSignal()
+    canvasfpsSig = pyqtSignal(float)
 
-    def __init__(self, array):
+    def __init__(self, array, **kwargs):
         QObject.__init__(self)
 
-    def initialize(self, **kwargs):
-        self.primaryColor = QColor(kwargs['BACKCOLOR1'])
-        self.secondaryColor = QColor(kwargs['BACKCOLOR2'])
-        self.colorList = []
+        self.error.emit('Image thread starting up!')
+        self.colorList = kwargs['COLORLIST']
         self.degree = 2
+
         self.scale = kwargs['SCALE']
-        self.reset()
         self.ARRAY = array
         self.N1 = array.shape[0]
         self.N2 = array.shape[1]
@@ -28,18 +29,29 @@ class ImageCreator(QObject):
         self.LIVING = np.zeros([0, 2], bool)
         self.CHANGE = np.zeros([0, 3], bool)
 
+        self.image = QImage(self.N1, self.N2, QImage.Format_ARGB32)
+
+    def addColors(self, colorList, degree):
+        self.colorList = colorList
+        self.degree = degree
+
     def resize_array(self, array):
         self.ARRAY = array
         self.ARRAYOLD = array
         self.imageSig.emit(array)
 
-    def process(self, array):
+    def process(self):
+        #this sure is living
+        pass
+
+    def process_array(self, array):
         now = time.time()
         self.ARRAY = array
         self.update_change()
         self.export_list(self.CHANGE)
         self.ARRAYOLD = self.ARRAY
         self.canvasfpsSig.emit(time.time()-now)
+        self.finished.emit()
 
     def update_living(self):
         self.LIVING = np.argwhere(self.ARRAY)
@@ -58,7 +70,7 @@ class ImageCreator(QObject):
 
     # Updates image with values from entire array. SLOW
     def export_array(self, A):
-        im = QImage(A.shape[0], A.shape[1], QImage.Format_ARGB32)
+        im = self.image
         for i in range(A.shape[0]):
             for j in range(A.shape[1]):
                 num = int(A[i][j])
@@ -69,19 +81,18 @@ class ImageCreator(QObject):
         nupix = QPixmap()
         nupix.convertFromImage(ims)
         self.imageSig.emit(nupix)
+        self.image = im
 
     # Updates image only where the pixels have changed. FASTER
-    def export_list(self, L, living):
-        im = self.pixmap().toImage().scaled((QSize(self.N1, self.N2)))
-        if living:
-            [im.setPixel(el[0], el[1], self.colorList[1]) for el in L]
-        else:
-            [im.setPixel(el[0], el[1], self.colorList[el[2]]) for el in L]
+    def export_list(self, L):
+        im = self.image
+        [im.setPixel(el[0], el[1], self.colorList[el[2]]) for el in L]
 
         ims = im.scaled(QSize(self.N1 * self.scale, self.N2 * self.scale))
         nupix = QPixmap()
         nupix.convertFromImage(ims)
         self.imageSig.emit(nupix)
+        self.image = im
 
 #====================The canvas=================#
 # It isnt so exciting since I moved everything to the processor
@@ -101,10 +112,6 @@ class Canvas(QLabel):
         self.setPixmap(QPixmap(self.n * self.scale, self.n * self.scale))
         self.pixmap().fill(self.primaryColor)
 
-    def addColors(self, colorList, degree):
-        self.colorList = colorList
-        self.degree = degree
-
     def paint(self, image):
         self.setPixmap(image)
-        self.update()
+        self.repaint()

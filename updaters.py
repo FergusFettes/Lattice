@@ -15,6 +15,7 @@ import queue as queue
 # The array updaters all inherit the handler, so they can directly maniupalate the array
 class Handler(QObject):
     arraySig = pyqtSignal(np.ndarray)
+    startSig = pyqtSignal()
     ARRAY = []      # Array, shared among workers
     ARRAYOLD = []      # Array, shared among workers
 
@@ -30,6 +31,7 @@ class Handler(QObject):
 
     def process(self):
         self.arraySig.emit(Handler.ARRAY)
+        self.startSig.emit()
         Handler.ARRAYOLD = np.copy(Handler.ARRAY)
 
     def noise_process(self, threshold):
@@ -39,6 +41,7 @@ class Handler(QObject):
         B = np.bitwise_xor(Handler.ARRAY, A)
         Handler.ARRAY = B
         self.arraySig.emit(Handler.ARRAY)
+        self.startSig.emit()
 
     def ising_process(self, updates, beta):
         cost = np.zeros(3, float)

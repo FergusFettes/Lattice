@@ -22,6 +22,7 @@ def initVars():
         'UPDATECOLOR2': QColor.fromRgba(colHex4).rgba(),    # change these.
         'MOUSECOLOR1':  QColor.fromRgba(colHex5).rgba(),    # Not used rn. But soon?
         'MOUSECOLOR2':  QColor.fromRgba(colHex6).rgba(),
+        'COLORLIST':    [colHex1, colHex2, colHex3, colHex4, colHex5, colHex6],
         'SATURATION':   80,     # This leaves changes on the image shortly
         'N':            350,    # Array dimensions
         'SCALE':        2,      # Image dim = N*SCALE x N*SCALE

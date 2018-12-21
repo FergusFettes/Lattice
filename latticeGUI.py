@@ -175,6 +175,8 @@ class MainWindow(QWidget):
         elif e.key() == Qt.Key_Q:
             self.clear.click()
 
+##==========================THEGUI==============================##
+##==============================================================##
     # Initialise GUI
     def initGUI(self, **DEFAULTS):
         # Initialise the thread manager and painter and feed them the UI elements they
@@ -206,6 +208,9 @@ class MainWindow(QWidget):
         self.clear = QPushButton()
         self.clear.setText('Clear')
         self.clear.clicked.connect(self.engine.clear_array)
+        self.background = QPushButton()
+        self.background.setText('Background')
+        self.background.clicked.connect(self.engine.clear_background)
         self.thresholdCtrl = QSlider(Qt.Vertical)
         self.thresholdCtrl.setTickPosition(QSlider.TicksRight)
         self.thresholdCtrl.setTickInterval(20)
@@ -223,6 +228,7 @@ class MainWindow(QWidget):
         tlhbvb.addWidget(self.short)
         tlhbvb.addWidget(self.equilibrate)
         tlhbvb.addWidget(self.clear)
+        tlhbvb.addWidget(self.background)
         tlhbvb.addWidget(self.thresholdLabel)
         tlhb.addLayout(tlhbvb)
         tlhb.addWidget(self.thresholdCtrl)

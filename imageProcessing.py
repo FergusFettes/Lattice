@@ -14,7 +14,7 @@ class ImageCreator(QObject):
     finished = pyqtSignal()
     canvasfpsSig = pyqtSignal(float)
 
-    def __init__(self, array, **kwargs):
+    def __init__(self, **kwargs):
         QObject.__init__(self)
 
         self.error.emit('Image thread starting up!')
@@ -22,24 +22,53 @@ class ImageCreator(QObject):
         self.degree = 2
 
         self.scale = kwargs['SCALE']
-        self.ARRAY = array
-        self.N1 = array.shape[0]
-        self.N2 = array.shape[1]
-        self.ARRAYOLD = array
-        self.LIVING = np.zeros([0, 2], bool)
-        self.CHANGE = np.zeros([0, 3], bool)
         self.fpsRoll = np.zeros(5, float)
 
-        self.image = QImage(self.N1, self.N2, QImage.Format_ARGB32)
+        self.shape = kwargs['N']
+        self.resize_array([kwargs['N'], kwargs['N']])
 
     def addColors(self, colorList, degree):
         self.colorList = colorList
         self.degree = degree
 
-    def resize_array(self, array):
-        self.ARRAY = array
-        self.ARRAYOLD = array
-        self.imageSig.emit(array)
+    def resize_array(self, shape):
+        self.ARRAY = np.zeros(shape, bool)
+        self.ARRAYOLD = np.zeros(shape, bool)
+        self.LIVING = np.zeros([0, 2], bool)
+        self.CHANGE = np.zeros([0, 3], bool)
+        self.image = QImage(shape[0], shape[1], QImage.Format_ARGB32)
+        nupix = QPixmap()
+        nupix.convertFromImage(self.image)
+        self.imageSig.emit(nupix)
+
+    def wolframgen(self, line):
+        n = self.shape
+        rule = str(bin(30))[2:]
+        while len(rule) < 8:
+            rule = '0' + rule
+        while True:
+            nb = [int(str(line[(i-1) % n]) + str(line[i]) + str(line[(i + 1) % n]),\
+                    2) for i in range(n)]
+            line = [int(rule[-i]) for i in nb]
+            yield line
+
+    def wolfram_paint(self):
+        im = self.image
+        line = np.random.randint(0, 2, (self.shape))
+      # line = np.zeros(self.n, int)
+      # line[int(self.n / 2)] = 1
+        linegen = self.wolframgen(line)
+        for idx, lin in enumerate(range(self.shape)):
+            line = next(linegen)
+            for idy, pix in enumerate(line):
+                im.setPixel(idx % self.shape, idy, self.colorList[pix])
+            if idx == self.shape:
+                break
+        ims = im.scaled(QSize(self.shape * self.scale, self.shape * self.scale))
+        nupix = QPixmap()
+        nupix.convertFromImage(ims)
+        self.imageSig.emit(nupix)
+        self.image = im
 
     def process(self):
         #this sure is living
@@ -91,7 +120,7 @@ class ImageCreator(QObject):
         im = self.image
         [im.setPixel(el[0], el[1], self.colorList[el[2]]) for el in L]
 
-        ims = im.scaled(QSize(self.N1 * self.scale, self.N2 * self.scale))
+        ims = im.scaled(QSize(self.shape * self.scale, self.shape * self.scale))
         nupix = QPixmap()
         nupix.convertFromImage(ims)
         self.imageSig.emit(nupix)

@@ -19,15 +19,16 @@ class Handler(QObject):
     ARRAY = []      # Array, shared among workers
     ARRAYOLD = []      # Array, shared among workers
 
-    def __init__(self, array):
+    def __init__(self, **kwargs):
         """ Controls workers for the array updates,
             and processes the arrays returned. """
         QObject.__init__(self)
-        Handler.ARRAY = array
-        Handler.ARRAYOLD = array
+        self.resize_array(kwargs['THRESHOLD'], kwargs['N'])
 
-    def resize_array(self, array):
-        Handler.ARRAY = array
+    def resize_array(self, threshold, shape):
+        Handler.ARRAY = np.zeros([shape, shape], bool)
+        Handler.ARRAYOLD = np.zeros([shape, shape], bool)
+        self.noise_process(threshold)
 
     def process(self):
         self.arraySig.emit(Handler.ARRAY)
@@ -35,8 +36,6 @@ class Handler(QObject):
         Handler.ARRAYOLD = np.copy(Handler.ARRAY)
 
     def noise_process(self, threshold):
-        Handler.ARRAY = np.zeros(Handler.ARRAY.shape, bool)
-        Handler.ARRAYOLD = np.copy(Handler.ARRAY)
         A = np.random.random(Handler.ARRAY.shape) > threshold
         B = np.bitwise_xor(Handler.ARRAY, A)
         Handler.ARRAY = B
@@ -98,10 +97,11 @@ class RunController(QObject):
     # float to int.
     noiseSig = pyqtSignal(float)
     conwaySig = pyqtSignal(list)
+    clearSig = pyqtSignal(float, int)   ### change this for N*D XXX
     arrayfpsSig = pyqtSignal(float)
     error = pyqtSignal(str)
 
-    def __init__(self, array, **kwargs):
+    def __init__(self, **kwargs):
         """Run controller makes sure the run doesnt get out of hand"""
         QObject.__init__(self)
         self.st = kwargs
@@ -125,8 +125,8 @@ class RunController(QObject):
         QCoreApplication.processEvents()
         self.error.emit('Process Starting!')
         self.mainTime.start()
-        if self.st['CLEAR']:
-            self.noiseSig.emit(self.st['THRESHOLD'])
+        if self.st['CLEAR']:        # This is the clear/reset/resize function
+            self.clearSig.emit(self.st['THRESHOLD'], self.st['N'])
             self.error.emit('Cleared')
             self.finished.emit()
             return

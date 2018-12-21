@@ -21,12 +21,12 @@ import queue as queue
 class EngineOperator(QObject):
     settingsSig = pyqtSignal(dict)
     interruptSig = pyqtSignal()
+    backgroundSig = pyqtSignal()
 
     def __init__(self, canvas, frameLabel, arrayfpsLabel, canvasfpsLabel, **kwargs):
     # The kwargs consists of the following: speed, updates, frames, beta,
     # stochastic?, threshold/coverage.
         QObject.__init__(self)
-        self.array = np.zeros([kwargs['N'], kwargs['N']], bool)
         self.kwargs = kwargs
         self.canvas = canvas
         self.frameLabel = frameLabel
@@ -86,6 +86,9 @@ class EngineOperator(QObject):
         self.thread.start()
         self.update_kwargs(EQUILIBRATE=False)
 
+    def clear_background(self):
+        self.backgroundSig.emit()
+
     def clear_array(self):
         self.thread.requestInterruption()
         self.update_kwargs(RUN=False, CLEAR=True)
@@ -118,9 +121,9 @@ class EngineOperator(QObject):
         # Initialise the threads and the workers, and put them in place
         self.thread = QThread()
         self.thread2 = QThread()
-        self.handler = Handler(self.array)
-        self.taskman = RunController(self.array, **self.kwargs)
-        self.image = ImageCreator(self.array, **self.kwargs)
+        self.handler = Handler(**self.kwargs)
+        self.taskman = RunController(**self.kwargs)
+        self.image = ImageCreator(**self.kwargs)
         self.taskman.moveToThread(self.thread)
         self.handler.moveToThread(self.thread)
         self.image.moveToThread(self.thread2)
@@ -132,12 +135,14 @@ class EngineOperator(QObject):
         # Connections from the engine to the workers
         self.settingsSig.connect(self.taskman.change_settings)
         self.interruptSig.connect(self.breaker)
+        self.backgroundSig.connect(self.image.wolfram_paint)
 
         # Connect up the signals between the workers
         self.taskman.isingSig.connect(self.handler.ising_process)
         self.taskman.noiseSig.connect(self.handler.noise_process)
         self.taskman.conwaySig.connect(self.handler.conway_process)
         self.taskman.handlerSig.connect(self.handler.process)
+        self.taskman.clearSig.connect(self.handler.resize_array)
         self.handler.arraySig.connect(self.image.process_array)
 
         # Connections for closing threads WORK NECC HERE

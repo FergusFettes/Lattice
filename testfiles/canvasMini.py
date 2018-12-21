@@ -5,8 +5,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from functools import partial
 
-from latticeCanvas import Canvas
-
 import random as ra
 import re
 import math
@@ -87,24 +85,6 @@ class Canvas(QLabel, Handler):
     def wolfram_paint(self):
         im = self.pixmap().toImage().scaled((QSize(self.n, self.n)))
         line = np.random.randint(0, 2, (self.n))
-      # line = np.zeros(self.n, int)
-        line[int(self.n / 2)] = 1
-        for idx, lin in enumerate(range(self.n)):
-            line = self.wolfram(line)
-            for idy, pix in enumerate(line):
-                im.setPixel(idx % self.n, idy, self.colorList[pix])
-
-            ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))
-            nupix = QPixmap()
-            nupix.convertFromImage(ims)
-            self.setPixmap(nupix)
-            self.repaint()
-            if idx == self.n:
-                return
-
-    def wolfram_paint(self):
-        im = self.pixmap().toImage().scaled((QSize(self.n, self.n)))
-        line = np.random.randint(0, 2, (self.n))
         line[int(self.n / 2)] = 1
       # line = np.zeros(self.n, int)
         linegen = self.wolframgen(line)
@@ -119,6 +99,24 @@ class Canvas(QLabel, Handler):
             self.repaint()
             if idx == self.n:
                 return
+
+    #   def wolfram_paint(self):
+#       im = self.pixmap().toImage().scaled((QSize(self.n, self.n)))
+#       line = np.random.randint(0, 2, (self.n))
+#     # line = np.zeros(self.n, int)
+#       line[int(self.n / 2)] = 1
+#       for idx, lin in enumerate(range(self.n)):
+#           line = self.wolfram(line)
+#           for idy, pix in enumerate(line):
+#               im.setPixel(idx % self.n, idy, self.colorList[pix])
+
+#           ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))
+#           nupix = QPixmap()
+#           nupix.convertFromImage(ims)
+#           self.setPixmap(nupix)
+#           self.repaint()
+#           if idx == self.n:
+#               return
 
     def reset(self):
         self.setPixmap(QPixmap(self.n * self.scale, self.n * self.scale))

@@ -174,7 +174,7 @@ class RunController(QObject):
     def array_frame(self, updates, rule, beta):
         if self.st['STOCHASTIC']:
             self.isingSig.emit(updates, beta)
-        self.handlerSig.emit()
+            self.handlerSig.emit()
         if self.st['CONWAY']:
             self.conwaySig.emit(rule)
-        self.handlerSig.emit()
+            self.handlerSig.emit()

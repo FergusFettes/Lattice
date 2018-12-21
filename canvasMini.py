@@ -71,17 +71,54 @@ class Canvas(QLabel, Handler):
         self.reset()
        #self.export_array(Handler.ARRAY)
        #self.export_list(Handler.CHANGE, 0)
-        self.wolfram()
+        self.wolfram_paint()
 
-    def wolfram(self):
-        import pdb; pdb.set_trace()  # XXX BREAKPOINT
-        line = np.random.randint(0, 2, (self.n,1))
+    def wolframgen(self, line):
+        n = self.n
         rule = str(bin(30))[2:]
         while len(rule) < 8:
             rule = '0' + rule
-        nb = [sum(line[(i-1) % self.n], line[i], line[(i + 1) % self.n])\
-              for i in range(self.n)]
-        out = [int(rule[i]) for i in nb]
+        while True:
+            nb = [int(str(line[(i-1) % n]) + str(line[i]) + str(line[(i + 1) % n]),\
+                    2) for i in range(n)]
+            line = [int(rule[-i]) for i in nb]
+            yield line
+
+    def wolfram_paint(self):
+        im = self.pixmap().toImage().scaled((QSize(self.n, self.n)))
+        line = np.random.randint(0, 2, (self.n))
+      # line = np.zeros(self.n, int)
+        line[int(self.n / 2)] = 1
+        for idx, lin in enumerate(range(self.n)):
+            line = self.wolfram(line)
+            for idy, pix in enumerate(line):
+                im.setPixel(idx % self.n, idy, self.colorList[pix])
+
+            ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))
+            nupix = QPixmap()
+            nupix.convertFromImage(ims)
+            self.setPixmap(nupix)
+            self.repaint()
+            if idx == self.n:
+                return
+
+    def wolfram_paint(self):
+        im = self.pixmap().toImage().scaled((QSize(self.n, self.n)))
+        line = np.random.randint(0, 2, (self.n))
+        line[int(self.n / 2)] = 1
+      # line = np.zeros(self.n, int)
+        linegen = self.wolframgen(line)
+        for idx, lin in enumerate(range(self.n)):
+            line = next(linegen)
+            for idy, pix in enumerate(line):
+                im.setPixel(idx % self.n, idy, self.colorList[pix])
+            ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))
+            nupix = QPixmap()
+            nupix.convertFromImage(ims)
+            self.setPixmap(nupix)
+            self.repaint()
+            if idx == self.n:
+                return
 
     def reset(self):
         self.setPixmap(QPixmap(self.n * self.scale, self.n * self.scale))
@@ -166,8 +203,8 @@ def initVars():
         'MOUSECOLOR1':  QColor.fromRgba(colHex5).rgba(),    # Not used rn. But soon?
         'MOUSECOLOR2':  QColor.fromRgba(colHex6).rgba(),
         'SATURATION':   80,     # This leaves changes on the image shortly
-        'N':            500,    # Array dimensions
-        'SCALE':        2,      # Image dim = N*SCALE x N*SCALE
+        'N':            100,    # Array dimensions
+        'SCALE':        5,      # Image dim = N*SCALE x N*SCALE
         'BETA':         1 / 8,  # Critical temp for Ising
         'SPEED':        100,    # Throttle %
         'DEGREE':       4,      # Degree of the Potts model

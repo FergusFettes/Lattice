@@ -106,6 +106,7 @@ class RunController(QObject):
         QObject.__init__(self)
         self.st = kwargs
         self.fpsTimer = QTimer(self)
+        self.fpsRoll = np.zeros(5, float)
         # Maximum fps = 1000 / the following
         self.fpsTimer.setInterval(1)
         self.mainTime = QTimer(self)
@@ -156,7 +157,9 @@ class RunController(QObject):
             self.array_frame(self.st['MONTEUPDATES'], rule, self.st['BETA'])
             self.st['RUNFRAMES'] += 1
             self.frameSig.emit(self.st['RUNFRAMES'])
-            self.arrayfpsSig.emit(time.time() - now)
+            self.fpsRoll[0] = time.time()-now
+            self.fpsRoll = np.roll(self.fpsRoll, 1)
+            self.arrayfpsSig.emit(np.mean(self.fpsRoll))
             while time.time() - now < 0.05:
                 QThread.msleep(1)
                 if not self.mainTime.remainingTime():

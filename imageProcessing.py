@@ -28,6 +28,7 @@ class ImageCreator(QObject):
         self.ARRAYOLD = array
         self.LIVING = np.zeros([0, 2], bool)
         self.CHANGE = np.zeros([0, 3], bool)
+        self.fpsRoll = np.zeros(5, float)
 
         self.image = QImage(self.N1, self.N2, QImage.Format_ARGB32)
 
@@ -50,7 +51,9 @@ class ImageCreator(QObject):
         self.update_change()
         self.export_list(self.CHANGE)
         self.ARRAYOLD = self.ARRAY
-        self.canvasfpsSig.emit(time.time()-now)
+        self.fpsRoll[0] = time.time()-now
+        self.fpsRoll = np.roll(self.fpsRoll, 1)
+        self.canvasfpsSig.emit(np.mean(self.fpsRoll))
         self.finished.emit()
 
     def update_living(self):

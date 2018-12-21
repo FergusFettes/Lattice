@@ -132,7 +132,7 @@ class EngineOperator(QObject):
 
         self.image = ImageCreator(self.array)
         self.image.imageSig.connect(self.canvas.paint)
-        self.image.breakSig.connect(se
+        self.image.breakSig.connect(self.breaker)
         self.handler.arraySig.connect(self.image.export_array)
 
         self.settingsSig.connect(self.taskman.change_settings)

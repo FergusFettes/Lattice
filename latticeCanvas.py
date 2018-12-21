@@ -74,7 +74,8 @@ class ImageCreator(QObject):
         nupix.convertFromImage(ims)
         self.imageSig.emit(nupix)
 
-
+#====================The canvas=================#
+# It isnt so exciting since I moved everything to the processor
 class Canvas(QLabel):
     canvasfpsSig = pyqtSignal(float)
 
@@ -95,6 +96,6 @@ class Canvas(QLabel):
         self.colorList = colorList
         self.degree = degree
 
-    def paint_self(self, image):
-        self.pixmap(image)
+    def paint(self, image):
+        self.setPixmap(image)
         self.update()

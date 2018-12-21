@@ -128,15 +128,17 @@ class MainWindow(QWidget):
     def keyPressEvent(self, e):
         # TODO: make this a dictonary
         if e.key() == Qt.Key_Escape:
-            if self.engine.thread.isRunning():
+            if self.engine.thread.isRunning() or self.engine.thread2.isRunning():
                 self.changeKwarg('EQUILIBRATE', False)
                 self.changeKwarg('CLEAR', False)
                 self.changeKwarg('RUN', False)
                 self.engine.thread.requestInterruption()
+                self.engine.thread2.requestInterruption()
                 print('Attempting to interrupt!')
                 # TODO: add a 'interrupted by user' popup (after a 'interrupting!'?)
             else:
                 self.engine.thread.deleteLater()
+                self.engine.thread2.deleteLater()
                 QCoreApplication.instance().quit()
                 print('Threads shutting down and powering off')
                 # TODO: add a 'are you sure?' popup

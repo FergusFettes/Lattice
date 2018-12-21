@@ -16,12 +16,6 @@ def initVars():
     colHex5 = int('0xffffffff', 16)
     colHex6 = int('0xffffffff', 16)
     DEF = {
-        'BACKCOLOR1':   QColor.fromRgba(colHex1).rgba(),    # These are just random rn
-        'BACKCOLOR2':   QColor.fromRgba(colHex2).rgba(),
-        'UPDATECOLOR1': QColor.fromRgba(colHex3).rgba(),    # To make fancy transitions,
-        'UPDATECOLOR2': QColor.fromRgba(colHex4).rgba(),    # change these.
-        'MOUSECOLOR1':  QColor.fromRgba(colHex5).rgba(),    # Not used rn. But soon?
-        'MOUSECOLOR2':  QColor.fromRgba(colHex6).rgba(),
         'COLORLIST':    [colHex1, colHex2, colHex3, colHex4, colHex5, colHex6],
         'SATURATION':   80,     # This leaves changes on the image shortly
         'N':            350,    # Array dimensions

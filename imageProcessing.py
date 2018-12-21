@@ -38,9 +38,9 @@ class ImageCreator(QObject):
         self.CHANGE = np.zeros([0, 3], bool)
         self.image = QImage(shape, shape, QImage.Format_ARGB32)
         self.export_array(self.ARRAY)
-        nupix = QPixmap()
-        nupix.convertFromImage(self.image)
-        self.imageSig.emit(nupix)
+      # nupix = QPixmap()
+      # nupix.convertFromImage(self.image)
+      # self.imageSig.emit(nupix)
 
     def wolframgen(self, line):
         n = int(self.shape / 3)
@@ -134,8 +134,7 @@ class Canvas(QLabel):
     canvasfpsSig = pyqtSignal(float)
 
     def initialize(self, **kwargs):
-        self.primaryColor = QColor(kwargs['BACKCOLOR1'])
-        self.secondaryColor = QColor(kwargs['BACKCOLOR2'])
+        self.primaryColor = QColor(kwargs['COLORLIST'][0])
         self.colorList = []
         self.degree = 2
         self.n = kwargs['N']

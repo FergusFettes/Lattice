@@ -25,24 +25,25 @@ class ImageCreator(QObject):
         self.fpsRoll = np.zeros(5, float)
 
         self.shape = kwargs['N']
-        self.resize_array([kwargs['N'], kwargs['N']])
+        self.resize_array(kwargs['N'])
 
     def addColors(self, colorList, degree):
         self.colorList = colorList
         self.degree = degree
 
     def resize_array(self, shape):
-        self.ARRAY = np.zeros(shape, bool)
-        self.ARRAYOLD = np.zeros(shape, bool)
+        self.ARRAY = np.zeros([shape, shape], bool)
+        self.ARRAYOLD = np.zeros([shape, shape], bool)
         self.LIVING = np.zeros([0, 2], bool)
         self.CHANGE = np.zeros([0, 3], bool)
-        self.image = QImage(shape[0], shape[1], QImage.Format_ARGB32)
+        self.image = QImage(shape, shape, QImage.Format_ARGB32)
+        self.export_array(self.ARRAY)
         nupix = QPixmap()
         nupix.convertFromImage(self.image)
         self.imageSig.emit(nupix)
 
     def wolframgen(self, line):
-        n = self.shape
+        n = int(self.shape / 3)
         rule = str(bin(30))[2:]
         while len(rule) < 8:
             rule = '0' + rule
@@ -53,22 +54,23 @@ class ImageCreator(QObject):
             yield line
 
     def wolfram_paint(self):
-        im = self.image
-        line = np.random.randint(0, 2, (self.shape))
+        shape = int(self.shape / 3)
+        im = QImage(shape, shape, QImage.Format_ARGB32)
+        line = np.random.randint(0, 2, (shape))
       # line = np.zeros(self.n, int)
       # line[int(self.n / 2)] = 1
         linegen = self.wolframgen(line)
-        for idx, lin in enumerate(range(self.shape)):
+        for idx, lin in enumerate(range(shape)):
             line = next(linegen)
             for idy, pix in enumerate(line):
-                im.setPixel(idx % self.shape, idy, self.colorList[pix])
-            if idx == self.shape:
+                im.setPixel(idx % shape, idy, self.colorList[pix + 2])      #pix+2 means background colors
+            if idx == shape:
                 break
         ims = im.scaled(QSize(self.shape * self.scale, self.shape * self.scale))
         nupix = QPixmap()
         nupix.convertFromImage(ims)
         self.imageSig.emit(nupix)
-        self.image = im
+        self.image = im.scaled(QSize(self.shape, self.shape))
 
     def process(self):
         #this sure is living

@@ -78,8 +78,10 @@ class MainWindow(QWidget):
         if dlg.exec():
             callback(dlg.selectedColor().name(), *args)
 
-    def set_color(self, hexx, button, Num):
-        self.colorList[Num] = QColor(hexx).rgba()
+    def set_color(self, hexx, button, num):
+        templist = self.kwargs['COLORLIST']
+        templist[num] = QColor(hexx).rgba()
+        self.changeKwarg('COLORLIST', templist)
         button.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
 
     def conway_mangler(self):
@@ -149,6 +151,12 @@ class MainWindow(QWidget):
             self.speedCtrl.triggerAction(QSlider.SliderPageStepAdd)
         elif e.key() == Qt.Key_X:
             self.speedCtrl.triggerAction(QSlider.SliderPageStepSub)
+        elif e.key() == Qt.Key_B:
+            self.background.click()
+        elif e.key() == Qt.Key_L:
+            self.equilibrate.click()
+        elif e.key() == Qt.Key_Z:
+            self.short.click()
         elif e.key() == Qt.Key_D:
             self.tempCtrl.triggerAction(QSlider.SliderPageStepAdd)
         elif e.key() == Qt.Key_A:
@@ -338,40 +346,34 @@ class MainWindow(QWidget):
         # TODO: rework the whole color organisation throughout.
         self.primaryButton = QPushButton()
         self.primaryButton.setStyleSheet('QPushButton { background-color: %s; }' %
-                                         QColor(DEFAULTS['BACKCOLOR1']).name())
+                                         QColor(self.kwargs['COLORLIST'][0]).name())
         self.primaryButton.pressed.connect(
             partial(self.choose_color, self.set_color, self.primaryButton, 0))
         self.secondaryButton = QPushButton()
         self.secondaryButton.setStyleSheet('QPushButton { background-color: %s; }' %
-                                           QColor(DEFAULTS['BACKCOLOR2']).name())
+                                           QColor(self.kwargs['COLORLIST'][1]).name())
         self.secondaryButton.pressed.connect(
             partial(self.choose_color, self.set_color, self.secondaryButton, 1))
         self.updateButton = QPushButton()
         self.updateButton.setStyleSheet('QPushButton { background-color: %s; }' %
-                                         QColor(DEFAULTS['UPDATECOLOR1']).name())
+                                         QColor(self.kwargs['COLORLIST'][2]).name())
         self.updateButton.pressed.connect(
             partial(self.choose_color, self.set_color, self.updateButton, 0))
         self.update2Button = QPushButton()
         self.update2Button.setStyleSheet('QPushButton { background-color: %s; }' %
-                                         QColor(DEFAULTS['UPDATECOLOR2']).name())
+                                         QColor(self.kwargs['COLORLIST'][3]).name())
         self.update2Button.pressed.connect(
             partial(self.choose_color, self.set_color, self.update2Button, 0))
         self.mouseButton = QPushButton()
         self.mouseButton.setStyleSheet('QPushButton { background-color: %s; }' %
-                                         QColor(DEFAULTS['MOUSECOLOR1']).name())
+                                         QColor(self.kwargs['COLORLIST'][4]).name())
         self.mouseButton.pressed.connect(
             partial(self.choose_color, self.set_color, self.mouseButton, 0))
         self.mouse2Button = QPushButton()
         self.mouse2Button.setStyleSheet('QPushButton { background-color: %s; }' %
-                                         QColor(DEFAULTS['MOUSECOLOR2']).name())
+                                         QColor(self.kwargs['COLORLIST'][5]).name())
         self.mouse2Button.pressed.connect(
             partial(self.choose_color, self.set_color, self.mouse2Button, 0))
-      # self.colorList.append(QColor(DEFAULTS['BACKCOLOR1']).rgba())
-      # self.colorList.append(QColor(DEFAULTS['BACKCOLOR2']).rgba())
-      # self.colorList.append(QColor(DEFAULTS['UPDATECOLOR1']).rgba())
-      # self.colorList.append(QColor(DEFAULTS['UPDATECOLOR2']).rgba())
-      # self.colorList.append(QColor(DEFAULTS['MOUSECOLOR1']).rgba())
-      # self.colorList.append(QColor(DEFAULTS['MOUSECOLOR2']).rgba())
         self.gr = QGridLayout()
         self.gr.addWidget(self.primaryButton, 0, 0)
         self.gr.addWidget(self.secondaryButton, 1, 0)

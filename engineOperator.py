@@ -22,6 +22,7 @@ class EngineOperator(QObject):
     settingsSig = pyqtSignal(dict)
     interruptSig = pyqtSignal()
     backgroundSig = pyqtSignal()
+    plainSig = pyqtSignal(int)
 
     def __init__(self, canvas, frameLabel, arrayfpsLabel, canvasfpsLabel, **kwargs):
     # The kwargs consists of the following: speed, updates, frames, beta,
@@ -87,12 +88,17 @@ class EngineOperator(QObject):
         self.update_kwargs(EQUILIBRATE=False)
 
     def clear_background(self):
+        self.thread.requestInterruption()
+        self.update_kwargs(RUN=False)
         self.backgroundSig.emit()
+        self.thread2.start()
 
     def clear_array(self):
         self.thread.requestInterruption()
         self.update_kwargs(RUN=False, CLEAR=True)
         self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
+        self.plainSig.emit(self.kwargs['N'])
+        self.thread2.start()
         self.thread.start()
         self.update_kwargs(CLEAR=False)
 
@@ -136,6 +142,7 @@ class EngineOperator(QObject):
         self.settingsSig.connect(self.taskman.change_settings)
         self.interruptSig.connect(self.breaker)
         self.backgroundSig.connect(self.image.wolfram_paint)
+        self.plainSig.connect(self.image.resize_array)
 
         # Connect up the signals between the workers
         self.taskman.isingSig.connect(self.handler.ising_process)

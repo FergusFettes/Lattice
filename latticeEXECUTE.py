@@ -58,6 +58,7 @@ def initVars():
         lin = [el.split(':') for el in li]
         DEF = {i[0]:eval(i[1]) for i in lin[:-1]}
         DEF['INTERRUPT'] = False
+        DEF['COLORLIST'] = [colHex1, colHex2, colHex3, colHex4, colHex5, colHex6]
         return DEF
 
 if __name__ == '__main__':

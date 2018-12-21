@@ -1,15 +1,80 @@
 from PyQt5.QtGui import *
+
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from functools import partial
 
 import numpy as np
-import random as ra
 import time
 
-# TODO: write and interrupt handler, so you don't need to have those stupid
-# 'frames' anymore, and you can just quit a run. This is probably the best
-# place to do it?
+class ImageCreator(QObject):
+    imageSig = pyqtSignal(QPixmap)
+    breakSig = pyqtSignal()
+
+    def __init__(self, array):
+        QObject.__init__(self)
+
+        self.ARRAY = array
+        self.ARRAYOLD = array
+        self.LIVING = np.zeros([0, 2], bool)
+        self.CHANGE = np.zeros([0, 3], bool)
+
+    def resize_array(self, array):
+        self.ARRAY = array
+        self.ARRAYOLD = array
+        self.imageSig.emit(array)
+
+    def process(self, array):
+        now = time.time()
+        self.ARRAY = array
+        self.update_change()
+        self.export_list(self.CHANGE)
+        self.ARRAYOLD = self.ARRAY
+        self.canvasfpsSig.emit(time.time()-now)
+
+    def update_living(self):
+        self.LIVING = np.argwhere(self.ARRAY)
+
+    def update_change(self):
+        common = np.bitwise_and(self.ARRAY, self.ARRAYOLD)
+        onlyOld = np.bitwise_xor(common, self.ARRAYOLD)
+        onlyNew = np.bitwise_xor(common, self.ARRAY)
+        births = np.argwhere(onlyNew)
+        deaths = np.argwhere(onlyOld)
+        b = np.concatenate((births, np.ones([births.shape[0], 1], int)), axis=1)
+        d = np.concatenate((deaths, np.zeros([deaths.shape[0], 1], int)), axis=1)
+        self.CHANGE = np.concatenate((b, d))
+        if not self.CHANGE.size:
+            self.breakSig.emit()
+
+    # Updates image with values from entire array. SLOW
+    def export_array(self, A):
+        im = QImage(self.n, self.n, QImage.Format_ARGB32)
+        for i in range(self.n):
+            for j in range(self.n):
+                num = int(A[i][j])
+                color = self.colorList[num]
+                im.setPixel(i, j, color)
+
+        ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))
+        nupix = QPixmap()
+        nupix.convertFromImage(ims)
+        self.imageSig.emit(nupix)
+
+    # Updates image only where the pixels have changed. FASTER
+    def export_list(self, L, living):
+        im = self.pixmap().toImage().scaled((QSize(self.n, self.n)))
+        if living:
+            [im.setPixel(el[0], el[1], self.colorList[1]) for el in L]
+        else:
+            [im.setPixel(el[0], el[1], self.colorList[el[2]]) for el in L]
+
+        ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))
+        nupix = QPixmap()
+        nupix.convertFromImage(ims)
+        self.imageSig.emit(nupix)
+
+
 class Canvas(QLabel):
     canvasfpsSig = pyqtSignal(float)
 
@@ -21,51 +86,15 @@ class Canvas(QLabel):
         self.n = kwargs['N']
         self.scale = kwargs['SCALE']
         self.reset()
-        self.array = np.random.random([self.n, self.n]) > 0.5
 
     def reset(self):
         self.setPixmap(QPixmap(self.n * self.scale, self.n * self.scale))
-
         self.pixmap().fill(self.primaryColor)
 
     def addColors(self, colorList, degree):
         self.colorList = colorList
         self.degree = degree
 
-    # Updates image with values from entire array. SLOW
-    def export_array(self, A):
-        now = time.time()
-        im = QImage(self.n, self.n, QImage.Format_ARGB32)
-        for i in range(self.n):
-            for j in range(self.n):
-                num = int(A[i][j])
-                color = self.colorList[num]
-                im.setPixel(i, j, color)
-
-        ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))
-        nupix = QPixmap()
-        nupix.convertFromImage(ims)
-        self.setPixmap(nupix)
-        self.repaint()
-        self.canvasfpsSig.emit(time.time()-now)
-
-
-    # Updates image only where the pixels have changed. FASTER
-    def export_list(self, L, living):
-        now = time.time()
-        im = self.pixmap().toImage().scaled((QSize(self.n, self.n)))
-        if living:
-            for el in L:
-                im.setPixel(el[0], el[1], self.colorList[1])
-           #map((lambda x: im.setPixel(x[0], x[1], self.colorList[1])), L)
-        else:
-            for el in L:
-                im.setPixel(el[0], el[1], self.colorList[el[2]])
-           #map((lambda x: im.setPixel(x[0], x[1], self.colorList[x[2]])), L)
-
-        ims = im.scaled(QSize(self.n * self.scale, self.n * self.scale))
-        nupix = QPixmap()
-        nupix.convertFromImage(ims)
-        self.setPixmap(nupix)
-        self.repaint()
-        self.canvasfpsSig.emit(time.time()-now)
+    def paint_self(self, image):
+        self.pixmap(image)
+        self.update()

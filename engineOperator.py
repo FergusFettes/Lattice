@@ -115,34 +115,40 @@ class EngineOperator(QObject):
 #=================Thread Initiator============#
     def taskman_init(self):
         self.thread = QThread()
+        self.thread2 = QThread()
         self.handler = Handler(self.array)
         self.taskman = RunController(self.array, **self.kwargs)
+        self.image = ImageCreator(self.array, **self.kwargs)
         self.taskman.moveToThread(self.thread)
+        self.handler.moveToThread(self.thread)
+        self.image.moveToThread(self.thread2)
+
         self.thread.started.connect(self.taskman.process)
-        self.taskman.error.connect(self.error_string)
         self.taskman.finished.connect(self.thread.quit)
       # self.taskman.finished.connect(self.clear_temp_kwargs)
         self.thread.finished.connect(self.thread_looper)
-        self.taskman.frameSig.connect(self.frame_value_update)
-        self.taskman.arrayfpsSig.connect(self.array_fps_update)
         self.taskman.isingSig.connect(self.handler.ising_process)
         self.taskman.noiseSig.connect(self.handler.noise_process)
         self.taskman.conwaySig.connect(self.handler.conway_process)
         self.taskman.handlerSig.connect(self.handler.process)
 
-        self.image = ImageCreator(self.array, **self.kwargs)
-        self.thread2 = QThread()
-        self.image.moveToThread(self.thread2)
         self.thread2.started.connect(self.image.process)
-        self.image.error.connect(self.error_string)
-        self.image.finished.connect(self.thread2.quit)       # what happens if you remove this?
+#       self.image.finished.connect(self.thread2.quit)       # what happens if you remove this?
         self.handler.startSig.connect(self.thread2.start)
         self.image.imageSig.connect(self.canvas.paint)
         self.image.breakSig.connect(self.breaker)
-        self.image.canvasfpsSig.connect(self.canvas_fps_update)
         self.handler.arraySig.connect(self.image.process_array)
 
         self.settingsSig.connect(self.taskman.change_settings)
         self.interruptSig.connect(self.breaker)
+
+
+
+        self.taskman.frameSig.connect(self.frame_value_update)
+        self.taskman.arrayfpsSig.connect(self.array_fps_update)
+        self.image.canvasfpsSig.connect(self.canvas_fps_update)
+
+        self.taskman.error.connect(self.error_string)
+        self.image.error.connect(self.error_string)
 
         self.thread.start()

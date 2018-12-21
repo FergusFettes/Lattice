@@ -4,7 +4,7 @@ from PyQt5.QtCore import *
 from functools import partial
 
 from engineOperator import *
-from latticeCanvas import Canvas
+from imageProcessing import *
 
 import random as ra
 import re
@@ -358,14 +358,12 @@ class MainWindow(QWidget):
                                          QColor(DEFAULTS['MOUSECOLOR2']).name())
         self.mouse2Button.pressed.connect(
             partial(self.choose_color, self.set_color, self.mouse2Button, 0))
-        self.colorList = []
-        self.canvas.addColors(self.colorList, 2)
-        self.colorList.append(QColor(DEFAULTS['BACKCOLOR1']).rgba())
-        self.colorList.append(QColor(DEFAULTS['BACKCOLOR2']).rgba())
-        self.colorList.append(QColor(DEFAULTS['UPDATECOLOR1']).rgba())
-        self.colorList.append(QColor(DEFAULTS['UPDATECOLOR2']).rgba())
-        self.colorList.append(QColor(DEFAULTS['MOUSECOLOR1']).rgba())
-        self.colorList.append(QColor(DEFAULTS['MOUSECOLOR2']).rgba())
+      # self.colorList.append(QColor(DEFAULTS['BACKCOLOR1']).rgba())
+      # self.colorList.append(QColor(DEFAULTS['BACKCOLOR2']).rgba())
+      # self.colorList.append(QColor(DEFAULTS['UPDATECOLOR1']).rgba())
+      # self.colorList.append(QColor(DEFAULTS['UPDATECOLOR2']).rgba())
+      # self.colorList.append(QColor(DEFAULTS['MOUSECOLOR1']).rgba())
+      # self.colorList.append(QColor(DEFAULTS['MOUSECOLOR2']).rgba())
         self.gr = QGridLayout()
         self.gr.addWidget(self.primaryButton, 0, 0)
         self.gr.addWidget(self.secondaryButton, 1, 0)

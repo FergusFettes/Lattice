@@ -4,6 +4,7 @@ from PyQt5.QtCore import *
 from functools import partial
 
 from updaters import *
+from imageProcessing import *
 
 import numpy as np
 import time

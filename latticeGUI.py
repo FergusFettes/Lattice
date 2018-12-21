@@ -82,6 +82,7 @@ class MainWindow(QWidget):
         templist = self.kwargs['COLORLIST']
         templist[num] = QColor(hexx).rgba()
         self.changeKwarg('COLORLIST', templist)
+        self.engine.image.addColors(templist, self.kwarg['DEGREE'])
         button.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
 
     def conway_mangler(self):

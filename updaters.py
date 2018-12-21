@@ -46,7 +46,11 @@ class Handler(QObject):
         cost = np.zeros(3, float)
         cost[1] = np.exp(-4 * beta)
         cost[2] = cost[1] ** 2
-        A = Handler.ARRAY
+        A = np.copy(Handler.ARRAY)
+        # Really want to underant object permanence better, here is a case-study--
+        # this breaks without np.copy. Maybe werite all the array engines in Cython so
+        # its all a little more clear.
+       #A = Handler.ARRAY
         N = A.shape[0]
         for _ in range(updates):
             a = np.random.randint(N)
@@ -79,7 +83,8 @@ class Handler(QObject):
         rule4 = np.bitwise_and(~A, NB >= rule[2])
         rule5 = np.bitwise_and(rule4, NB <= rule[3])
         #should just be the live cells
-        Handler.ARRAY = rule2 + rule4 + rule5
+        Handler.ARRAY = rule2 + rule5
+        # Rule 4 was being added in here for ages! Produces mad shapes!
 
 
 ##===============TaskManager===============##

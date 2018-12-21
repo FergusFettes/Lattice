@@ -48,17 +48,17 @@ class ImageCreator(QObject):
         while len(rule) < 8:
             rule = '0' + rule
         while True:
-            nb = [int(str(line[(i-1) % n]) + str(line[i]) + str(line[(i + 1) % n]),\
+            nb = [int(str(line[(i - 1) % n]) + str(line[i]) + str(line[(i + 1) % n]),\
                     2) for i in range(n)]
-            line = [int(rule[-i]) for i in nb]
+            line = [int(rule[-i - 1]) for i in nb]
             yield line
 
     def wolfram_paint(self):
         shape = int(self.shape / 3)
         im = QImage(shape, shape, QImage.Format_ARGB32)
-        line = np.random.randint(0, 2, (shape))
-      # line = np.zeros(self.n, int)
-      # line[int(self.n / 2)] = 1
+      # line = np.random.randint(0, 2, (shape))
+        line = np.zeros(shape, int)
+        line[int(shape / 2)] = 1
         linegen = self.wolframgen(line)
         for idx, lin in enumerate(range(shape)):
             line = next(linegen)

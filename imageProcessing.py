@@ -27,6 +27,10 @@ class ImageCreator(QObject):
         self.shape = kwargs['N']
         self.resize_array(kwargs['N'])
 
+        line = np.random.randint(0, 2, (self.shape))
+        self.wolf = self.wolframgen(line)
+        self.current = 0
+
     def addColors(self, colorList, degree):
         self.colorList = colorList
         self.degree = degree
@@ -42,8 +46,19 @@ class ImageCreator(QObject):
       # nupix.convertFromImage(self.image)
       # self.imageSig.emit(nupix)
 
+    def wolfram_scroll(self):
+        n = self.shape
+        rule = str(bin(110))[2:]
+        while len(rule) < 8:
+            rule = '0' + rule
+        line = next(self.wolf)
+        [self.image.setPixel(self.current, i, self.colorList[pix+2]) for i, pix\
+            in enumerate(line)]
+        self.current += 1
+        self.current %= n
+
     def wolframgen(self, line):
-        n = int(self.shape / 3)
+        n = int(self.shape)
         rule = str(bin(30))[2:]
         while len(rule) < 8:
             rule = '0' + rule
@@ -54,7 +69,7 @@ class ImageCreator(QObject):
             yield line
 
     def wolfram_paint(self):
-        shape = int(self.shape / 3)
+        shape = int(self.shape)
         im = QImage(shape, shape, QImage.Format_ARGB32)
       # line = np.random.randint(0, 2, (shape))
         line = np.zeros(shape, int)
@@ -66,11 +81,14 @@ class ImageCreator(QObject):
                 im.setPixel(idx % shape, idy, self.colorList[pix + 2])      #pix+2 means background colors
             if idx == shape:
                 break
-        ims = im.scaled(QSize(self.shape * self.scale, self.shape * self.scale))
+        self.send_image(im)
+
+    def send_image(self, image):
+        ims = image.scaled(QSize(self.shape * self.scale, self.shape * self.scale))
         nupix = QPixmap()
         nupix.convertFromImage(ims)
         self.imageSig.emit(nupix)
-        self.image = im.scaled(QSize(self.shape, self.shape))
+        self.image = image.scaled(QSize(self.shape, self.shape))
 
     def process(self):
         #this sure is living
@@ -81,11 +99,13 @@ class ImageCreator(QObject):
         self.ARRAY = array
         self.update_change()
         self.export_list(self.CHANGE)
+        self.wolfram_scroll()
         self.ARRAYOLD = self.ARRAY
         self.fpsRoll[0] = time.time()-now
         self.fpsRoll = np.roll(self.fpsRoll, 1)
         self.canvasfpsSig.emit(np.mean(self.fpsRoll))
         self.finished.emit()
+        self.send_image(self.image)
 
     def update_living(self):
         self.LIVING = np.argwhere(self.ARRAY)
@@ -111,22 +131,10 @@ class ImageCreator(QObject):
                 color = self.colorList[num]
                 im.setPixel(i, j, color)
 
-        ims = im.scaled(QSize(A.shape[0] * self.scale, A.shape[1] * self.scale))
-        nupix = QPixmap()
-        nupix.convertFromImage(ims)
-        self.imageSig.emit(nupix)
-        self.image = im
-
     # Updates image only where the pixels have changed. FASTER
     def export_list(self, L):
         im = self.image
         [im.setPixel(el[0], el[1], self.colorList[el[2]]) for el in L]
-
-        ims = im.scaled(QSize(self.shape * self.scale, self.shape * self.scale))
-        nupix = QPixmap()
-        nupix.convertFromImage(ims)
-        self.imageSig.emit(nupix)
-        self.image = im
 
 #====================The canvas=================#
 # It isnt so exciting since I moved everything to the processor

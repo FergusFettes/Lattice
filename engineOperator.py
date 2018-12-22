@@ -90,6 +90,7 @@ class EngineOperator(QObject):
     def clear_background(self):
         self.thread.requestInterruption()
         self.update_kwargs(RUN=False)
+        self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
         self.backgroundSig.emit()
         self.thread2.start()
 
@@ -140,6 +141,7 @@ class EngineOperator(QObject):
 
         # Connections from the engine to the workers
         self.settingsSig.connect(self.taskman.change_settings)
+        self.settingsSig.connect(self.image.change_settings)
         self.interruptSig.connect(self.breaker)
         self.backgroundSig.connect(self.image.wolfram_paint)
         self.plainSig.connect(self.image.resize_array)

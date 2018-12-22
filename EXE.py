@@ -4,7 +4,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
-from latticeGUI import MainWindow
+from GUI import MainWindow
 import random as ra
 
 
@@ -40,6 +40,9 @@ def initVars():
                          [3,4,3,3],\
                          [3,4,2,2]],
         'INTERRUPT':    False,  # Used to interrupt a run
+        'WOLFRULE':     30,
+        'WOLFWAVE':     True,
+        'WOLFSCALE':    2,
     }
     try:
         with open('save.txt', 'r') as file:

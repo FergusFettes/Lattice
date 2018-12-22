@@ -82,7 +82,6 @@ class MainWindow(QWidget):
         templist = self.kwargs['COLORLIST']
         templist[num] = QColor(hexx).rgba()
         self.changeKwarg('COLORLIST', templist)
-        self.engine.image.addColors(templist, self.kwargs['DEGREE'])
         button.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
 
     def conway_mangler(self):
@@ -226,7 +225,7 @@ class MainWindow(QWidget):
         self.thresholdCtrl.setMinimum(0)
         self.thresholdCtrl.setMaximum(99)
         self.thresholdCtrl.setPageStep(4)
-        self.thresholdCtrl.setValue(self.kwargs['THRESHOLD'] + 1)
+        self.thresholdCtrl.setValue(26)
         self.thresholdCtrl.valueChanged.connect(self.coverageChange)
         self.thresholdLabel= QLabel()
         self.thresholdLabel.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -257,15 +256,28 @@ class MainWindow(QWidget):
         self.conwayRules.textChanged.connect(self.rulesChange)
 
         # Rules controller for cellular automata
-        self.automataLabel = QLabel('Automata Rules: 0101010')
-        self.automataString = QLineEdit()
-        self.textHolder.addWidget(self.automataLabel)
-        self.textHolder.addWidget(self.automataString)
-        self.automataPalette = self.automataString.palette()
-        self.automataPalette.setColor(QPalette.Base, Qt.red)
-        self.automataString.setPalette(self.automataPalette)
-       #self.automataString.textChanged.connect(self.automataStringChange)
-        # TODO write the function for this baby
+        self.automataLabel = QLabel('Rule')
+        self.wolfRule = QSpinBox()
+        self.wolfRule.setRange(0, 255)
+        self.wolfRule.setSingleStep(1)
+        self.wolfRule.setValue(self.kwargs['WOLFRULE'])
+        self.wolfRule.setMaximumSize(100, 40)
+        self.wolfRule.valueChanged.connect(partial(self.Kwarger, 'WOLFRULE', self.wolfRule.value))
+        self.wolfCheck = QCheckBox('WolfWaveTM')
+        self.wolfCheck.setChecked(self.kwargs['WOLFWAVE'])
+        self.wolfCheck.stateChanged.connect(partial(self.Kwarger, 'WOLFCHECK', self.wolfCheck.isChecked))
+        self.wolfScale = QSpinBox()
+        self.wolfScale.setRange(0, 30)
+        self.wolfScale.setSingleStep(1)
+        self.wolfScale.setValue(self.kwargs['WOLFSCALE'])
+        self.wolfScale.setMaximumSize(100, 40)
+        self.wolfScale.valueChanged.connect(partial(self.Kwarger, 'WOLFSCALE', self.wolfScale.value))
+        hbWolf = QHBoxLayout()
+        hbWolf.addWidget(self.automataLabel)
+        hbWolf.addWidget(self.wolfRule)
+        hbWolf.addWidget(self.wolfCheck)
+        hbWolf.addWidget(self.wolfScale)
+        self.textHolder.addLayout(hbWolf)
 
         # Default value changer
         NLab = QLabel('N= ')
@@ -359,22 +371,22 @@ class MainWindow(QWidget):
         self.updateButton.setStyleSheet('QPushButton { background-color: %s; }' %
                                          QColor(self.kwargs['COLORLIST'][2]).name())
         self.updateButton.pressed.connect(
-            partial(self.choose_color, self.set_color, self.updateButton, 0))
+            partial(self.choose_color, self.set_color, self.updateButton, 2))
         self.update2Button = QPushButton()
         self.update2Button.setStyleSheet('QPushButton { background-color: %s; }' %
                                          QColor(self.kwargs['COLORLIST'][3]).name())
         self.update2Button.pressed.connect(
-            partial(self.choose_color, self.set_color, self.update2Button, 0))
+            partial(self.choose_color, self.set_color, self.update2Button, 3))
         self.mouseButton = QPushButton()
         self.mouseButton.setStyleSheet('QPushButton { background-color: %s; }' %
                                          QColor(self.kwargs['COLORLIST'][4]).name())
         self.mouseButton.pressed.connect(
-            partial(self.choose_color, self.set_color, self.mouseButton, 0))
+            partial(self.choose_color, self.set_color, self.mouseButton, 4))
         self.mouse2Button = QPushButton()
         self.mouse2Button.setStyleSheet('QPushButton { background-color: %s; }' %
                                          QColor(self.kwargs['COLORLIST'][5]).name())
         self.mouse2Button.pressed.connect(
-            partial(self.choose_color, self.set_color, self.mouse2Button, 0))
+            partial(self.choose_color, self.set_color, self.mouse2Button, 5))
         self.gr = QGridLayout()
         self.gr.addWidget(self.primaryButton, 0, 0)
         self.gr.addWidget(self.secondaryButton, 1, 0)
@@ -429,11 +441,11 @@ class MainWindow(QWidget):
         self.speedLabel.setText('Speed = ' + str(self.kwargs['SPEED']) + '%')
         self.frameLabel.setText('0000/ ')
         self.frameCtrl = QSpinBox()
-        self.frameCtrl.setValue(self.kwargs['IMAGEUPDATES'])
-        self.frameCtrl.valueChanged.connect(self.frameChange)
         self.frameCtrl.setRange(10, 2000)
         self.frameCtrl.setSingleStep(10)
         self.frameCtrl.setMaximumSize(100, 20)
+        self.frameCtrl.setValue(self.kwargs['IMAGEUPDATES'])
+        self.frameCtrl.valueChanged.connect(self.frameChange)
 
         # 'right bottom box [LEFT/MID/RIGHT]' -- sorts out the sliders
         rbbL = QVBoxLayout()

@@ -23,6 +23,7 @@ class ImageCreator(QObject):
 
         self.scale = kwargs['SCALE']
         self.fpsRoll = np.zeros(5, float)
+        self.kwargs = kwargs
 
         self.shape = kwargs['N']
         self.resize_array(kwargs['N'])
@@ -31,10 +32,7 @@ class ImageCreator(QObject):
         self.wolf = self.wolframgen(line)
         self.current = 0
 
-    def addColors(self, colorList, degree):
-        self.colorList = colorList
-        self.degree = degree
-
+    # Resize/reset
     def resize_array(self, shape):
         self.ARRAY = np.zeros([shape, shape], bool)
         self.ARRAYOLD = np.zeros([shape, shape], bool)
@@ -46,20 +44,34 @@ class ImageCreator(QObject):
       # nupix.convertFromImage(self.image)
       # self.imageSig.emit(nupix)
 
+#==============Changes the internal settings================#
+# Should make the event queue feeding this baby LIFO
+    def change_settings(self, kwargs):
+        if not self.kwargs['WOLFRULE'] == kwargs['WOLFRULE']:
+            line = np.random.randint(0, 2, (self.shape))
+            self.wolf = self.wolframgen(line)
+        for i in kwargs:
+            self.kwargs[i] = kwargs[i]
+        self.addColors()
+
+    def addColors(self):
+        self.colorList = self.kwargs['COLORLIST']
+        self.degree = self.kwargs['DEGREE']
+
+#==============Wolfram-style Cellular Automata==============#
     def wolfram_scroll(self):
-        n = self.shape
-        rule = str(bin(110))[2:]
-        while len(rule) < 8:
-            rule = '0' + rule
+        n = int(self.shape / self.kwargs['WOLFSCALE'])
         line = next(self.wolf)
-        [self.image.setPixel(self.current, i, self.colorList[pix+2]) for i, pix\
-            in enumerate(line)]
-        self.current += 1
-        self.current %= n
+        [self.image.setPixel((self.current + j) % self.shape, i,\
+            self.colorList[line[int(i / self.kwargs['WOLFSCALE']) % n] + 2])
+                for i in range(self.shape) for j in range(self.kwargs['WOLFSCALE'])]
+        self.current += self.kwargs['WOLFSCALE']
+        self.current %= self.shape
 
     def wolframgen(self, line):
-        n = int(self.shape)
-        rule = str(bin(30))[2:]
+        n = int(self.shape / self.kwargs['WOLFSCALE'])
+      # n = self.shape
+        rule = str(bin(self.kwargs['WOLFRULE']))[2:]
         while len(rule) < 8:
             rule = '0' + rule
         while True:
@@ -83,6 +95,7 @@ class ImageCreator(QObject):
                 break
         self.send_image(im)
 
+#===============Array processing and Image export=============#
     def send_image(self, image):
         ims = image.scaled(QSize(self.shape * self.scale, self.shape * self.scale))
         nupix = QPixmap()
@@ -99,7 +112,8 @@ class ImageCreator(QObject):
         self.ARRAY = array
         self.update_change()
         self.export_list(self.CHANGE)
-        self.wolfram_scroll()
+        if self.kwargs['WOLFWAVE']:
+            self.wolfram_scroll()
         self.ARRAYOLD = self.ARRAY
         self.fpsRoll[0] = time.time()-now
         self.fpsRoll = np.roll(self.fpsRoll, 1)

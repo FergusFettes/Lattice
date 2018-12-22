@@ -18,7 +18,8 @@ def initVars():
     DEF = {
         'COLORLIST':    [colHex1, colHex2, colHex3, colHex4, colHex5, colHex6],
         'SATURATION':   80,     # This leaves changes on the image shortly
-        'N':            350,    # Array dimensions
+        'N':            300,    # Array dimensions
+        'D':            300,    # Array dimensions
         'SCALE':        2,      # Image dim = N*SCALE x N*SCALE
         'BETA':         1 / 8,  # Critical temp for Ising
         'SPEED':        100,    # Throttle %

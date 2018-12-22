@@ -23,11 +23,11 @@ class Handler(QObject):
         """ Controls workers for the array updates,
             and processes the arrays returned. """
         QObject.__init__(self)
-        self.resize_array(kwargs['THRESHOLD'], kwargs['N'])
+        self.resize_array(kwargs['THRESHOLD'], kwargs['N'], kwargs['D'])
 
-    def resize_array(self, threshold, shape):
-        Handler.ARRAY = np.zeros([shape, shape], bool)
-        Handler.ARRAYOLD = np.zeros([shape, shape], bool)
+    def resize_array(self, threshold, height, width):
+        Handler.ARRAY = np.zeros([height, width], bool)
+        Handler.ARRAYOLD = np.zeros([height, width], bool)
         self.noise_process(threshold)
 
     def process(self):
@@ -52,13 +52,14 @@ class Handler(QObject):
         # its all a little more clear.
        #A = Handler.ARRAY
         N = A.shape[0]
+        D = A.shape[1]
         for _ in range(updates):
             a = np.random.randint(N)
-            b = np.random.randint(N)
+            b = np.random.randint(D)
             nb = np.sum([A[a][b] == A[(a + 1) % N][b],
                             A[a][b] == A[(a - 1) % N][b],
-                            A[a][b] == A[a][(b + 1) % N],
-                            A[a][b] == A[a][(b - 1) % N],
+                            A[a][b] == A[a][(b + 1) % D],
+                            A[a][b] == A[a][(b - 1) % D],
                             -2])
             if nb <= 0 or np.random.random() < cost[nb]:
                 A[a][b] = not A[a][b]
@@ -131,7 +132,7 @@ class RunController(QObject):
         self.error.emit('Process Starting!')
         self.mainTime.start()
         if self.st['CLEAR']:        # This is the clear/reset/resize function
-            self.clearSig.emit(self.st['THRESHOLD'], self.st['N'])
+            self.clearSig.emit(self.st['THRESHOLD'], self.st['N'], self.st['D'])
             self.error.emit('Cleared')
             self.finished.emit()
             return

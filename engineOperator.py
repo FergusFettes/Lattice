@@ -98,7 +98,7 @@ class EngineOperator(QObject):
         self.thread.requestInterruption()
         self.update_kwargs(RUN=False, CLEAR=True)
         self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-        self.plainSig.emit(self.kwargs['N'])
+        self.plainSig.emit(self.kwargs['N'], self.kwargs['D'])
         self.thread2.start()
         self.thread.start()
         self.update_kwargs(CLEAR=False)

@@ -25,20 +25,21 @@ class ImageCreator(QObject):
         self.fpsRoll = np.zeros(5, float)
         self.kwargs = kwargs
 
-        self.shape = kwargs['N']
-        self.resize_array(kwargs['N'])
+        self.N = kwargs['N']
+        self.D = kwargs['D']
+        self.resize_array(self.N, self.D)
 
-        line = np.random.randint(0, 2, (self.shape))
+        line = np.random.randint(0, 2, (self.N))
         self.wolf = self.wolframgen(line)
         self.current = 0
 
     # Resize/reset
-    def resize_array(self, shape):
-        self.ARRAY = np.zeros([shape, shape], bool)
-        self.ARRAYOLD = np.zeros([shape, shape], bool)
+    def resize_array(self, N, D):
+        self.ARRAY = np.zeros([N, D], bool)
+        self.ARRAYOLD = np.zeros([N, D], bool)
         self.LIVING = np.zeros([0, 2], bool)
         self.CHANGE = np.zeros([0, 3], bool)
-        self.image = QImage(shape, shape, QImage.Format_ARGB32)
+        self.image = QImage(N, D, QImage.Format_ARGB32)
         self.export_array(self.ARRAY)
       # nupix = QPixmap()
       # nupix.convertFromImage(self.image)
@@ -48,7 +49,7 @@ class ImageCreator(QObject):
 # Should make the event queue feeding this baby LIFO
     def change_settings(self, kwargs):
         if not self.kwargs['WOLFRULE'] == kwargs['WOLFRULE']:
-            line = np.random.randint(0, 2, (self.shape))
+            line = np.random.randint(0, 2, (self.N))
             self.wolf = self.wolframgen(line)
         for i in kwargs:
             self.kwargs[i] = kwargs[i]
@@ -60,16 +61,16 @@ class ImageCreator(QObject):
 
 #==============Wolfram-style Cellular Automata==============#
     def wolfram_scroll(self):
-        n = int(self.shape / self.kwargs['WOLFSCALE'])
+        n = int(self.N / self.kwargs['WOLFSCALE'])
         line = next(self.wolf)
-        [self.image.setPixel((self.current + j) % self.shape, i,\
+        [self.image.setPixel((self.current + j) % self.N, i,\
             self.colorList[line[int(i / self.kwargs['WOLFSCALE']) % n] + 2])
-                for i in range(self.shape) for j in range(self.kwargs['WOLFSCALE'])]
+                for i in range(self.D) for j in range(self.kwargs['WOLFSCALE'])]
         self.current += self.kwargs['WOLFSCALE']
-        self.current %= self.shape
+        self.current %= self.N
 
     def wolframgen(self, line):
-        n = int(self.shape / self.kwargs['WOLFSCALE'])
+        n = int(self.D / self.kwargs['WOLFSCALE'])
       # n = self.shape
         rule = str(bin(self.kwargs['WOLFRULE']))[2:]
         while len(rule) < 8:
@@ -81,27 +82,28 @@ class ImageCreator(QObject):
             yield line
 
     def wolfram_paint(self):
-        shape = int(self.shape)
-        im = QImage(shape, shape, QImage.Format_ARGB32)
+        N = int(self.D / self.kwargs['WOLFSCALE'])
+        D = int(self.N / self.kwargs['WOLFSCALE'])
+        im = QImage(D, N, QImage.Format_ARGB32)
       # line = np.random.randint(0, 2, (shape))
-        line = np.zeros(shape, int)
-        line[int(shape / 2)] = 1
+        line = np.zeros(D, int)
+        line[int(D / 2)] = 1
         linegen = self.wolframgen(line)
-        for idx, lin in enumerate(range(shape)):
+        for idx, lin in enumerate(range(N)):
             line = next(linegen)
             for idy, pix in enumerate(line):
-                im.setPixel(idx % shape, idy, self.colorList[pix + 2])      #pix+2 means background colors
-            if idx == shape:
+                im.setPixel(idx % N, idy, self.colorList[pix + 2])      #pix+2 means background colors
+            if idx == N:
                 break
         self.send_image(im)
 
 #===============Array processing and Image export=============#
     def send_image(self, image):
-        ims = image.scaled(QSize(self.shape * self.scale, self.shape * self.scale))
+        ims = image.scaled(QSize(self.N * self.scale, self.D * self.scale))
         nupix = QPixmap()
         nupix.convertFromImage(ims)
         self.imageSig.emit(nupix)
-        self.image = image.scaled(QSize(self.shape, self.shape))
+        self.image = image.scaled(QSize(self.N, self.D))
 
     def process(self):
         #this sure is living
@@ -159,12 +161,13 @@ class Canvas(QLabel):
         self.primaryColor = QColor(kwargs['COLORLIST'][0])
         self.colorList = []
         self.degree = 2
-        self.n = kwargs['N']
+        self.N = kwargs['N']
+        self.D = kwargs['D']
         self.scale = kwargs['SCALE']
         self.reset()
 
     def reset(self):
-        self.setPixmap(QPixmap(self.n * self.scale, self.n * self.scale))
+        self.setPixmap(QPixmap(self.N * self.scale, self.D * self.scale))
         self.pixmap().fill(self.primaryColor)
 
     def paint(self, image):

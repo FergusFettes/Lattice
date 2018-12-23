@@ -13,6 +13,7 @@ class ImageCreator(QObject):
     error = pyqtSignal(str)
     finished = pyqtSignal()
     canvasfpsSig = pyqtSignal(float)
+    waveSig = pyqtSignal(int)
 
     def __init__(self, **kwargs):
         QObject.__init__(self)
@@ -48,9 +49,8 @@ class ImageCreator(QObject):
 #==============Changes the internal settings================#
 # Should make the event queue feeding this baby LIFO
     def change_settings(self, kwargs):
-        if not self.kwargs['WOLFRULE'] == kwargs['WOLFRULE']:
-            line = np.random.randint(0, 2, (self.N))
-            self.wolf = self.wolframgen(line)
+        line = np.random.randint(0, 2, (self.N))
+        self.wolf = self.wolframgen(line)
         for i in kwargs:
             self.kwargs[i] = kwargs[i]
         self.addColors()
@@ -82,9 +82,9 @@ class ImageCreator(QObject):
             yield line
 
     def wolfram_paint(self):
-        N = int(self.D / self.kwargs['WOLFSCALE'])
-        D = int(self.N / self.kwargs['WOLFSCALE'])
-        im = QImage(D, N, QImage.Format_ARGB32)
+        D = int(self.D / self.kwargs['WOLFSCALE'])
+        N = int(self.N / self.kwargs['WOLFSCALE'])
+        im = QImage(N, D, QImage.Format_ARGB32)
       # line = np.random.randint(0, 2, (shape))
         line = np.zeros(D, int)
         line[int(D / 2)] = 1

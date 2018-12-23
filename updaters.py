@@ -18,6 +18,7 @@ class Handler(QObject):
     startSig = pyqtSignal()
     ARRAY = []      # Array, shared among workers
     ARRAYOLD = []      # Array, shared among workers
+    BOUNDARY = []
 
     def __init__(self, **kwargs):
         """ Controls workers for the array updates,
@@ -25,12 +26,27 @@ class Handler(QObject):
         QObject.__init__(self)
         self.resize_array(kwargs['THRESHOLD'], kwargs['N'], kwargs['D'])
 
+    def set_boundary(self, polarity):
+        Handler.ARRAY[1, ...] = polarity
+        Handler.ARRAY[-1, ...] = polarity
+        Handler.ARRAY[..., 1] = polarity
+        Handler.ARRAY[..., -1] = polarity
+
+    def clear_wavefront(self, start, end, polarity):
+    #   print(Handler.ARRAY*1)
+    #   print(start)
+    #   print(end)
+    #   print(polarity)
+        Handler.ARRAY[start:end, ...] = polarity
+    #   print(Handler.ARRAY*1)
+
     def resize_array(self, threshold, height, width):
         Handler.ARRAY = np.zeros([height, width], bool)
         Handler.ARRAYOLD = np.zeros([height, width], bool)
         self.noise_process(threshold)
 
     def process(self):
+      # self.dumpObjectInfo()
         self.arraySig.emit(Handler.ARRAY)
         self.startSig.emit()
         Handler.ARRAYOLD = np.copy(Handler.ARRAY)
@@ -103,8 +119,10 @@ class RunController(QObject):
     # float to int.
     noiseSig = pyqtSignal(float)
     conwaySig = pyqtSignal(list)
-    clearSig = pyqtSignal(float, int)   ### change this for N*D XXX
+    clearSig = pyqtSignal(float, int, int)
     arrayfpsSig = pyqtSignal(float)
+    boundSig = pyqtSignal(int)
+    waveSig = pyqtSignal(int, int, int)
     error = pyqtSignal(str)
 
     def __init__(self, **kwargs):
@@ -116,6 +134,7 @@ class RunController(QObject):
         # Maximum fps = 1000 / the following
         self.fpsTimer.setInterval(1)
         self.mainTime = QTimer(self)
+        self.wavecounter = 0
         # How often does a dynamic run break to look for new settings?
         self.mainTime.setInterval(99000)
 
@@ -178,9 +197,19 @@ class RunController(QObject):
 
 #==============='One' frame (actually two image updates occur)=========#
     def array_frame(self, updates, rule, beta):
+        if self.st['WOLFWAVE']:
+            start = self.wavecounter
+            self.wavecounter += self.st['STOCHASTIC'] * self.st['WOLFSCALE']
+            self.wavecounter += self.st['CONWAY'] * self.st['WOLFSCALE']
+            self.wavecounter %= self.st['N']
+            self.waveSig.emit(start, start + self.st['WOLFSCALE'], self.st['WOLFPOLARITY'])
         if self.st['STOCHASTIC']:
+            if self.st['BOUNDARY']:
+                self.boundSig.emit(self.st['POLARITY'])
             self.isingSig.emit(updates, beta)
             self.handlerSig.emit()
         if self.st['CONWAY']:
+            if self.st['BOUNDARY']:
+                self.boundSig.emit(self.st['POLARITY'])
             self.conwaySig.emit(rule)
             self.handlerSig.emit()

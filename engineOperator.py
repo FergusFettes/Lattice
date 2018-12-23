@@ -22,7 +22,7 @@ class EngineOperator(QObject):
     settingsSig = pyqtSignal(dict)
     interruptSig = pyqtSignal()
     backgroundSig = pyqtSignal()
-    plainSig = pyqtSignal(int)
+    plainSig = pyqtSignal(int, int)
 
     def __init__(self, canvas, frameLabel, arrayfpsLabel, canvasfpsLabel, **kwargs):
     # The kwargs consists of the following: speed, updates, frames, beta,
@@ -88,8 +88,6 @@ class EngineOperator(QObject):
         self.update_kwargs(EQUILIBRATE=False)
 
     def clear_background(self):
-        self.thread.requestInterruption()
-        self.update_kwargs(RUN=False)
         self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
         self.backgroundSig.emit()
         self.thread2.start()
@@ -153,6 +151,8 @@ class EngineOperator(QObject):
         self.taskman.handlerSig.connect(self.handler.process)
         self.taskman.clearSig.connect(self.handler.resize_array)
         self.handler.arraySig.connect(self.image.process_array)
+        self.taskman.boundSig.connect(self.handler.set_boundary)
+        self.taskman.waveSig.connect(self.handler.clear_wavefront)
 
         # Connections for closing threads WORK NECC HERE
         # Need to figure out exactly ho long a thread will stay waiting, what activates

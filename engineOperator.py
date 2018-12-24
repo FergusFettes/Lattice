@@ -5,6 +5,7 @@ from functools import partial
 
 from updaters import *
 from imageProcessing import *
+from taskman import *
 
 import numpy as np
 import time
@@ -42,9 +43,9 @@ class EngineOperator(QObject):
 #       print('Updating Threads')
 #       for i in kwargs:
 #           self.kwargs[i] = kwargs[i]
-#       if self.thread.isRunning():
+#       if self.taskthread.isRunning():
 #           print('Requesting Interrution')
-#           self.thread.requestInterruption()
+#           self.taskthread.requestInterruption()
 #       else:
 #           self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
 
@@ -58,10 +59,10 @@ class EngineOperator(QObject):
     def thread_looper(self):
 #       if self.kwargs['RUN'] is True and self.kwargs['RUNFRAMES'] < self.kwargs['IMAGEUPDATES']:
 #           self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-#           self.thread.start()
+#           self.taskthread.start()
 #       elif self.kwargs['CLEAR'] is True or self.kwargs['EQUILIBRATE'] is True:
 #           self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-#           self.thread.start()
+#           self.taskthread.start()
 #           self.simple_update(CLEAR=False, EQUILIBRATE=False)
 #       else:
 #           self.simple_update(RUN=False)
@@ -69,45 +70,45 @@ class EngineOperator(QObject):
 
 #===============Run Initiators=============#
     def static_run(self):
-        self.thread.requestInterruption()
+        self.taskthread.requestInterruption()
         self.update_kwargs(RUN=True, RUNFRAMES=(self.kwargs['IMAGEUPDATES']-1))
         self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-        self.thread.start()
+        self.taskthread.start()
 
     def dynamic_run(self):
-        self.thread.requestInterruption()
+        self.taskthread.requestInterruption()
         self.update_kwargs(RUN=True, RUNFRAMES=0)
         self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-        self.thread.start()
+        self.taskthread.start()
 
     def long_run(self):
-        self.thread.requestInterruption()
+        self.taskthread.requestInterruption()
         self.update_kwargs(RUN=False, EQUILIBRATE=True)
         self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-        self.thread.start()
+        self.taskthread.start()
         self.update_kwargs(EQUILIBRATE=False)
 
     def clear_background(self):
         self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
         self.backgroundSig.emit()
-        self.thread2.start()
+        self.imagethread.start()
 
     def clear_array(self):
-        self.thread.requestInterruption()
+        self.taskthread.requestInterruption()
         self.update_kwargs(RUN=False, CLEAR=True)
         self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
         self.plainSig.emit(self.kwargs['N'], self.kwargs['D'])
-        self.thread2.start()
-        self.thread.start()
+        self.imagethread.start()
+        self.taskthread.start()
         self.update_kwargs(CLEAR=False)
 
     def noise_array(self):
         pass
-        self.thread.start()
+        self.taskthread.start()
 
 #===============GUI updaters=============#
     def array_fps_update(self, value):
-        self.arrayfpsLabel.setText('Array fps: ' + str(1 / value))
+        self.arrayfpsLabel.setText('Array fps: ' + str(2 * (1 / value)))
 
     def canvas_fps_update(self, value):
         self.canvasfpsLabel.setText('Canvas fps: ' + str(1 / value))
@@ -124,18 +125,20 @@ class EngineOperator(QObject):
 #==================HERE BE DRAGONS============#
     def taskman_init(self):
         # Initialise the threads and the workers, and put them in place
-        self.thread = QThread()
-        self.thread2 = QThread()
+        self.taskthread = QThread()
+        self.imagethread = QThread()
+        self.updatethread = QThread()
         self.handler = Handler(**self.kwargs)
         self.taskman = RunController(**self.kwargs)
         self.image = ImageCreator(**self.kwargs)
-        self.taskman.moveToThread(self.thread)
-        self.handler.moveToThread(self.thread)
-        self.image.moveToThread(self.thread2)
+        self.taskman.moveToThread(self.taskthread)
+        self.handler.moveToThread(self.updatethread)
+        self.image.moveToThread(self.imagethread)
 
-        self.thread.started.connect(self.taskman.process)
-        self.thread2.started.connect(self.image.process)
-        self.handler.startSig.connect(self.thread2.start)
+        self.taskthread.started.connect(self.taskman.process)
+        self.taskthread.started.connect(self.updatethread.start)
+        self.imagethread.started.connect(self.image.process)
+        self.handler.startSig.connect(self.imagethread.start)
 
         # Connections from the engine to the workers
         self.settingsSig.connect(self.taskman.change_settings)
@@ -158,10 +161,11 @@ class EngineOperator(QObject):
         # Need to figure out exactly ho long a thread will stay waiting, what activates
         # it, how it proecesses signals it has recieved while it has been shutdown etc.
         # TODO
-        self.taskman.finished.connect(self.thread.quit)
-      # self.taskman.finished.connect(self.clear_temp_kwargs)
-        self.thread.finished.connect(self.thread_looper)
-#       self.image.finished.connect(self.thread2.quit)       # what happens if you remove this?
+        self.taskman.finished.connect(self.taskthread.quit)
+        self.taskman.finished.connect(self.updatethread.quit)
+#       self.taskman.finished.connect(self.clear_temp_kwargs)
+        self.taskthread.finished.connect(self.thread_looper)
+#       self.image.finished.connect(self.imagethread.quit)       # what happens if you remove this?
         self.image.breakSig.connect(self.breaker)
 
         # Signals from the workers back to the GUI
@@ -172,4 +176,4 @@ class EngineOperator(QObject):
         self.image.error.connect(self.error_string)
         self.image.imageSig.connect(self.canvas.paint)
 
-        self.thread.start()
+        self.taskthread.start()

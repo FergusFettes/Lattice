@@ -13,7 +13,6 @@ class ImageCreator(QObject):
     error = pyqtSignal(str)
     finished = pyqtSignal()
     canvasfpsSig = pyqtSignal(float)
-    waveSig = pyqtSignal(int)
 
     def __init__(self, **kwargs):
         QObject.__init__(self)
@@ -32,7 +31,7 @@ class ImageCreator(QObject):
 
         line = np.random.randint(0, 2, (self.N))
         self.wolf = self.wolframgen(line)
-        self.current = 0
+        self.wavecounter = 0
 
     # Resize/reset
     def resize_array(self, N, D):
@@ -63,11 +62,11 @@ class ImageCreator(QObject):
     def wolfram_scroll(self):
         n = int(self.N / self.kwargs['WOLFSCALE'])
         line = next(self.wolf)
-        [self.image.setPixel((self.current + j) % self.N, i,\
+        [self.image.setPixel((self.wavecounter + j) % self.N, i,\
             self.colorList[line[int(i / self.kwargs['WOLFSCALE']) % n] + 2])
                 for i in range(self.D) for j in range(self.kwargs['WOLFSCALE'])]
-        self.current += self.kwargs['WOLFSCALE']
-        self.current %= self.N
+        self.wavecounter += self.kwargs['WOLFSCALE']
+        self.wavecounter %= self.N
 
     def wolframgen(self, line):
         n = int(self.D / self.kwargs['WOLFSCALE'])

@@ -9,6 +9,7 @@ import time
 
 class ImageCreator(QObject):
     imageSig = pyqtSignal(QPixmap)
+    nextarraySig = pyqtSignal()
     breakSig = pyqtSignal()
     error = pyqtSignal(str)
     finished = pyqtSignal()
@@ -41,9 +42,6 @@ class ImageCreator(QObject):
         self.CHANGE = np.zeros([0, 3], bool)
         self.image = QImage(N, D, QImage.Format_ARGB32)
         self.export_array(self.ARRAY)
-      # nupix = QPixmap()
-      # nupix.convertFromImage(self.image)
-      # self.imageSig.emit(nupix)
 
 #==============Changes the internal settings================#
 # Should make the event queue feeding this baby LIFO
@@ -104,9 +102,14 @@ class ImageCreator(QObject):
         self.imageSig.emit(nupix)
         self.image = image.scaled(QSize(self.N, self.D))
 
-    def process(self):
-        #this sure is living
-        pass
+#   def processer_start(self, array):
+#       self.process_array(array)
+#       self.nextarraySig.emit()
+
+    def process(self, array):
+        self.send_image(self.image)
+        self.process_array(array)
+        self.nextarraySig.emit()
 
     def process_array(self, array):
         now = time.time()
@@ -115,12 +118,10 @@ class ImageCreator(QObject):
         self.export_list(self.CHANGE)
         if self.kwargs['WOLFWAVE']:
             self.wolfram_scroll()
-        self.ARRAYOLD = self.ARRAY
+        self.ARRAYOLD = np.copy(self.ARRAY)
         self.fpsRoll[0] = time.time()-now
         self.fpsRoll = np.roll(self.fpsRoll, 1)
         self.canvasfpsSig.emit(np.mean(self.fpsRoll))
-        self.finished.emit()
-        self.send_image(self.image)
 
     def update_living(self):
         self.LIVING = np.argwhere(self.ARRAY)
@@ -134,8 +135,8 @@ class ImageCreator(QObject):
         b = np.concatenate((births, np.ones([births.shape[0], 1], int)), axis=1)
         d = np.concatenate((deaths, np.zeros([deaths.shape[0], 1], int)), axis=1)
         self.CHANGE = np.concatenate((b, d))
-        if not self.CHANGE.size:
-            self.breakSig.emit()
+#       if not self.CHANGE.size:
+#           self.breakSig.emit()
 
     # Updates image with values from entire array. SLOW
     def export_array(self, A):
@@ -148,8 +149,7 @@ class ImageCreator(QObject):
 
     # Updates image only where the pixels have changed. FASTER
     def export_list(self, L):
-        im = self.image
-        [im.setPixel(el[0], el[1], self.colorList[el[2]]) for el in L]
+        [self.image.setPixel(el[0], el[1], self.colorList[el[2]]) for el in L]
 
 #====================The canvas=================#
 # It isnt so exciting since I moved everything to the processor

@@ -12,7 +12,10 @@ import time
 # The array updaters all inherit the handler, so they can directly maniupalate the array
 class Handler(QObject):
     arraySig = pyqtSignal(np.ndarray)
+    arrayinitSig = pyqtSignal(np.ndarray)
     startSig = pyqtSignal()
+    nextSig = pyqtSignal()
+    error = pyqtSignal(str)
     ARRAY = []      # Array, shared among workers
     ARRAYOLD = []      # Array, shared among workers
     BOUNDARY = []
@@ -23,37 +26,50 @@ class Handler(QObject):
         QObject.__init__(self)
         self.resize_array(kwargs['THRESHOLD'], kwargs['N'], kwargs['D'])
 
-    def set_boundary(self, polarity):
-        Handler.ARRAY[1, ...] = polarity
-        Handler.ARRAY[-1, ...] = polarity
-        Handler.ARRAY[..., 1] = polarity
-        Handler.ARRAY[..., -1] = polarity
+#   def updater_start(self, frame1, frame2):
+#       self.process(frame1)
+#       self.arrayinitSig.emit(Handler.ARRAY)
+#       self.process(frame2)
 
-    def clear_wavefront(self, start, end, polarity):
-    #   print(Handler.ARRAY*1)
-    #   print(start)
-    #   print(end)
-    #   print(polarity)
-        Handler.ARRAY[start:end, ...] = polarity
-    #   print(Handler.ARRAY*1)
+    def next_array(self, array):
+        self.arraySig.emit(Handler.ARRAY)
+        self.process(array)
+
+    def process(self, job):
+        if job['wolfpole'] >= 0:
+            self.clear_wavefront(job['wolfpos'], job['wolfscale'], job['wolfpole'])
+        for i in range(job['noisesteps']):
+            self.noise_process(job['threshold'])
+        self.set_boundary(job['ub'], job['rb'], job['db'], job['lb'])
+        if job['isingupdates'] > 0:
+            self.ising_process(job['isingupdates'], job['beta'])
+        if not job['conwayrules'] == []:
+            self.conway_process(job['conwayrules'])
+
+    def set_boundary(self, ub, rb, db, lb):
+        if ub >= 0:
+            Handler.ARRAY[1, ...] = ub
+        if db >= 0:
+            Handler.ARRAY[-1, ...] = db
+        if lb >= 0:
+            Handler.ARRAY[..., 1] = lb
+        if rb >= 0:
+            Handler.ARRAY[..., -1] = rb
+
+    def clear_wavefront(self, start, scale, polarity):
+        n = Handler.ARRAY.shape[0]
+        for i in range(scale):
+            Handler.ARRAY[(start + i) % n:(start + i + 1) % n, ...] = polarity
 
     def resize_array(self, threshold, height, width):
         Handler.ARRAY = np.zeros([height, width], bool)
         Handler.ARRAYOLD = np.zeros([height, width], bool)
         self.noise_process(threshold)
 
-    def process(self):
-      # self.dumpObjectInfo()
-        self.arraySig.emit(Handler.ARRAY)
-        self.startSig.emit()
-        Handler.ARRAYOLD = np.copy(Handler.ARRAY)
-
     def noise_process(self, threshold):
         A = np.random.random(Handler.ARRAY.shape) > threshold
         B = np.bitwise_xor(Handler.ARRAY, A)
         Handler.ARRAY = B
-        self.arraySig.emit(Handler.ARRAY)
-        self.startSig.emit()
 
     def ising_process(self, updates, beta):
         cost = np.zeros(3, float)

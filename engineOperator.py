@@ -75,17 +75,17 @@ class EngineOperator(QObject):
 #===============Run Initiators=============#
     def static_run(self):
         self.taskthread.requestInterruption()
-        self.update_kwargs(RUN=True, RUNFRAMES=(self.kwargs['IMAGEUPDATES']-1))
+        self.update_kwargs(RUN=True, EQUILIBRATE=False, CLEAR=False, RUNFRAMES=(self.kwargs['IMAGEUPDATES']-1))
         self.taskthread.start()
 
     def dynamic_run(self):
         self.taskthread.requestInterruption()
-        self.update_kwargs(RUN=True, RUNFRAMES=0)
+        self.update_kwargs(RUN=True, EQUILIBRATE=False, CLEAR=False, RUNFRAMES=0)
         self.taskthread.start()
 
     def long_run(self):
         self.taskthread.requestInterruption()
-        self.update_kwargs(RUN=False, EQUILIBRATE=True)
+        self.update_kwargs(RUN=False, EQUILIBRATE=True, CLEAR=False)
         self.taskthread.start()
 
     def clear_background(self):
@@ -95,7 +95,7 @@ class EngineOperator(QObject):
 
     def clear_array(self):
         self.taskthread.requestInterruption()
-        self.update_kwargs(RUN=False, CLEAR=True)
+        self.update_kwargs(RUN=False, CLEAR=True, EQUILIBRATE=False, RUNFRAMES=(self.kwargs['IMAGEUPDATES']-2))
         self.plainSig.emit(self.kwargs['N'], self.kwargs['D'])
         self.imagethread.start()
         self.taskthread.start()
@@ -165,7 +165,7 @@ class EngineOperator(QObject):
 
         # Signals from the workers back to the GUI
         self.taskman.frameSig.connect(self.frame_value_update)
-        self.taskman.arrayfpsSig.connect(self.array_fps_update)
+        self.handler.arrayfpsSig.connect(self.array_fps_update)
         self.image.canvasfpsSig.connect(self.canvas_fps_update)
         self.taskman.error.connect(self.error_string)
         self.image.error.connect(self.error_string)

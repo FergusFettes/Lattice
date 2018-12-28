@@ -23,7 +23,6 @@ class RunController(QObject):
 #   clearSig = pyqtSignal(float, int, int)
 #   boundSig = pyqtSignal(int)
 #   waveSig = pyqtSignal(int, int, int)
-    arrayfpsSig = pyqtSignal(float)
     breakSig = pyqtSignal()
     error = pyqtSignal(str)
 
@@ -32,7 +31,6 @@ class RunController(QObject):
         QObject.__init__(self)
         self.st = kwargs
         self.fpsTimer = QTimer(self)
-        self.fpsRoll = np.zeros(5, float)
         # Maximum fps = 1000 / the following
         self.fpsTimer.setInterval(1)
         self.mainTime = QTimer(self)
@@ -86,10 +84,10 @@ class RunController(QObject):
             'isingupdates':0,
             'conwayrules':[],
             'beta':self.st['BETA'],
-            'ub':-1,
-            'rb':-1,
-            'db':-1,
-            'lb':-1,
+            'ub':self.st['UB'],
+            'rb':self.st['RB'],
+            'db':self.st['DB'],
+            'lb':self.st['LB'],
             'wolfpole':self.st['WOLFPOLARITY'],
             'wolfpos':0,
             'wolfscale':self.st['WOLFSCALE'],
@@ -106,6 +104,7 @@ class RunController(QObject):
             frame['conwayrules'] = []
             frame['isingupdates'] = 0
             frame['noisesteps'] = 1
+            self.st['RUNFRAMES'] += 1
         if self.st['RUN']:
             rules = self.st['RULES']
             if len(rules) == 0:

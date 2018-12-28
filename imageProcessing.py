@@ -104,7 +104,8 @@ class ImageCreator(QObject):
 #       self.process_array(array)
 #       self.nextarraySig.emit()
 
-    def process(self, array):
+    def process(self, array, pos):
+        self.wavecounter = pos
         self.send_image(self.image)
         self.process_array(array)
         self.nextarraySig.emit()
@@ -114,8 +115,6 @@ class ImageCreator(QObject):
         self.ARRAY = array
         self.update_change()
         self.export_list(self.CHANGE)
-        self.wavecounter += self.kwargs['WOLFSCALE']
-        self.wavecounter %= self.N
         if self.kwargs['WOLFWAVE']:
             self.wolfram_scroll()
         self.ARRAYOLD = np.copy(self.ARRAY)

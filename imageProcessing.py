@@ -63,8 +63,6 @@ class ImageCreator(QObject):
         [self.image.setPixel((self.wavecounter + j) % self.N, i,\
             self.colorList[line[int(i / self.kwargs['WOLFSCALE']) % n] + 2])
                 for i in range(self.D) for j in range(self.kwargs['WOLFSCALE'])]
-        self.wavecounter += self.kwargs['WOLFSCALE']
-        self.wavecounter %= self.N
 
     def wolframgen(self, line):
         n = int(self.D / self.kwargs['WOLFSCALE'])
@@ -116,6 +114,8 @@ class ImageCreator(QObject):
         self.ARRAY = array
         self.update_change()
         self.export_list(self.CHANGE)
+        self.wavecounter += self.kwargs['WOLFSCALE']
+        self.wavecounter %= self.N
         if self.kwargs['WOLFWAVE']:
             self.wolfram_scroll()
         self.ARRAYOLD = np.copy(self.ARRAY)

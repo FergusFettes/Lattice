@@ -54,8 +54,8 @@ class RunController(QObject):
 #       frame2 = self.prepare_frame()
 #       self.handlerinitSig.emit(frame1, frame2)
         self.frame = self.prepare_frame()
-        self.handlerSig.emit(self.frame)
         self.frametime = time.time()
+        self.next_frame()
 
     def next_frame(self):
         QCoreApplication.processEvents()

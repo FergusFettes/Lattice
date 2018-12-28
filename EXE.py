@@ -45,8 +45,10 @@ def initVars():
         'WOLFWAVE':     True,
         'WOLFSCALE':    2,
         'WOLFPOLARITY': 1,
-        'BOUNDARY':     False,
-        'POLARITY':     1,
+        'UB':           -1,
+        'RB':           -1,
+        'DB':           -1,
+        'LB':           -1,
     }
     try:
         with open('save.txt', 'r') as file:

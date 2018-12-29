@@ -7,8 +7,10 @@ from engineOperator import *
 from imageProcessing import *
 
 import random as ra
-import re
 import math
+import ffmpeg
+import os
+import re
 
 # Draws the main window and contains the simulation code
 class MainWindow(QWidget):
@@ -94,6 +96,18 @@ class MainWindow(QWidget):
             self.conwayRules.setText('!!' + old + '!!')
             self.conwayMangled = True
 
+    def record_change(self):
+        value = not self.kwargs['RECORD']
+        self.changeKwarg('RECORD', value)
+        if value:
+            self.record.setStyleSheet('QPushButton { background-color: %s; }' %  \
+                                            QColor(Qt.red).name())
+        else:
+            self.record.setStyleSheet('QPushButton { background-color: %s; }' %  \
+                                            QColor(Qt.white).name())
+            self.gif_creator()
+
+
     def rulesChange(self):
         regexTestString=r'^(?:([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:;\ ?)[\ \n]*)+$'
         regexMatchString=r'([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:;\ ?)'
@@ -121,6 +135,32 @@ class MainWindow(QWidget):
         self.changeKwarg('CONWAY', not rules == [])
 
 #=====================Save defaults and GUI ket controls===============#
+    def gif_creator(self):
+        filenums = [re.findall('([0-9]{3}).png', i) for i in os.listdir('images')]
+        fileints = [int(i[0]) for i in filter(None, filenums)]
+
+        overlay_file = ffmpeg.input('images/watermark.png')
+        (
+            ffmpeg
+            .input('images/temp{:04d}.png'.format(max(fileints)))
+            .overlay(overlay_file)
+            .output('images/temp{:04d}.png'.format(max(fileints)))
+            .overwrite_output()
+            .run()
+        )
+        (
+            ffmpeg
+            .input('images/temp%04d.png')
+            .output('images/{3}x{4}-frames:{2}-wolf:{1}-rule:{0}.gif'.format(
+                self.kwargs['RULES'], self.kwargs['WOLFWAVE'], max(fileints),
+                self.kwargs['D'], self.kwargs['N']), framerate=5, f='gif')
+            .run()
+        )
+
+        for i in range(max(fileints) + 1):
+            os.remove('images/temp{:04d}.png'.format(i))
+
+
     #TODO: make it save the previous configuration before overwriting
     def save_defaults(self):
         with open('save.txt', 'w') as file:
@@ -534,8 +574,12 @@ class MainWindow(QWidget):
         statBox = QHBoxLayout()
         self.canvasfpsLabel.setText('Canvas fps: ')
         self.arrayfpsLabel.setText('Array fps: ')
+        self.record = QPushButton()
+        self.record.setText('Record')
+        self.record.clicked.connect(self.record_change)
         statBox.addWidget(self.canvasfpsLabel)
         statBox.addWidget(self.arrayfpsLabel)
+        statBox.addWidget(self.record)
 
         # Temperature slider and label
         self.tempCtrl = QSlider(Qt.Horizontal)

@@ -49,6 +49,7 @@ def initVars():
         'RB':           -1,
         'DB':           -1,
         'LB':           -1,
+        'RECORD':       False,
     }
     try:
         with open('save.txt', 'r') as file:

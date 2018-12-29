@@ -33,6 +33,7 @@ class ImageCreator(QObject):
         line = np.random.randint(0, 2, (self.N))
         self.wolf = self.wolframgen(line)
         self.wavecounter = 0
+        self.savecount = 0
 
     # Resize/reset
     def resize_array(self, N, D):
@@ -98,7 +99,9 @@ class ImageCreator(QObject):
         nupix = QPixmap()
         nupix.convertFromImage(ims)
         self.imageSig.emit(nupix)
-        self.image = image.scaled(QSize(self.N, self.D))
+        if self.kwargs['RECORD']:
+            ims.save('images/temp{:>04d}.png'.format(self.savecount), 'PNG')
+            self.savecount += 1
 
 #   def processer_start(self, array):
 #       self.process_array(array)

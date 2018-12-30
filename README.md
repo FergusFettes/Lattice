@@ -47,4 +47,4 @@ The app is currently based on the following models:
 - [ ] **Prisoners Dilemma**
 - [ ] **Eden Model**
 
-![Boundary conditions make for interesting models](readmepics/bottom.gif)
+![Here you can see the 'Wolfram' painter in the background](readmepics/bottom.gif)

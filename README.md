@@ -7,13 +7,13 @@ This app started off as an attempt to visualise different lattice models, and to
 It is built using Python 3 and Qt5, so you will need both of those. Other dependencies (numpy, imageio etc.) are in the requirements.txt (NOTE TO SELF, NO THEY ARENT).
 
 To facilitate rapid testing, there are a few keyboard shortcuts:
-> **E** starts a dynamic run. The length is determined by the 'frames' in the bottom right.
-> **Q** clears the screen and adds some noise, determined by the coverage.
-> **1** turns the stochastic noise engine on and off
-> **2** turns the Life engine on and off
-> **Z** steps forward one frame
-> **B** paints the background with a cellular automaton
-> **WASD** controlls the 'coverage' aka how much noise is added when you clear the scren and 'beta', which determines how noise the simulation is while running.
+* **E** starts a dynamic run. The length is determined by the 'frames' in the bottom right.
+* **Q** clears the screen and adds some noise, determined by the coverage.
+* **1** turns the stochastic noise engine on and off
+* **2** turns the Life engine on and off
+* **Z** steps forward one frame
+* **B** paints the background with a cellular automaton
+* **WASD** controlls the 'coverage' aka how much noise is added when you clear the scren and 'beta', which determines how noise the simulation is while running.
 
 ## About the models
 The app is currently based on the following models:
@@ -22,7 +22,7 @@ The app is currently based on the following models:
 ![Conway-style Life](readmepics/conway.gif)
 - [x] **Cellular Automata** Wolfram-style cellular automata can be painted on the screen (**B**), and a scroller is also available that will either wipe out all the cells or paint on full cells. Currently there is no meaningful interaction between the 2D automata and the other models, it is largely aesthetic. Lets see what becomes of it.
 ![Advanced rules make more developed lifeforms](readmepics/advanced.gif)
-- [] Potts Model is actually in there, or it was, but has been depreceated. This is a nice version of Ising with more states, but currently the models only have 2 states so this is inactive. Might bring it back.
+- [ ] Potts Model is actually in there, or it was, but has been depreceated. This is a nice version of Ising with more states, but currently the models only have 2 states so this is inactive. Might bring it back.
 
 
 ## Features in Version 1

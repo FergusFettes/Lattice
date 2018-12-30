@@ -23,6 +23,7 @@ class EngineOperator(QObject):
     settingsSig = pyqtSignal(dict)
     interruptSig = pyqtSignal()
     backgroundSig = pyqtSignal()
+    gifresetSig = pyqtSignal()
     plainSig = pyqtSignal(int, int)
 
     def __init__(self, canvas, frameLabel, arrayfpsLabel, canvasfpsLabel, **kwargs):
@@ -53,6 +54,9 @@ class EngineOperator(QObject):
         for i in kwargs:
             self.kwargs[i] = kwargs[i]
         self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
+
+    def reset_gifcount(self):
+        self.gifresetSig.emit()
 
     def breaker(self):
         print('Breaker!')
@@ -143,6 +147,7 @@ class EngineOperator(QObject):
         self.interruptSig.connect(self.breaker)
         self.backgroundSig.connect(self.image.wolfram_paint)
         self.plainSig.connect(self.image.resize_array)
+        self.gifresetSig.connect(self.image.reset_gifcount)
 
         # Connect up the signals between the workers
         self.taskman.handlerSig.connect(self.handler.next_array)

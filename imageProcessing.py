@@ -35,6 +35,9 @@ class ImageCreator(QObject):
         self.wavecounter = 0
         self.savecount = 0
 
+    def reset_gifcount(self):
+        self.savecount = 0
+
     # Resize/reset
     def resize_array(self, N, D):
         self.ARRAY = np.zeros([N, D], bool)

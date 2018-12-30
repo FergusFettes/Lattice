@@ -106,6 +106,7 @@ class MainWindow(QWidget):
             self.record.setStyleSheet('QPushButton { background-color: %s; }' %  \
                                             QColor(Qt.white).name())
             self.gif_creator()
+            self.engine.reset_gifcount()
 
 
     def rulesChange(self):
@@ -138,21 +139,23 @@ class MainWindow(QWidget):
     def gif_creator(self):
         filenums = [re.findall('([0-9]{3}).png', i) for i in os.listdir('images')]
         fileints = [int(i[0]) for i in filter(None, filenums)]
+        rules = ''.join([''.join([str(i) for i in j]) for j in self.kwargs['RULES']])
 
-        overlay_file = ffmpeg.input('images/watermark.png')
-        (
-            ffmpeg
-            .input('images/temp{:04d}.png'.format(max(fileints)))
-            .overlay(overlay_file)
-            .output('images/temp{:04d}.png'.format(max(fileints)))
-            .overwrite_output()
-            .run()
-        )
+# Watermark, off for now
+#       overlay_file = ffmpeg.input('images/watermark.png')
+#       (
+#           ffmpeg
+#           .input('images/temp{:04d}.png'.format(max(fileints)))
+#           .overlay(overlay_file)
+#           .output('images/temp{:04d}.png'.format(max(fileints)))
+#           .overwrite_output()
+#           .run()
+#       )
         (
             ffmpeg
             .input('images/temp%04d.png')
             .output('images/{3}x{4}-frames:{2}-wolf:{1}-rule:{0}.gif'.format(
-                self.kwargs['RULES'], self.kwargs['WOLFWAVE'], max(fileints),
+                rules, self.kwargs['WOLFWAVE'], max(fileints),
                 self.kwargs['D'], self.kwargs['N']), framerate=5, f='gif')
             .run()
         )

@@ -57,9 +57,9 @@ class RunController(QObject):
 
     def next_frame(self):
         QCoreApplication.processEvents()
-        while time.time() - self.frametime < 0.05:
-            QThread.msleep(5)
-        if self.st['IMAGEUPDATES'] <= self.st['RUNFRAMES']:
+        while time.time() - self.frametime < self.st['SPEED']:
+            QThread.msleep(1)
+        if 0 <= self.st['IMAGEUPDATES'] <= self.st['RUNFRAMES']:
             self.error.emit('Run finished')
             self.finished.emit()
             return
@@ -120,4 +120,5 @@ class RunController(QObject):
                 frame['isingupdates'] = self.st['MONTEUPDATES'] * self.st['STOCHASTIC']
                 frame['conwayrules'] = rule
             self.st['RUNFRAMES'] += 1
+            self.frameSig.emit(self.st['RUNFRAMES'])
         return frame

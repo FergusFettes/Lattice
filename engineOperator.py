@@ -110,10 +110,12 @@ class EngineOperator(QObject):
 
 #===============GUI updaters=============#
     def array_fps_update(self, value):
-        self.arrayfpsLabel.setText('Array fps: ' + str(2 * (1 / value)))
+        if value:
+            self.arrayfpsLabel.setText('Array fps: ' + str(1 / value))
 
     def canvas_fps_update(self, value):
-        self.canvasfpsLabel.setText('Canvas fps: ' + str(1 / value))
+        if value:
+            self.canvasfpsLabel.setText('Canvas fps: ' + str(1 / value))
 
     def frame_value_update(self, value):
         self.frameLabel.setText(str(value))

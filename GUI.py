@@ -45,7 +45,7 @@ class MainWindow(QWidget):
         self.changeKwarg(kwarg, callback())
 
     def changeKwarg(self, kwarg, nuVal):
-        print('Changing ' + kwarg)
+        print('Changing {}'.format(kwarg))
         self.kwargs[kwarg] = nuVal
         print(self.kwargs[kwarg])
         self.kwarg_send_timer.start()
@@ -63,17 +63,17 @@ class MainWindow(QWidget):
         a.setFocus()
 
     def speedChange(self):
-        self.changeKwarg('SPEED', self.speedCtrl.value())
-        self.speedLabel.setText('Speed = ' + str(self.speedCtrl.value()) + '%')
+        self.changeKwarg('SPEED', 1 / self.speedCtrl.value())
+        self.speedLabel.setText('Max FPS = {:d}'.format(int(self.speedCtrl.value())))
 
     def coverageChange(self):
         coverage = self.thresholdCtrl.value()
         self.changeKwarg('THRESHOLD', self.threshval[coverage])
-        self.thresholdLabel.setText('Coverage = ' + str(coverage + 1) + '%')
+        self.thresholdLabel.setText('Threshold = {:2.2f}'.format(self.threshval[coverage]))
 
     def sliderChange(self):
         self.changeKwarg('BETA', self.tempCtrl.value() / 100)
-        self.tempLabel.setText('Beta = ' + str(self.tempCtrl.value() / 100))
+        self.tempLabel.setText('Beta = {:01.2f}'.format(self.tempCtrl.value() / 100))
 
     def choose_color(self, callback, *args):
         dlg = QColorDialog()
@@ -93,7 +93,7 @@ class MainWindow(QWidget):
             self.conwayMangled = False
         else:
             old = self.conwayRules.toPlainText()
-            self.conwayRules.setText('!!' + old + '!!')
+            self.conwayRules.setText('!!{}!!'.format(old))
             self.conwayMangled = True
 
     def record_change(self):
@@ -275,7 +275,7 @@ class MainWindow(QWidget):
         self.thresholdCtrl.valueChanged.connect(self.coverageChange)
         self.thresholdLabel= QLabel()
         self.thresholdLabel.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.thresholdLabel.setText('Coverage = ' + str(self.kwargs['THRESHOLD']) + '%')
+        self.thresholdLabel.setText('Threshold = {:2.2f}'.format(self.kwargs['THRESHOLD']))
         # 'toplefthbox'
         tlhb = QHBoxLayout()
         tlhbvb = QVBoxLayout()
@@ -313,7 +313,7 @@ class MainWindow(QWidget):
         self.wolfRule.valueChanged.connect(partial(self.Kwarger, 'WOLFRULE', self.wolfRule.value))
         self.wolfScaleLabel = QLabel('Scale')
         self.wolfScale = QSpinBox()
-        self.wolfScale.setRange(1, 30)
+        self.wolfScale.setRange(1, 100)
         self.wolfScale.setSingleStep(1)
         self.wolfScale.setValue(self.kwargs['WOLFSCALE'])
         self.wolfScale.setMaximumSize(100, 40)
@@ -594,7 +594,7 @@ class MainWindow(QWidget):
         self.tempCtrl.setPageStep(20)
         self.tempCtrl.setValue(self.kwargs['BETA'] * 100)
         self.tempCtrl.valueChanged.connect(self.sliderChange)
-        self.tempLabel.setText('Beta = ' + str(self.kwargs['BETA']))
+        self.tempLabel.setText('Beta = {:01.2f}'.format(self.kwargs['BETA']))
 
         # Speed slider and label
         # TODO: get this working again
@@ -603,13 +603,13 @@ class MainWindow(QWidget):
         self.speedCtrl.setTickInterval(20)
         self.speedCtrl.setMinimum(1)
         self.speedCtrl.setMaximum(100)
-        self.speedCtrl.setValue(self.kwargs['SPEED'])
+        self.speedCtrl.setValue(int(1 / self.kwargs['SPEED']))
         self.speedCtrl.valueChanged.connect(self.speedChange)
         self.speedLabel = QLabel()
-        self.speedLabel.setText('Speed = ' + str(self.kwargs['SPEED']) + '%')
+        self.speedLabel.setText('Max FPS = {:03d}'.format(int(1 / self.kwargs['SPEED'])))
         self.frameLabel.setText('0000/ ')
         self.frameCtrl = QSpinBox()
-        self.frameCtrl.setRange(10, 2000)
+        self.frameCtrl.setRange(-1, 2000)
         self.frameCtrl.setSingleStep(10)
         self.frameCtrl.setMaximumSize(100, 20)
         self.frameCtrl.setValue(self.kwargs['IMAGEUPDATES'])

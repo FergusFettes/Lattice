@@ -24,7 +24,7 @@ def initVars():
         'BETA':         1 / 8,  # Critical temp for Ising
         'SPEED':        100,    # Throttle %
         'DEGREE':       4,      # Degree of the Potts model
-        'IMAGEUPDATES': 600,    # Max number of frames to run
+        'IMAGEUPDATES': -1,    # Max number of frames to run
         'RUNFRAMES':    0,      # Frames in current run
         'MONTEUPDATES': 333,    # MonteCarlo updates per frame
         'LONGNUM':      100000, # MonteCarlo update to equilibrium

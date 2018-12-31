@@ -62,7 +62,7 @@ class ImageCreator(QObject):
 
 #==============Wolfram-style Cellular Automata==============#
     def wolfram_scroll(self):
-        n = int(self.N / self.kwargs['WOLFSCALE'])
+        n = int(self.D / self.kwargs['WOLFSCALE'])
         line = next(self.wolf)
         [self.image.setPixel((self.wavecounter + j) % self.N, i,\
             self.colorList[line[int(i / self.kwargs['WOLFSCALE']) % n] + 2])

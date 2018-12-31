@@ -4,7 +4,7 @@
 This app started off as an attempt to visualise different lattice models, and to see what happens when you mix a bunch of them together. It is currently very visually-oriented, though I intend to add some analytics later.
 
 ## Getting started
-It is built using Python 3 and Qt5, so you will need both of those. Other dependencies (numpy, imageio etc.) are in the requirements.txt (NOTE TO SELF, NO THEY ARENT).
+It is built using Python 3 and Qt5, so you will need both of those. If you clone the package and run the setup.py everything should be installed, and you can then run `python3 __init__.py` from the main folder. You can also possibly run `pip3 install LatticeModelMashup` and then just type `latticeMash` into the terminal, though I haven't tested this yet.
 
 To facilitate rapid testing, there are a few keyboard shortcuts:
 * **E** starts a dynamic run. The length is determined by the 'frames' in the bottom right.

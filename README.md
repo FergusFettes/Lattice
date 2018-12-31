@@ -1,4 +1,4 @@
-![Simple rules](lattice-model-mashup/img/top.gif)
+![Simple rules](latticeModelMashup/img/top.gif)
 # Ultimate Lattice Model Monster Mashup
 
 This app started off as an attempt to visualise different lattice models, and to see what happens when you mix a bunch of them together. It is currently very visually-oriented, though I intend to add some analytics later.
@@ -41,9 +41,9 @@ The little area with the letters 'UB, LB, RB, WB, DB' is meant to be a sort of d
 The app is currently based on the following models:
 - [x] **Ising Model** nice long-term behaviour when undisturbed by Conway, this model is rather overshadowed by the Life engine and tends only to act as a (very expensive) stochastic noise generator. Turn off conway (**2**) and turn up beta (**D**) and let it run for a while to see Ising at work.
 - [x] **Conway's GoL** actually the engine is what they call 'Life-like' and can accept almost arbitrary rulesets. The rules are entered into the green box on the left. Some suggestions are below.
-![Conway-style Life](lattice-model-mashup/img/conway.gif)
+![Conway-style Life](latticeModelMashup/img/conway.gif)
 - [x] **Cellular Automata** Wolfram-style cellular automata can be painted on the screen (**B**), and a scroller is also available that will either wipe out all the cells or paint on full cells. Currently there is no meaningful interaction between the 2D automata and the other models, it is largely aesthetic. Lets see what becomes of it.
-![Advanced rules make more developed lifeforms](lattice-model-mashup/img/advanced.gif)
+![Advanced rules make more developed lifeforms](latticeModelMashup/img/advanced.gif)
 - [ ] Potts Model is actually in there, or it was, but has been depreceated. This is a nice version of Ising with more states, but currently the models only have 2 states so this is inactive. Might bring it back.
 
 
@@ -70,4 +70,4 @@ The app is currently based on the following models:
 - [ ] **Prisoners Dilemma**
 - [ ] **Eden Model**
 
-![Here you can see the 'Wolfram' painter in the background](lattice-model-mashup/img/bottom.gif)
+![Here you can see the 'Wolfram' painter in the background](latticeModelMashup/img/bottom.gif)

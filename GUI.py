@@ -57,10 +57,6 @@ class MainWindow(QWidget):
 
     def frameChange(self):
         self.changeKwarg('IMAGEUPDATES', self.frameCtrl.value())
-        # The following was necessary for the keyboard shortcuts to work again,
-        # but it does mean that you have to type numbers longer than 2x twice
-        a = self.frameCtrl.previousInFocusChain()
-        a.setFocus()
 
     def speedChange(self):
         self.changeKwarg('SPEED', 1 / self.speedCtrl.value())
@@ -216,14 +212,11 @@ class MainWindow(QWidget):
             self.primaryButton.click()
         elif e.key() == Qt.Key_F:
             self.secondaryButton.click()
-        # Initialise chosen model, 123
         elif e.key() == Qt.Key_1:
             state = self.stochasticBox.isChecked()
             self.stochasticBox.setChecked(not state)
         elif e.key() == Qt.Key_2:
             self.conway_mangler()
-#       elif e.key() == Qt.Key_3:
-#           self.conwayButt.click()
         elif e.key() == Qt.Key_E:
             self.dynamic.click()
         elif e.key() == Qt.Key_Q:

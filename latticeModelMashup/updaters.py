@@ -26,7 +26,7 @@ class Handler(QObject):
             and processes the arrays returned. """
         QObject.__init__(self)
         self.resize_array(kwargs['N'], kwargs['D'])
-        self.fpsRoll = np.zeros(5, float)
+        self.fpsRoll = np.zeros(9, float)
 
     def updater_start(self, frame1, frame2, N, D):
         if not Handler.ARRAY.shape[0] == N or not Handler.ARRAY.shape[1] == D:
@@ -44,6 +44,8 @@ class Handler(QObject):
         self.arrayfpsSig.emit(np.mean(self.fpsRoll))
 
     def process(self, job):
+        if job['clear']:
+            self.resize_array(Handler.ARRAY.shape[0], Handler.ARRAY.shape[1])
         if job['wolfpole'] >= 0:
             self.clear_wavefront(job['wolfpos'], job['wolfscale'], job['wolfpole'])
         for i in range(job['noisesteps']):

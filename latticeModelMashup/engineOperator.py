@@ -61,7 +61,7 @@ class EngineOperator(QObject):
 #===============Run Initiators=============#
     def static_run(self):
         self.taskthread.requestInterruption()
-        self.update_kwargs(RUN=True, EQUILIBRATE=False, CLEAR=False, RUNFRAMES=(self.kwargs['IMAGEUPDATES']-1))
+        self.update_kwargs(RUN=True, EQUILIBRATE=False, CLEAR=False, RUNFRAMES=(self.kwargs['IMAGEUPDATES']-2))
         self.taskthread.start()
 
     def dynamic_run(self):
@@ -71,7 +71,7 @@ class EngineOperator(QObject):
 
     def long_run(self):
         self.taskthread.requestInterruption()
-        self.update_kwargs(RUN=False, EQUILIBRATE=True, CLEAR=False)
+        self.update_kwargs(RUN=False, EQUILIBRATE=True, CLEAR=False, RUNFRAMES=(self.kwargs['IMAGEUPDATES']-2))
         self.taskthread.start()
 
     def clear_background(self):

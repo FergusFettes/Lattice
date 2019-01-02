@@ -46,6 +46,7 @@ class RunController(QObject):
 
 #===============MAIN PROCESS OF THE THREAD===================#
     def process(self):
+        QCoreApplication.processEvents()
         self.error.emit('Process Starting!')
         self.mainTime.start()
         frame1 = self.prepare_frame()
@@ -58,6 +59,10 @@ class RunController(QObject):
         QCoreApplication.processEvents()
         while time.time() - self.frametime < self.st['SPEED']:
             QThread.msleep(1)
+        if self.st['RUNFRAMES'] == 1:
+            self.error.emit('Cleared / Equilibrated / Stepped')
+            self.finished.emit()
+            return
         if 0 <= self.st['IMAGEUPDATES'] <= self.st['RUNFRAMES']:
             self.error.emit('Run finished')
             self.finished.emit()
@@ -80,6 +85,7 @@ class RunController(QObject):
             'd':self.st['D'],
             'threshold':self.st['THRESHOLD'],
             'noisesteps':0,
+            'clear':0,
             'isingupdates':0,
             'conwayrules':[],
             'beta':self.st['BETA'],
@@ -100,10 +106,12 @@ class RunController(QObject):
             frame['conwayrules'] = []
             frame['isingupdates'] = self.st['LONGNUM']
             self.error.emit('Equilibration Starting!')
+            self.st['RUNFRAMES'] += 1
         if self.st['CLEAR']:
             frame['conwayrules'] = []
             frame['isingupdates'] = 0
             frame['noisesteps'] = 1
+            frame['clear'] = 1
             self.st['RUNFRAMES'] += 1
         if self.st['RUN']:
             rules = self.st['RULES']
@@ -113,7 +121,7 @@ class RunController(QObject):
                 rule = rules[self.st['RUNFRAMES'] % len(rules)]
             if self.st['CONWAY'] and self.st['STOCHASTIC']:
                 if self.st['RUNFRAMES'] % 2:
-                    frame['isingupdates'] = self.st['MONTEUPDATES']
+                    frame['noisesteps'] = 1
                 else:
                     frame['conwayrules'] = rule
             else:

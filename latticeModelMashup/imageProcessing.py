@@ -23,7 +23,7 @@ class ImageCreator(QObject):
         self.degree = 2
 
         self.scale = kwargs['SCALE']
-        self.fpsRoll = np.zeros(5, float)
+        self.fpsRoll = np.zeros(9, float)
         self.kwargs = kwargs
 
         self.N = kwargs['N']
@@ -42,6 +42,8 @@ class ImageCreator(QObject):
 
     # Resize/reset
     def resize_array(self, N, D):
+        self.N = N
+        self.D = D
         self.ARRAY = np.zeros([N, D], bool)
         self.ARRAYOLD = np.zeros([N, D], bool)
         self.image = QImage(N, D, QImage.Format_ARGB32)
@@ -95,6 +97,7 @@ class ImageCreator(QObject):
             if idx == N:
                 break
         self.send_image(im)
+        self.image = im.scaled(QSize(self.N, self.D))
 
 #===============Array processing and Image export=============#
     def send_image(self, image):

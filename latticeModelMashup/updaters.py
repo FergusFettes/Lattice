@@ -12,7 +12,7 @@ import time
 # The array updaters all inherit the handler, so they can directly maniupalate the array
 class Handler(QObject):
     arraySig = pyqtSignal(np.ndarray, int)
-    arrayinitSig = pyqtSignal(np.ndarray)
+    arrayinitSig = pyqtSignal(np.ndarray, int, int, int)
     arrayfpsSig = pyqtSignal(float)
     startSig = pyqtSignal()
     nextSig = pyqtSignal()
@@ -25,13 +25,15 @@ class Handler(QObject):
         """ Controls workers for the array updates,
             and processes the arrays returned. """
         QObject.__init__(self)
-        self.resize_array(kwargs['THRESHOLD'], kwargs['N'], kwargs['D'])
+        self.resize_array(kwargs['N'], kwargs['D'])
         self.fpsRoll = np.zeros(5, float)
 
-#   def updater_start(self, frame1, frame2):
-#       self.process(frame1)
-#       self.arrayinitSig.emit(Handler.ARRAY)
-#       self.process(frame2)
+    def updater_start(self, frame1, frame2, N, D):
+        if not Handler.ARRAY.shape[0] == N or not Handler.ARRAY.shape[1] == D:
+            self.resize_array(N, D)
+        self.process(frame1)
+        self.arrayinitSig.emit(Handler.ARRAY, frame1['wolfpos'], N, D)
+        self.process(frame2)
 
     def next_array(self, frame):
         now = time.time()
@@ -45,7 +47,7 @@ class Handler(QObject):
         if job['wolfpole'] >= 0:
             self.clear_wavefront(job['wolfpos'], job['wolfscale'], job['wolfpole'])
         for i in range(job['noisesteps']):
-            self.resize_array(job['threshold'], job['n'], job['d'])
+            self.noise_process(job['threshold'])
         self.set_boundary(job['ub'], job['rb'], job['db'], job['lb'])
         if job['isingupdates'] > 0:
             self.ising_process(job['isingupdates'], job['beta'])
@@ -67,10 +69,9 @@ class Handler(QObject):
         for i in range(scale):
             Handler.ARRAY[(start + i) % n, ...] = polarity
 
-    def resize_array(self, threshold, height, width):
+    def resize_array(self, height, width):
         Handler.ARRAY = np.zeros([height, width], bool)
         Handler.ARRAYOLD = np.zeros([height, width], bool)
-        self.noise_process(threshold)
 
     def noise_process(self, threshold):
         A = np.random.random(Handler.ARRAY.shape) > threshold

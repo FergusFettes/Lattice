@@ -16,7 +16,7 @@ class RunController(QObject):
     frameSig = pyqtSignal(int)
     finished = pyqtSignal()
     handlerSig = pyqtSignal(dict)
-    handlerinitSig = pyqtSignal(dict, dict)
+    handlerinitSig = pyqtSignal(dict, dict, int, int)
 #   isingSig = pyqtSignal(int, float)
 #   noiseSig = pyqtSignal(float)
 #   conwaySig = pyqtSignal(list)
@@ -48,12 +48,11 @@ class RunController(QObject):
     def process(self):
         self.error.emit('Process Starting!')
         self.mainTime.start()
-#       frame1 = self.prepare_frame()
-#       frame2 = self.prepare_frame()
-#       self.handlerinitSig.emit(frame1, frame2)
+        frame1 = self.prepare_frame()
+        frame2 = self.prepare_frame()
+        self.handlerinitSig.emit(frame1, frame2, self.st['N'], self.st['D'])
         self.frame = self.prepare_frame()
         self.frametime = time.time()
-        self.next_frame()
 
     def next_frame(self):
         QCoreApplication.processEvents()
@@ -100,6 +99,7 @@ class RunController(QObject):
         if self.st['EQUILIBRATE']:
             frame['conwayrules'] = []
             frame['isingupdates'] = self.st['LONGNUM']
+            self.error.emit('Equilibration Starting!')
         if self.st['CLEAR']:
             frame['conwayrules'] = []
             frame['isingupdates'] = 0

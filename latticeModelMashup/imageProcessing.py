@@ -28,6 +28,8 @@ class ImageCreator(QObject):
 
         self.N = kwargs['N']
         self.D = kwargs['D']
+        self.LIVING = np.zeros([0, 2], bool)
+        self.CHANGE = np.zeros([0, 3], bool)
         self.resize_array(self.N, self.D)
 
         line = np.random.randint(0, 2, (self.N))
@@ -42,8 +44,6 @@ class ImageCreator(QObject):
     def resize_array(self, N, D):
         self.ARRAY = np.zeros([N, D], bool)
         self.ARRAYOLD = np.zeros([N, D], bool)
-        self.LIVING = np.zeros([0, 2], bool)
-        self.CHANGE = np.zeros([0, 3], bool)
         self.image = QImage(N, D, QImage.Format_ARGB32)
         self.export_array(self.ARRAY)
 
@@ -106,9 +106,12 @@ class ImageCreator(QObject):
             ims.save('images/temp{:>04d}.png'.format(self.savecount), 'PNG')
             self.savecount += 1
 
-#   def processer_start(self, array):
-#       self.process_array(array)
-#       self.nextarraySig.emit()
+    def processer_start(self, array, pos, N, D):
+        if not self.ARRAY.shape[0] == N or not self.ARRAY.shape[1] == D:
+            self.resize_array(N, D)
+        self.wavecounter = pos
+        self.process_array(array)
+        self.nextarraySig.emit()
 
     def process(self, array, pos):
         self.wavecounter = pos

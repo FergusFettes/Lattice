@@ -37,19 +37,12 @@ class EngineOperator(QObject):
         self.canvasfpsLabel = canvasfpsLabel
         self.mainUpdates = 0
 
+        self.N = kwargs['N']
+        self.D = kwargs['D']
+
         self.taskman_init()
 
 #=============Thread Communicators======#
-#   def update_kwargs(self, **kwargs):
-#       print('Updating Threads')
-#       for i in kwargs:
-#           self.kwargs[i] = kwargs[i]
-#       if self.taskthread.isRunning():
-#           print('Requesting Interrution')
-#           self.taskthread.requestInterruption()
-#       else:
-#           self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-
     def update_kwargs(self, **kwargs):
         for i in kwargs:
             self.kwargs[i] = kwargs[i]
@@ -60,20 +53,9 @@ class EngineOperator(QObject):
 
     def breaker(self):
         print('Breaker!')
-        self.update_kwargs(RUN=False)
-        self.update_kwargs(CLEAR=False)
-        self.update_kwargs(EQUILIRATE=False)
+        self.update_kwargs(RUN=False, CLEAR=False, EQUILIRATE=False)
 
     def thread_looper(self):
-#       if self.kwargs['RUN'] is True and self.kwargs['RUNFRAMES'] < self.kwargs['IMAGEUPDATES']:
-#           self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-#           self.taskthread.start()
-#       elif self.kwargs['CLEAR'] is True or self.kwargs['EQUILIBRATE'] is True:
-#           self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
-#           self.taskthread.start()
-#           self.simple_update(CLEAR=False, EQUILIBRATE=False)
-#       else:
-#           self.simple_update(RUN=False)
         print('Thread standing by.')
 
 #===============Run Initiators=============#
@@ -153,9 +135,9 @@ class EngineOperator(QObject):
 
         # Connect up the signals between the workers
         self.taskman.handlerSig.connect(self.handler.next_array)
-#       self.taskman.handlerinitSig.connect(self.handler.updater_start)
+        self.taskman.handlerinitSig.connect(self.handler.updater_start)
         self.handler.arraySig.connect(self.image.process)
-#       self.handler.arrayinitSig.connect(self.image.processer_start)
+        self.handler.arrayinitSig.connect(self.image.processer_start)
         self.image.nextarraySig.connect(self.taskman.next_frame)
 #       self.handler.nextSig.connect(self.taskman.next_frame)
 

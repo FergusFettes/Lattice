@@ -133,6 +133,10 @@ class MainWindow(QWidget):
         self.changeKwarg('RULES', rules)
         self.changeKwarg('CONWAY', not rules == [])
 
+    def make_fullscreen(self):
+        newval = not self.kwargs['FULLSCREEN']
+        self.changeKwarg('FULLSCREEN', newval)
+
 #=====================Save defaults and GUI ket controls===============#
     def gif_creator(self):
         filenums = [re.findall('([0-9]{4}).png', i) for i in os.listdir('images')]
@@ -158,7 +162,7 @@ class MainWindow(QWidget):
             .run()
         )
 
-        filelist = glob.glob('temp*.png')
+        filelist = glob.glob('images/temp*.png')
         for i in filelist:
             os.remove(i)
 
@@ -170,6 +174,7 @@ class MainWindow(QWidget):
             file.write(savestr)
 
     def keyPressEvent(self, e):
+        print(e.key())
         # TODO: make this a dictonary
         if e.key() == Qt.Key_Escape:
             if self.engine.updatethread.isRunning() or self.engine.imagethread.isRunning()\
@@ -202,6 +207,8 @@ class MainWindow(QWidget):
             self.equilibrate.click()
         elif e.key() == Qt.Key_Z:
             self.short.click()
+        elif e.key() == Qt.Key_O:
+            self.make_fullscreen()
         elif e.key() == Qt.Key_D:
             self.tempCtrl.triggerAction(QSlider.SliderPageStepAdd)
         elif e.key() == Qt.Key_A:

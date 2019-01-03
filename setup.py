@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='LatticeModelMashup',
-    version='0.98.1',
+    version='0.98.4',
     packages=['latticeModelMashup',],
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -16,11 +16,10 @@ setuptools.setup(
     install_requires=[
         'imageio',
         'numpy',
-        'PyQt5',
-        'ffmpeg',
+        'ffmpeg-python',
     ],
     classifiers=[
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3',
         'Topic :: Games/Entertainment :: Simulation',
         'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
         'Development Status :: 4 - Beta',

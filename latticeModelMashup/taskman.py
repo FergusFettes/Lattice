@@ -16,6 +16,7 @@ class RunController(QObject):
     frameSig = pyqtSignal(int)
     finished = pyqtSignal()
     handlerSig = pyqtSignal(dict)
+    handlerSingleSig = pyqtSignal(dict)
     handlerinitSig = pyqtSignal(dict, dict, int, int)
 #   isingSig = pyqtSignal(int, float)
 #   noiseSig = pyqtSignal(float)
@@ -47,13 +48,26 @@ class RunController(QObject):
 #===============MAIN PROCESS OF THE THREAD===================#
     def process(self):
         QCoreApplication.processEvents()
-        self.error.emit('Process Starting!')
+        if self.st['CLEAR'] or self.st['EQUILIBRATE']:
+            self.push_single_frame()
+        elif 1==2:
+            self.error.emit('nothing should be coming throuh here!')
+        else:
+            self.init_new_process()
+
+    def init_new_process(self):
         self.mainTime.start()
         frame1 = self.prepare_frame()
         frame2 = self.prepare_frame()
         self.handlerinitSig.emit(frame1, frame2, self.st['N'], self.st['D'])
         self.frame = self.prepare_frame()
         self.frametime = time.time()
+
+    def push_single_frame(self):
+        self.error.emit('Pushing single frame')
+        self.frame = self.prepare_frame()
+        self.handlerSingleSig.emit(self.frame)
+        self.finished.emit()
 
     def next_frame(self):
         QCoreApplication.processEvents()

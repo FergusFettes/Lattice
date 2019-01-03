@@ -22,7 +22,7 @@ def initVars():
         'D':            300,    # Array dimensions
         'SCALE':        2,      # Image dim = N*SCALE x N*SCALE
         'BETA':         1 / 8,  # Critical temp for Ising
-        'SPEED':        100,    # Throttle %
+        'SPEED':        0.1,    # Throttle %
         'DEGREE':       4,      # Degree of the Potts model
         'IMAGEUPDATES': -1,    # Max number of frames to run
         'RUNFRAMES':    0,      # Frames in current run
@@ -50,6 +50,7 @@ def initVars():
         'DB':           -1,
         'LB':           -1,
         'RECORD':       False,
+        'FULLSCREEN':   False,
     }
     try:
         with open('save.txt', 'r') as file:

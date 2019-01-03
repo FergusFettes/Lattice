@@ -12,13 +12,13 @@ import time
 # The array updaters all inherit the handler, so they can directly maniupalate the array
 class Handler(QObject):
     arraySig = pyqtSignal(np.ndarray, int)
+    arraySingleSig = pyqtSignal(np.ndarray, int)
     arrayinitSig = pyqtSignal(np.ndarray, int, int, int)
     arrayfpsSig = pyqtSignal(float)
     startSig = pyqtSignal()
     nextSig = pyqtSignal()
     error = pyqtSignal(str)
     ARRAY = []      # Array, shared among workers
-    ARRAYOLD = []      # Array, shared among workers
     BOUNDARY = []
 
     def __init__(self, **kwargs):
@@ -34,6 +34,10 @@ class Handler(QObject):
         self.process(frame1)
         self.arrayinitSig.emit(Handler.ARRAY, frame1['wolfpos'], N, D)
         self.process(frame2)
+
+    def push_single_array(self, frame):
+        self.process(frame)
+        self.arraySingleSig.emit(Handler.ARRAY, frame['wolfpos'])
 
     def next_array(self, frame):
         now = time.time()
@@ -73,7 +77,6 @@ class Handler(QObject):
 
     def resize_array(self, height, width):
         Handler.ARRAY = np.zeros([height, width], bool)
-        Handler.ARRAYOLD = np.zeros([height, width], bool)
 
     def noise_process(self, threshold):
         A = np.random.random(Handler.ARRAY.shape) > threshold

@@ -135,11 +135,12 @@ class EngineOperator(QObject):
 
         # Connect up the signals between the workers
         self.taskman.handlerSig.connect(self.handler.next_array)
+        self.taskman.handlerSingleSig.connect(self.handler.push_single_array)
         self.taskman.handlerinitSig.connect(self.handler.updater_start)
         self.handler.arraySig.connect(self.image.process)
+        self.handler.arraySingleSig.connect(self.image.process_single)
         self.handler.arrayinitSig.connect(self.image.processer_start)
         self.image.nextarraySig.connect(self.taskman.next_frame)
-#       self.handler.nextSig.connect(self.taskman.next_frame)
 
         # Connections for closing threads WORK NECC HERE
         # Need to figure out exactly ho long a thread will stay waiting, what activates

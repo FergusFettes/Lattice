@@ -2,10 +2,11 @@ from PyQt5.QtGui import *
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from functools import partial
 
 import numpy as np
 import time
+from screeninfo import get_monitors
+
 
 class ImageCreator(QObject):
     imageSig = pyqtSignal(QPixmap)
@@ -37,6 +38,8 @@ class ImageCreator(QObject):
         self.wavecounter = 0
         self.savecount = 0
 
+        self.m = get_monitors()
+
     def reset_gifcount(self):
         self.savecount = 0
 
@@ -57,6 +60,8 @@ class ImageCreator(QObject):
         for i in kwargs:
             self.kwargs[i] = kwargs[i]
         self.addColors()
+        self.scale = kwargs['SCALE']
+        print(self.kwargs['FULLSCREEN'])
 
     def addColors(self):
         self.colorList = self.kwargs['COLORLIST']
@@ -101,7 +106,10 @@ class ImageCreator(QObject):
 
 #===============Array processing and Image export=============#
     def send_image(self, image):
-        ims = image.scaled(QSize(self.N * self.scale, self.D * self.scale))
+        if self.kwargs['FULLSCREEN']:
+            ims = image.scaled(QSize(self.m[0].width, self.m[0].height))
+        else:
+            ims = image.scaled(QSize(self.N * self.scale, self.D * self.scale))
         nupix = QPixmap()
         nupix.convertFromImage(ims)
         self.imageSig.emit(nupix)
@@ -109,12 +117,18 @@ class ImageCreator(QObject):
             ims.save('images/temp{:>04d}.png'.format(self.savecount), 'PNG')
             self.savecount += 1
 
+    def process_single(self, array, pos):
+        self.wavecounter = pos
+        self.process_array(array)
+        self.send_image(self.image)
+
     def processer_start(self, array, pos, N, D):
         if not self.ARRAY.shape[0] == N or not self.ARRAY.shape[1] == D:
             self.resize_array(N, D)
         self.wavecounter = pos
         self.process_array(array)
         self.nextarraySig.emit()
+
 
     def process(self, array, pos):
         self.wavecounter = pos

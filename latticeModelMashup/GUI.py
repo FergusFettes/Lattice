@@ -11,6 +11,7 @@ import math
 import ffmpeg
 import os
 import re
+import glob
 
 # Draws the main window and contains the simulation code
 class MainWindow(QWidget):
@@ -93,6 +94,7 @@ class MainWindow(QWidget):
             self.conwayMangled = True
 
     def record_change(self):
+        self.engine.taskthread.requestInterruption()
         value = not self.kwargs['RECORD']
         self.changeKwarg('RECORD', value)
         if value:
@@ -133,7 +135,7 @@ class MainWindow(QWidget):
 
 #=====================Save defaults and GUI ket controls===============#
     def gif_creator(self):
-        filenums = [re.findall('([0-9]{3}).png', i) for i in os.listdir('images')]
+        filenums = [re.findall('([0-9]{4}).png', i) for i in os.listdir('images')]
         fileints = [int(i[0]) for i in filter(None, filenums)]
         rules = ''.join([''.join([str(i) for i in j]) for j in self.kwargs['RULES']])
 
@@ -156,8 +158,9 @@ class MainWindow(QWidget):
             .run()
         )
 
-        for i in range(max(fileints) + 1):
-            os.remove('images/temp{:04d}.png'.format(i))
+        filelist = glob.glob('temp*.png')
+        for i in filelist:
+            os.remove(i)
 
 
     #TODO: make it save the previous configuration before overwriting

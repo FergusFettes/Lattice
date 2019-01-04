@@ -29,8 +29,8 @@ defaults:       &DEFAULTS
                 saturation: 80
                 dim:                            # Screen dimensions (widthxheight)
                         - 300
-                        - 450
-                scale: 3
+                        - 300
+                scale: 2
                 fullscreen: False
                 record: False
 

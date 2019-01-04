@@ -4,6 +4,7 @@ from PyQt5.QtCore import *
 
 import numpy as np
 import time
+import munch
 
 
 ##===============TaskManager===============##
@@ -15,9 +16,9 @@ import time
 class RunController(QObject):
     frameSig = pyqtSignal(int)
     finished = pyqtSignal()
-    handlerSig = pyqtSignal(munch.Munch)
-    handlerSingleSig = pyqtSignal(munch.Munch)
-    handlerinitSig = pyqtSignal(munch.Munch, munch.Munch, list)
+    handlerSig = pyqtSignal(dict)
+    handlerSingleSig = pyqtSignal(dict)
+    handlerinitSig = pyqtSignal(dict, dict, list)
     breakSig = pyqtSignal()
     error = pyqtSignal(str)
 
@@ -25,22 +26,6 @@ class RunController(QObject):
         """Run controller makes sure the run doesnt get out of hand"""
         QObject.__init__(self)
         self.st = st
-        frame={
-            'dim':self.st.canvas.dim,
-            'threshold':self.st.noise.threshold,
-            'noisesteps':0,
-            'clear':0,
-            'isingupdates':0,
-            'conwayrules':[],
-            'beta':self.st.ising.beta,
-            'ub':self.st.bounds.upper,
-            'rb':self.st.bounds.right,
-            'db':self.st.bounds.lower,
-            'lb':self.st.bounds.left,
-            'wolfpole':self.st.wolfram.polarity,
-            'wolfpos':0,
-            'wolfscale':self.st.wolfram.scale,
-            }
 
         self.wavecounter = 0
 
@@ -102,6 +87,22 @@ class RunController(QObject):
         self.frametime = time.time()
 
     def prepare_frame(self):
+        frame={
+            'dim':self.st.canvas.dim,
+            'threshold':self.st.noise.threshold,
+            'noisesteps':0,
+            'clear':0,
+            'isingupdates':0,
+            'conwayrules':[],
+            'beta':self.st.ising.beta,
+            'ub':self.st.bounds.upper,
+            'rb':self.st.bounds.right,
+            'db':self.st.bounds.lower,
+            'lb':self.st.bounds.left,
+            'wolfpole':self.st.wolfram.polarity,
+            'wolfpos':0,
+            'wolfscale':self.st.wolfram.scale,
+            }
         self.wavecounter += self.st.wolfram.scale
         self.wavecounter %= self.st.canvas.dim[0]
         frame['wolfpos'] = self.wavecounter

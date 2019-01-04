@@ -12,7 +12,7 @@ import ffmpeg
 import os
 import re
 import glob
-import munch
+from munch import *
 from yaml import dump
 
 # Draws the main window and contains the simulation code
@@ -42,35 +42,86 @@ class MainWindow(QWidget):
         self.initGUI(st)
 
 #=====================Settings controllers================#
-    def Kwarger(self, st, callback):
-        self.changeKwarg(st, callback())
-
-    def changeKwarg(self, st, nuVal):
-        print('Changing {}'.format(st))
-        st = nuVal
-        print(st)
-        self.kwarg_send_timer.start()
-
     def kwarg_send(self):
         print('Sending new kwargs')
-        self.engine.update_kwargs(st)
+        self.engine.update_kwargs(self.st)
         self.kwarg_send_timer.stop()
 
+    def wolfram_rule(self, val):
+        self.st.wolfram.rule = val()
+        self.kwarg_send_timer.start()
+
+    def wolfram_scale(self, val):
+        self.st.wolfram.scale = val()
+        self.kwarg_send_timer.start()
+
+    def general_wolfwave(self, val):
+        self.st.general.wolfwave = val()
+        self.kwarg_send_timer.start()
+
+    def wolfram_polarity(self, val):
+        self.st.wolfram.polarity = val()
+        self.kwarg_send_timer.start()
+
+    def bounds_upper(self, val):
+        self.st.bounds.upper = val()
+        self.kwarg_send_timer.start()
+
+    def bounds_lower(self, val):
+        self.st.bounds.lower = val()
+        self.kwarg_send_timer.start()
+
+    def bounds_right(self, val):
+        self.st.bounds.right = val()
+        self.kwarg_send_timer.start()
+
+    def bounds_left(self, val):
+        self.st.bounds.left = val()
+        self.kwarg_send_timer.start()
+
+    def canvas_dim(self, val, dim):
+        self.st.canvas.dim[dim] = val()
+        self.kwarg_send_timer.start()
+
+    def ising_updates(self, val):
+        self.st.ising.updates = val()
+        self.kwarg_send_timer.start()
+
+    def ising_equilibrate(self, val):
+        self.st.ising.equilibrate = val()
+        self.kwarg_send_timer.start()
+
+    def ising_degree(self, val):
+        self.st.ising.degree = val()
+        self.kwarg_send_timer.start()
+
+    def canvas_scale(self, val):
+        self.st.canvas.scale = val()
+        self.kwarg_send_timer.start()
+
+    def general_stochastic(self, val):
+        self.st.general.stochastic = val()
+        self.kwarg_send_timer.start()
+
     def frameChange(self):
-        self.changeKwarg(self.st.general.runtodo, self.frameCtrl.value())
+        self.st.general.runtodo = self.frameCtrl.value()
+        self.kwarg_send_timer.start()
 
     def speedChange(self):
-        self.changeKwarg(self.st.general.frametime, 1 / self.speedCtrl.value())
+        self.st.general.frametime = 1 / self.speedCtrl.value()
         self.speedLabel.setText('Max FPS = {:d}'.format(int(self.speedCtrl.value())))
+        self.kwarg_send_timer.start()
 
     def coverageChange(self):
         coverage = self.thresholdCtrl.value()
-        self.changeKwarg(self.st.noise.threshold, self.threshval[coverage])
+        self.st.noise.threshold = self.threshval[coverage]
         self.thresholdLabel.setText('Threshold = {:2.2f}'.format(self.threshval[coverage]))
+        self.kwarg_send_timer.start()
 
     def sliderChange(self):
-        self.changeKwarg(self.st.ising.beta, self.tempCtrl.value() / 100)
+        self.st.ising.beta = self.tempCtrl.value() / 100
         self.tempLabel.setText('Beta = {:01.2f}'.format(self.tempCtrl.value() / 100))
+        self.kwarg_send_timer.start()
 
     def choose_color(self, callback, *args):
         dlg = QColorDialog()
@@ -80,8 +131,9 @@ class MainWindow(QWidget):
     def set_color(self, hexx, button, num):
         templist = self.st.canvas.colorlist
         templist[num] = QColor(hexx).rgba()
-        self.changeKwarg(self.st.canvas.colorlist, templist)
+        self.st.canvas.colorlist = templist
         button.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
+        self.kwarg_send_timer.start()
 
     #TODO: get rid of this, its dumb
     def conway_mangler(self):
@@ -97,7 +149,7 @@ class MainWindow(QWidget):
     def record_change(self):
         self.engine.taskthread.requestInterruption()
         value = not self.st.canvas.record
-        self.changeKwarg(self.st.canvas.record, value)
+        self.st.canvas.record = value
         if value:
             self.record.setStyleSheet('QPushButton { background-color: %s; }' %  \
                                             QColor(Qt.red).name())
@@ -106,6 +158,7 @@ class MainWindow(QWidget):
                                             QColor(Qt.white).name())
             self.gif_creator()
             self.engine.reset_gifcount()
+        self.kwarg_send_timer.start()
 
 
     def rulesChange(self):
@@ -128,11 +181,13 @@ class MainWindow(QWidget):
     def send_rule(self):
         print('Rule sending!')
         rules = [[int(j) for j in i] for i in self.rul]
-        self.changeKwarg(self.st.conway.rules, rules)
-        self.changeKwarg(self.st.general.conway, not rules == [])
+        self.st.conway.rules = rules
+        self.st.general.conway = not rules == []
+        self.kwarg_send_timer.start()
 
     def make_fullscreen(self):
-        self.changeKwarg(self.st.general.fullscreen, not self.st.general.fullscreen)
+        self.st.general.fullscreen = not self.st.general.fullscreen
+        self.kwarg_send_timer.start()
 
 #=====================Save defaults and GUI ket controls===============#
     def gif_creator(self):
@@ -175,9 +230,10 @@ class MainWindow(QWidget):
         if e.key() == Qt.Key_Escape:
             if self.engine.updatethread.isRunning() or self.engine.imagethread.isRunning()\
                     or self.engine.taskthread.isRunning():
-                self.changeKwarg('EQUILIBRATE', False)
-                self.changeKwarg('CLEAR', False)
-                self.changeKwarg('RUN', False)
+                self.st.general.equilibrate = False
+                self.st.general.clear = False
+                self.st.general.running = False
+                self.kwarg_send()
                 self.engine.taskthread.requestInterruption()
                 self.engine.updatethread.requestInterruption()
                 self.engine.imagethread.quit()
@@ -310,20 +366,20 @@ class MainWindow(QWidget):
         self.wolfRule.setSingleStep(1)
         self.wolfRule.setValue(self.st.wolfram.rule)
         self.wolfRule.setMaximumSize(100, 40)
-        self.wolfRule.valueChanged.connect(partial(self.Kwarger,
-                                            self.st.wolfram.rule, self.wolfRule.value))
+        self.wolfRule.valueChanged.connect(partial(self.wolfram_rule,
+                                            self.wolfRule.value))
         self.wolfScaleLabel = QLabel('Scale')
         self.wolfScale = QSpinBox()
         self.wolfScale.setRange(1, 100)
         self.wolfScale.setSingleStep(1)
         self.wolfScale.setValue(self.st.wolfram.scale)
         self.wolfScale.setMaximumSize(100, 40)
-        self.wolfScale.valueChanged.connect(partial(self.Kwarger,
-                                            self.st.wolfram.scale, self.wolfScale.value))
+        self.wolfScale.valueChanged.connect(partial(self.wolfram_scale,
+                                                self.wolfScale.value))
         self.wolfCheck = QCheckBox('WolfWaveTM')
-        self.wolfCheck.setChecked(self.st.general.wolfram)
-        self.wolfCheck.stateChanged.connect(partial(self.Kwarger,
-                                            self.st.general.wolfram, self.wolfCheck.isChecked))
+        self.wolfCheck.setChecked(self.st.general.wolfwave)
+        self.wolfCheck.stateChanged.connect(partial(self.general_wolfwave,
+                                            self.wolfCheck.isChecked))
         vbWolf = QVBoxLayout()
         hbt = QHBoxLayout()
         hbt.addWidget(self.automataLabel)
@@ -349,8 +405,8 @@ class MainWindow(QWidget):
         self.UB.setRange(-1, 1)
         self.UB.setValue(self.st.bounds.upper)
         self.UB.setMaximumSize(40, 40)
-        self.UB.valueChanged.connect(partial(self.Kwarger,
-                                        self.st.bounds.upper, self.UB.value))
+        self.UB.valueChanged.connect(partial(self.bounds_upper,
+                                        self.UB.value))
         hlineUB = QFrame()
         hlineUB.setFrameShape(QFrame.HLine)
         hlineUB.setFrameShadow(QFrame.Sunken)
@@ -359,8 +415,8 @@ class MainWindow(QWidget):
         self.LB.setRange(-1, 1)
         self.LB.setValue(self.st.bounds.lower)
         self.LB.setMaximumSize(40, 40)
-        self.LB.valueChanged.connect(partial(self.Kwarger,
-                                        self.st.bounds.lower, self.LB.value))
+        self.LB.valueChanged.connect(partial(self.bounds_lower,
+                                        self.LB.value))
         vlineLB = QFrame()
         vlineLB.setFrameShape(QFrame.VLine)
         vlineLB.setFrameShadow(QFrame.Sunken)
@@ -370,8 +426,8 @@ class MainWindow(QWidget):
         self.wolfPole.setRange(-1, 1)
         self.wolfPole.setValue(self.st.wolfram.polarity)
         self.wolfPole.setMaximumSize(40, 40)
-        self.wolfPole.valueChanged.connect(partial(self.Kwarger,
-                                         self.st.wolfram.polarity, self.wolfPole.value))
+        self.wolfPole.valueChanged.connect(partial(self.wolfram_polarity,
+                                         self.wolfPole.value))
         vlineWB = QFrame()
         vlineWB.setFrameShape(QFrame.VLine)
         vlineWB.setFrameShadow(QFrame.Sunken)
@@ -380,8 +436,8 @@ class MainWindow(QWidget):
         self.RB.setRange(-1, 1)
         self.RB.setMaximumSize(40, 40)
         self.RB.setValue(self.st.bounds.right)
-        self.RB.valueChanged.connect(partial(self.Kwarger,
-                                        self.st.bounds.right, self.RB.value))
+        self.RB.valueChanged.connect(partial(self.bounds_right,
+                                        self.RB.value))
         vlineRB = QFrame()
         vlineRB.setFrameShape(QFrame.VLine)
         vlineRB.setFrameShadow(QFrame.Sunken)
@@ -390,8 +446,8 @@ class MainWindow(QWidget):
         self.DB.setRange(-1, 1)
         self.DB.setValue(self.st.bounds.lower)
         self.DB.setMaximumSize(40, 40)
-        self.DB.valueChanged.connect(partial(self.Kwarger,
-                                        self.st.bounds.lower, self.DB.value))
+        self.DB.valueChanged.connect(partial(self.bounds_lower,
+                                        self.DB.value))
         hlineDB = QFrame()
         hlineDB.setFrameShape(QFrame.HLine)
         hlineDB.setFrameShadow(QFrame.Sunken)
@@ -422,15 +478,15 @@ class MainWindow(QWidget):
         self.NCtrl.setSingleStep(10)
         self.NCtrl.setValue(self.st.canvas.dim[0])
         self.NCtrl.setMaximumSize(100, 40)
-        self.NCtrl.valueChanged.connect(partial(self.Kwarger,
-                                        self.st.canvas.dim[0], self.NCtrl.value))
+        self.NCtrl.valueChanged.connect(partial(self.canvas_dim,
+                                        self.NCtrl.value, 0))
         self.DCtrl = QSpinBox()
         self.DCtrl.setRange(10, 1000)
         self.DCtrl.setSingleStep(10)
         self.DCtrl.setValue(self.st.canvas.dim[1])
         self.DCtrl.setMaximumSize(100, 40)
-        self.DCtrl.valueChanged.connect(partial(self.Kwarger,
-                                        self.st.canvas.dim[1], self.DCtrl.value))
+        self.DCtrl.valueChanged.connect(partial(self.canvas_dim,
+                                        self.DCtrl.value, 1))
         MonteUpLab = QLabel('Monte= ')
         MonteUpLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.MonteUpCtrl = QSpinBox()
@@ -438,8 +494,8 @@ class MainWindow(QWidget):
         self.MonteUpCtrl.setSingleStep(100)
         self.MonteUpCtrl.setValue(self.st.ising.updates)
         self.MonteUpCtrl.setMaximumSize(100, 40)
-        self.MonteUpCtrl.valueChanged.connect(partial(self.Kwarger,
-                                        self.st.ising.updates, self.MonteUpCtrl.value))
+        self.MonteUpCtrl.valueChanged.connect(partial(self.ising_updates,
+                                        self.MonteUpCtrl.value))
         LongLab = QLabel('Long#= ')
         LongLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.LongCtrl = QSpinBox()
@@ -447,8 +503,17 @@ class MainWindow(QWidget):
         self.LongCtrl.setSingleStep(10000)
         self.LongCtrl.setValue(self.st.ising.equilibrate)
         self.LongCtrl.setMaximumSize(100, 40)
-        self.LongCtrl.valueChanged.connect(partial(self.Kwarger,
-                                        self.st.ising.equilibrate, self.LongCtrl.value))
+        self.LongCtrl.valueChanged.connect(partial(self.ising_equilibrate,
+                                        self.LongCtrl.value))
+        DegreeLab = QLabel('Degree= ')
+        DegreeLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.DegreeCtrl = QSpinBox()
+        self.DegreeCtrl.setRange(2, 10)
+        self.DegreeCtrl.setSingleStep(1)
+        self.DegreeCtrl.setValue(self.st.ising.degree)
+        self.DegreeCtrl.setMaximumSize(100, 40)
+        self.DegreeCtrl.valueChanged.connect(partial(self.ising_degree,
+                                        self.DegreeCtrl.value))
         ScaleLab = QLabel('Scale= ')
         ScaleLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.ScaleCtrl = QSpinBox()
@@ -456,8 +521,8 @@ class MainWindow(QWidget):
         self.ScaleCtrl.setSingleStep(1)
         self.ScaleCtrl.setValue(self.st.canvas.scale)
         self.ScaleCtrl.setMaximumSize(100, 40)
-        self.ScaleCtrl.valueChanged.connect(partial(self.Kwarger,
-                                        self.st.canvas.scale, self.ScaleCtrl.value))
+        self.ScaleCtrl.valueChanged.connect(partial(self.canvas_scale,
+                                        self.ScaleCtrl.value))
         SaveDefaults = QPushButton('Save Defaults')
         SaveDefaults.clicked.connect(self.save_defaults)
         defGr = QGridLayout()
@@ -627,9 +692,9 @@ class MainWindow(QWidget):
         rbbRt.addWidget(self.frameLabel)
         rbbRt.addWidget(self.frameCtrl)
         self.stochasticBox = QCheckBox('Stochi')
-        self.stochasticBox.setChecked(self.st.general.ising)
-        self.stochasticBox.stateChanged.connect(partial(self.Kwarger,
-                                    self.st.general.ising, self.stochasticBox.isChecked))
+        self.stochasticBox.setChecked(self.st.general.stochastic)
+        self.stochasticBox.stateChanged.connect(partial(self.general_stochastic,
+                                                    self.stochasticBox.isChecked))
 
         rbbR.addLayout(rbbRt)
         rbbR.addWidget(self.stochasticBox)

@@ -6,7 +6,7 @@ from PyQt5.QtCore import *
 
 from GUI import MainWindow
 import random as ra
-import munch
+from munch import *
 from yaml import load
 
 if __name__ == '__main__':
@@ -21,6 +21,7 @@ if __name__ == '__main__':
     except:
         print('No saved file, using defaults')
         st = munchify(yaml['defaults'])
+
 
     st.canvas.colorlist[0:4] = [colHex1, colHex2, colHex3, colHex4]
     app = QApplication([])

@@ -23,7 +23,7 @@ class ImageCreator(QObject):
         self.colorList = st.canvas.colorlist
         self.wolfram_color_offset = 2
 
-        self.scale = kwargs['SCALE']
+        self.scale = st.canvas.scale
         self.fpsRoll = np.zeros(9, float)
         self.st = st
 

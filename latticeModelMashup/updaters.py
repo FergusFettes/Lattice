@@ -13,7 +13,7 @@ import time
 class Handler(QObject):
     arraySig = pyqtSignal(np.ndarray, int)
     arraySingleSig = pyqtSignal(np.ndarray, int)
-    arrayinitSig = pyqtSignal(np.ndarray, int, int, int)
+    arrayinitSig = pyqtSignal(np.ndarray, int, list)
     arrayfpsSig = pyqtSignal(float)
     startSig = pyqtSignal()
     nextSig = pyqtSignal()
@@ -49,7 +49,7 @@ class Handler(QObject):
 
     def process(self, job):
         if job['clear']:
-            self.resize_array(Handler.ARRAY.shape[0], Handler.ARRAY.shape[1])
+            self.resize_array(Handler.ARRAY.shape)
         if job['wolfpole'] >= 0:
             self.clear_wavefront(job['wolfpos'], job['wolfscale'], job['wolfpole'])
         for i in range(job['noisesteps']):

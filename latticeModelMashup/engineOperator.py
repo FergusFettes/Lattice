@@ -7,6 +7,8 @@ from updaters import *
 from imageProcessing import *
 from taskman import *
 
+import munch
+
 import numpy as np
 import time
 import sys
@@ -125,9 +127,9 @@ class EngineOperator(QObject):
         self.taskthread = QThread()
         self.imagethread = QThread()
         self.updatethread = QThread()
-        self.handler = Handler(**self.kwargs)
-        self.taskman = RunController(**self.kwargs)
-        self.image = ImageCreator(**self.kwargs)
+        self.handler = Handler(self.st)
+        self.taskman = RunController(self.st)
+        self.image = ImageCreator(self.st)
         self.taskman.moveToThread(self.taskthread)
         self.handler.moveToThread(self.updatethread)
         self.image.moveToThread(self.imagethread)

@@ -20,40 +20,39 @@ import queue as queue
 # This is the interface between the GUI and the threads.
 # Controls the Updater thread and the CanvasThread
 class EngineOperator(QObject):
-    settingsSig = pyqtSignal(dict)
+    settingsSig = pyqtSignal(munch.Munch)
     interruptSig = pyqtSignal()
     backgroundSig = pyqtSignal()
     gifresetSig = pyqtSignal()
-    plainSig = pyqtSignal(int, int)
+    plainSig = pyqtSignal(list)
 
-    def __init__(self, canvas, frameLabel, arrayfpsLabel, canvasfpsLabel, **kwargs):
+    def __init__(self, canvas, frameLabel, arrayfpsLabel, canvasfpsLabel, st):
     # The kwargs consists of the following: speed, updates, frames, beta,
     # stochastic?, threshold/coverage.
         QObject.__init__(self)
-        self.kwargs = kwargs
+        self.st = st
         self.canvas = canvas
         self.frameLabel = frameLabel
         self.arrayfpsLabel = arrayfpsLabel
         self.canvasfpsLabel = canvasfpsLabel
         self.mainUpdates = 0
 
-        self.N = kwargs['N']
-        self.D = kwargs['D']
-
         self.taskman_init()
 
 #=============Thread Communicators======#
-    def update_kwargs(self, **kwargs):
-        for i in kwargs:
-            self.kwargs[i] = kwargs[i]
-        self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
+    def update_kwargs(self, st):
+        self.st = st
+        self.settingsSig.emit(self.st)
 
     def reset_gifcount(self):
         self.gifresetSig.emit()
 
     def breaker(self):
         print('Breaker!')
-        self.update_kwargs(RUN=False, CLEAR=False, EQUILIRATE=False)
+        self.st.general.running = False
+        self.st.general.equilibrate = False
+        self.st.general.clear = False
+        self.settingsSig.emit(self.st)
 
     def thread_looper(self):
         print('Thread standing by.')
@@ -61,33 +60,45 @@ class EngineOperator(QObject):
 #===============Run Initiators=============#
     def static_run(self):
         self.taskthread.requestInterruption()
-        self.update_kwargs(RUN=True, EQUILIBRATE=False, CLEAR=False, RUNFRAMES=(self.kwargs['IMAGEUPDATES']-2))
+        self.st.general.running = True
+        self.st.general.equilibrate = False
+        self.st.general.clear = False
+        self.st.general.runframes = -2
+        self.settingsSig.emit(self.st)
         self.taskthread.start()
 
     def dynamic_run(self):
         self.taskthread.requestInterruption()
-        self.update_kwargs(RUN=True, EQUILIBRATE=False, CLEAR=False, RUNFRAMES=0)
+        self.st.general.running = True
+        self.st.general.equilibrate = False
+        self.st.general.clear = False
+        self.st.general.runframes = 0
+        self.settingsSig.emit(self.st)
         self.taskthread.start()
 
     def long_run(self):
         self.taskthread.requestInterruption()
-        self.update_kwargs(RUN=False, EQUILIBRATE=True, CLEAR=False, RUNFRAMES=(self.kwargs['IMAGEUPDATES']-2))
+        self.st.general.running = False
+        self.st.general.equilibrate = True
+        self.st.general.clear = False
+        self.st.general.runframes = -3
+        self.settingsSig.emit(self.st)
         self.taskthread.start()
 
     def clear_background(self):
-        self.settingsSig.emit({i:self.kwargs[i] for i in self.kwargs})
+        self.settingsSig.emit(self.st)
         self.backgroundSig.emit()
         self.imagethread.start()
 
     def clear_array(self):
         self.taskthread.requestInterruption()
-        self.update_kwargs(RUN=False, CLEAR=True, EQUILIBRATE=False, RUNFRAMES=(self.kwargs['IMAGEUPDATES']-2))
-        self.plainSig.emit(self.kwargs['N'], self.kwargs['D'])
+        self.st.general.running = False
+        self.st.general.equilibrate = False
+        self.st.general.clear = True
+        self.st.general.runframes = -3
+        self.settingsSig.emit(self.st)
+        self.plainSig.emit(self.st.canvas.dim)
         self.imagethread.start()
-        self.taskthread.start()
-
-    def noise_array(self):
-        pass
         self.taskthread.start()
 
 #===============GUI updaters=============#
@@ -102,7 +113,7 @@ class EngineOperator(QObject):
     def frame_value_update(self, value):
         self.frameLabel.setText(str(value))
         if not value % 10:
-            self.kwargs['RUNFRAMES'] = value
+            self.st.general.runframes = value
 
     def error_string(self, error='Unlabelled Error! Oh no!'):
         print(error)
@@ -161,5 +172,3 @@ class EngineOperator(QObject):
         self.image.error.connect(self.error_string)
         self.handler.error.connect(self.error_string)
         self.image.imageSig.connect(self.canvas.paint)
-
-#       self.taskthread.start()

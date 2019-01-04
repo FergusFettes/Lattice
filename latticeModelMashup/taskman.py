@@ -15,43 +15,52 @@ import time
 class RunController(QObject):
     frameSig = pyqtSignal(int)
     finished = pyqtSignal()
-    handlerSig = pyqtSignal(dict)
-    handlerSingleSig = pyqtSignal(dict)
-    handlerinitSig = pyqtSignal(dict, dict, int, int)
-#   isingSig = pyqtSignal(int, float)
-#   noiseSig = pyqtSignal(float)
-#   conwaySig = pyqtSignal(list)
-#   clearSig = pyqtSignal(float, int, int)
-#   boundSig = pyqtSignal(int)
-#   waveSig = pyqtSignal(int, int, int)
+    handlerSig = pyqtSignal(munch.Munch)
+    handlerSingleSig = pyqtSignal(munch.Munch)
+    handlerinitSig = pyqtSignal(munch.Munch, munch.Munch, list)
     breakSig = pyqtSignal()
     error = pyqtSignal(str)
 
-    def __init__(self, **kwargs):
+    def __init__(self, st):
         """Run controller makes sure the run doesnt get out of hand"""
         QObject.__init__(self)
-        self.st = kwargs
-        self.fpsTimer = QTimer(self)
-        # Maximum fps = 1000 / the following
-        self.fpsTimer.setInterval(1)
-        self.mainTime = QTimer(self)
+        self.st = st
+        frame={
+            'dim':self.st.canvas.dim,
+            'threshold':self.st.noise.threshold,
+            'noisesteps':0,
+            'clear':0,
+            'isingupdates':0,
+            'conwayrules':[],
+            'beta':self.st.ising.beta,
+            'ub':self.st.bounds.upper,
+            'rb':self.st.bounds.right,
+            'db':self.st.bounds.lower,
+            'lb':self.st.bounds.left,
+            'wolfpole':self.st.wolfram.polarity,
+            'wolfpos':0,
+            'wolfscale':self.st.wolfram.scale,
+            }
+
         self.wavecounter = 0
+
         # How often does a dynamic run break to look for new settings?
+        self.mainTime = QTimer(self)
         self.mainTime.setInterval(99000)
 
 #==============Changes the internal settings================#
 # Should make the event queue feeding this baby LIFO
-    def change_settings(self, kwargs):
-        for i in kwargs:
-            self.st[i] = kwargs[i]
+    def change_settings(self, st):
+        self.st = st
 
 #===============MAIN PROCESS OF THE THREAD===================#
     def process(self):
         QCoreApplication.processEvents()
-        if self.st['CLEAR'] or self.st['EQUILIBRATE']:
+        if self.st.general.runframes == -3:
             self.push_single_frame()
-        elif 1==2:
-            self.error.emit('nothing should be coming throuh here!')
+            self.st.general.runframes += 1
+        if self.st.general.runframes == -2:
+            self.error.emit('setup single step!')
         else:
             self.init_new_process()
 
@@ -59,7 +68,7 @@ class RunController(QObject):
         self.mainTime.start()
         frame1 = self.prepare_frame()
         frame2 = self.prepare_frame()
-        self.handlerinitSig.emit(frame1, frame2, self.st['N'], self.st['D'])
+        self.handlerinitSig.emit(frame1, frame2, self.st.canvas.dim)
         self.frame = self.prepare_frame()
         self.frametime = time.time()
 
@@ -71,13 +80,14 @@ class RunController(QObject):
 
     def next_frame(self):
         QCoreApplication.processEvents()
-        while time.time() - self.frametime < self.st['SPEED']:
+        while time.time() - self.frametime < self.st.general.frametime:
             QThread.msleep(1)
-        if self.st['RUNFRAMES'] == 1:
-            self.error.emit('Cleared / Equilibrated / Stepped')
+        if self.st.general.rundone == -1:
+            self.error.emit('Step/Clear/Equilibrate done')
             self.finished.emit()
             return
-        if 0 <= self.st['IMAGEUPDATES'] <= self.st['RUNFRAMES']:
+        if self.st.general.runtodo > 0\
+                and self.st.general.rundone >= self.st.general.runtodo:
             self.error.emit('Run finished')
             self.finished.emit()
             return
@@ -85,62 +95,39 @@ class RunController(QObject):
             self.error.emit('Interrupted')
             self.finished.emit()
             return
-        if not self.st['RUN'] and not self.st['EQUILIBRATE'] and not self.st['CLEAR']:
-            self.error.emit('Nothing happening!')
-            self.finished.emit()
-            return
         self.handlerSig.emit(self.frame)
         self.frame = self.prepare_frame()
+        self.st.general.rundone += 1
+        self.frameSig.emit(self.st.general.rundone)
         self.frametime = time.time()
 
     def prepare_frame(self):
-        frame={
-            'n':self.st['N'],
-            'd':self.st['D'],
-            'threshold':self.st['THRESHOLD'],
-            'noisesteps':0,
-            'clear':0,
-            'isingupdates':0,
-            'conwayrules':[],
-            'beta':self.st['BETA'],
-            'ub':self.st['UB'],
-            'rb':self.st['RB'],
-            'db':self.st['DB'],
-            'lb':self.st['LB'],
-            'wolfpole':self.st['WOLFPOLARITY'],
-            'wolfpos':0,
-            'wolfscale':self.st['WOLFSCALE'],
-            }
-        self.wavecounter += self.st['WOLFSCALE']
-        self.wavecounter %= self.st['N']
+        self.wavecounter += self.st.wolfram.scale
+        self.wavecounter %= self.st.canvas.dim[0]
         frame['wolfpos'] = self.wavecounter
-        if self.st['WOLFWAVE'] == 0:
+        if self.st.general.wolfwave == 0:
             frame['wolfpole'] = -1
-        if self.st['EQUILIBRATE']:
+        if self.st.general.equilibrate:
             frame['conwayrules'] = []
-            frame['isingupdates'] = self.st['LONGNUM']
+            frame['isingupdates'] = self.st.ising.equilibrate
             self.error.emit('Equilibration Starting!')
-            self.st['RUNFRAMES'] += 1
-        if self.st['CLEAR']:
+        if self.st.general.clear:
             frame['conwayrules'] = []
             frame['isingupdates'] = 0
             frame['noisesteps'] = 1
             frame['clear'] = 1
-            self.st['RUNFRAMES'] += 1
-        if self.st['RUN']:
-            rules = self.st['RULES']
+        if self.st.general.running:
+            rules = self.st.conway.rules
             if len(rules) == 0:
                 rule = []
             else:
-                rule = rules[self.st['RUNFRAMES'] % len(rules)]
-            if self.st['CONWAY'] and self.st['STOCHASTIC']:
-                if self.st['RUNFRAMES'] % 2:
+                rule = rules[self.st.general.runframes % len(rules)]
+            if self.st.general.conway and self.st.general.stochastic:
+                if self.st.general.rundone % 2:
                     frame['noisesteps'] = 1
                 else:
                     frame['conwayrules'] = rule
             else:
-                frame['isingupdates'] = self.st['MONTEUPDATES'] * self.st['STOCHASTIC']
+                frame['isingupdates'] = self.st.ising.updates * self.st.general.stochastic
                 frame['conwayrules'] = rule
-            self.st['RUNFRAMES'] += 1
-            self.frameSig.emit(self.st['RUNFRAMES'])
         return frame

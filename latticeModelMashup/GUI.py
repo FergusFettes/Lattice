@@ -12,64 +12,64 @@ import ffmpeg
 import os
 import re
 import glob
+import munch
+from yaml import dump
 
 # Draws the main window and contains the simulation code
 class MainWindow(QWidget):
 
     # Initialises the window and variables. Very uncertain about which
     # variables should go where, but it's fine for now I guess.
-    def __init__(self, **DEFAULTS):
+    def __init__(self, st):
         super().__init__()
 
         # Internal Vars
-        # This is the sigmoid for converting the 'coverage percent' (lie) to a threshold.
+        # This is the sigmoid for makeing the threshold.
         # To make it less steep (ie less flat at the top and bottom), reduce the #24.
         self.threshval = list(map((lambda x:1 - (1 / (1 + math.exp(-(x - 0.5) * 24)))), np.arange(100) / 100))
         self.conwayMangled = False
-        # Degree of the Potts model
-###     self.deg = DEFAULTS['DEGREE']   # Will the poor old Potts model ever make a comeback? Let's see.
 
-        # Save kwargs
-        self.kwargs = DEFAULTS
+        # Save settings
+        self.st = st
 
         # INITS
         self.kwarg_send_timer = QTimer()
         self.kwarg_send_timer.timeout.connect(self.kwarg_send)
-        # This means that you have to stop manipulating the controls for a full three
-        # seconds for the changes to be sent to the thread. This stops uneccesary
+        # This means that you have to stop manipulating the controls for half a
+        # second for the changes to be sent to the thread. This stops uneccesary
         # restarts, but needs to be tuned for comfort.
         self.kwarg_send_timer.setInterval(500)
-        self.initGUI(**DEFAULTS)
+        self.initGUI(st)
 
 #=====================Settings controllers================#
-    def Kwarger(self, kwarg, callback):
-        self.changeKwarg(kwarg, callback())
+    def Kwarger(self, st, callback):
+        self.changeKwarg(st, callback())
 
-    def changeKwarg(self, kwarg, nuVal):
-        print('Changing {}'.format(kwarg))
-        self.kwargs[kwarg] = nuVal
-        print(self.kwargs[kwarg])
+    def changeKwarg(self, st, nuVal):
+        print('Changing {}'.format(st))
+        st = nuVal
+        print(st)
         self.kwarg_send_timer.start()
 
     def kwarg_send(self):
         print('Sending new kwargs')
-        self.engine.update_kwargs(**self.kwargs)
+        self.engine.update_kwargs(st)
         self.kwarg_send_timer.stop()
 
     def frameChange(self):
-        self.changeKwarg('IMAGEUPDATES', self.frameCtrl.value())
+        self.changeKwarg(self.st.general.runtodo, self.frameCtrl.value())
 
     def speedChange(self):
-        self.changeKwarg('SPEED', 1 / self.speedCtrl.value())
+        self.changeKwarg(self.st.general.frametime, 1 / self.speedCtrl.value())
         self.speedLabel.setText('Max FPS = {:d}'.format(int(self.speedCtrl.value())))
 
     def coverageChange(self):
         coverage = self.thresholdCtrl.value()
-        self.changeKwarg('THRESHOLD', self.threshval[coverage])
+        self.changeKwarg(self.st.noise.threshold, self.threshval[coverage])
         self.thresholdLabel.setText('Threshold = {:2.2f}'.format(self.threshval[coverage]))
 
     def sliderChange(self):
-        self.changeKwarg('BETA', self.tempCtrl.value() / 100)
+        self.changeKwarg(self.st.ising.beta, self.tempCtrl.value() / 100)
         self.tempLabel.setText('Beta = {:01.2f}'.format(self.tempCtrl.value() / 100))
 
     def choose_color(self, callback, *args):
@@ -78,11 +78,12 @@ class MainWindow(QWidget):
             callback(dlg.selectedColor().name(), *args)
 
     def set_color(self, hexx, button, num):
-        templist = self.kwargs['COLORLIST']
+        templist = self.st.canvas.colorlist
         templist[num] = QColor(hexx).rgba()
-        self.changeKwarg('COLORLIST', templist)
+        self.changeKwarg(self.st.canvas.colorlist, templist)
         button.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
 
+    #TODO: get rid of this, its dumb
     def conway_mangler(self):
         if self.conwayMangled:
             old = self.conwayRules.toPlainText()
@@ -95,8 +96,8 @@ class MainWindow(QWidget):
 
     def record_change(self):
         self.engine.taskthread.requestInterruption()
-        value = not self.kwargs['RECORD']
-        self.changeKwarg('RECORD', value)
+        value = not self.st.canvas.record
+        self.changeKwarg(self.st.canvas.record, value)
         if value:
             self.record.setStyleSheet('QPushButton { background-color: %s; }' %  \
                                             QColor(Qt.red).name())
@@ -112,9 +113,6 @@ class MainWindow(QWidget):
         regexMatchString=r'([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:,\ ?)([0-9])(?:;\ ?)'
         text = self.conwayRules.toPlainText()
         strTest = re.match(regexTestString, text)
-        # This timer waits for ten seconds for you to dick about with the rules before
-        # sending them to the engine. If you get caught with your pants down, conway will
-        # turn off for some seconds.
         if strTest is None:
             self.conwayPalette.setColor(QPalette.Base, Qt.red)
             self.conwayRules.setPalette(self.conwayPalette)
@@ -130,18 +128,17 @@ class MainWindow(QWidget):
     def send_rule(self):
         print('Rule sending!')
         rules = [[int(j) for j in i] for i in self.rul]
-        self.changeKwarg('RULES', rules)
-        self.changeKwarg('CONWAY', not rules == [])
+        self.changeKwarg(self.st.conway.rules, rules)
+        self.changeKwarg(self.st.general.conway, not rules == [])
 
     def make_fullscreen(self):
-        newval = not self.kwargs['FULLSCREEN']
-        self.changeKwarg('FULLSCREEN', newval)
+        self.changeKwarg(self.st.general.fullscreen, not self.st.general.fullscreen)
 
 #=====================Save defaults and GUI ket controls===============#
     def gif_creator(self):
         filenums = [re.findall('([0-9]{4}).png', i) for i in os.listdir('images')]
         fileints = [int(i[0]) for i in filter(None, filenums)]
-        rules = ''.join([''.join([str(i) for i in j]) for j in self.kwargs['RULES']])
+        rules = ''.join([''.join([str(i) for i in j]) for j in self.st.conway.rules])
 
 # Watermark, off for now
 #       overlay_file = ffmpeg.input('images/watermark.png')
@@ -157,10 +154,11 @@ class MainWindow(QWidget):
             ffmpeg
             .input('images/temp%04d.png')
             .output('images/{3}x{4}-frames:{2}-wolf:{1}-rule:{0}.gif'.format(
-                rules, self.kwargs['WOLFWAVE'], max(fileints),
-                self.kwargs['D'], self.kwargs['N']), framerate=5, f='gif')
+                rules, self.st.general.wolfwave, max(fileints),
+                self.st.canvas.dim[0], self.st.canvas.dim[1]), framerate=5, f='gif')
             .run()
         )
+        #TODO: I dont think the framerate variable is doing anything
 
         filelist = glob.glob('images/temp*.png')
         for i in filelist:
@@ -169,9 +167,7 @@ class MainWindow(QWidget):
 
     #TODO: make it save the previous configuration before overwriting
     def save_defaults(self):
-        with open('save.txt', 'w') as file:
-            savestr = ''.join(['{0}:{1};'.format(i, self.kwargs[i]) for i in self.kwargs])
-            file.write(savestr)
+        yaml.dump(unmunchify(self.st), open('sav/conf.yml', 'w'))
 
     def keyPressEvent(self, e):
         print(e.key())
@@ -235,17 +231,17 @@ class MainWindow(QWidget):
 ##==========================THEGUI==============================##
 ##==============================================================##
     # Initialise GUI
-    def initGUI(self, **DEFAULTS):
+    def initGUI(self, st):
         # Initialise the thread manager and painter and feed them the UI elements they
         # need to control. TODO: cleaner way of connecting signals to a parent? Using
         # Super perhaps? TODO: pass the guys with args anyway no?
         self.canvas = Canvas()
-        self.canvas.initialize(**DEFAULTS)
+        self.canvas.initialize(st)
         self.frameLabel = QLabel()
         self.arrayfpsLabel = QLabel()
         self.canvasfpsLabel = QLabel()
         self.engine = EngineOperator(self.canvas, self.frameLabel, self.arrayfpsLabel,
-                                     self.canvasfpsLabel, **DEFAULTS)
+                                     self.canvasfpsLabel, st)
 
 ##====================Controlls on the left====================##
         # Main pushbutton, this should be better highlighted.
@@ -278,7 +274,7 @@ class MainWindow(QWidget):
         self.thresholdCtrl.valueChanged.connect(self.coverageChange)
         self.thresholdLabel= QLabel()
         self.thresholdLabel.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.thresholdLabel.setText('Threshold = {:2.2f}'.format(self.kwargs['THRESHOLD']))
+        self.thresholdLabel.setText('Threshold = {:2.2f}'.format(self.st.noise.threshold))
         # 'toplefthbox'
         tlhb = QHBoxLayout()
         tlhbvb = QVBoxLayout()
@@ -298,7 +294,8 @@ class MainWindow(QWidget):
         self.textHolder.addWidget(self.conwayLabel)
         self.textHolder.addWidget(self.conwayRules)
         self.conwayLabel.setText('Conway Rules')
-        self.conwayRules.setText(''.join(['{0},{1},{2},{3};'.format(*i) for i in self.kwargs['RULES']]))
+        self.conwayRules.setText(''.join(['{0},{1},{2},{3};'.format(*i)\
+                                          for i in self.st.conway.rules]))
         self.conwayPalette = self.conwayRules.palette()
         self.conwayPalette.setColor(QPalette.Base, Qt.green)
         self.conwayRules.setPalette(self.conwayPalette)
@@ -311,19 +308,22 @@ class MainWindow(QWidget):
         self.wolfRule = QSpinBox()
         self.wolfRule.setRange(0, 255)
         self.wolfRule.setSingleStep(1)
-        self.wolfRule.setValue(self.kwargs['WOLFRULE'])
+        self.wolfRule.setValue(self.st.wolfram.rule)
         self.wolfRule.setMaximumSize(100, 40)
-        self.wolfRule.valueChanged.connect(partial(self.Kwarger, 'WOLFRULE', self.wolfRule.value))
+        self.wolfRule.valueChanged.connect(partial(self.Kwarger,
+                                            self.st.wolfram.rule, self.wolfRule.value))
         self.wolfScaleLabel = QLabel('Scale')
         self.wolfScale = QSpinBox()
         self.wolfScale.setRange(1, 100)
         self.wolfScale.setSingleStep(1)
-        self.wolfScale.setValue(self.kwargs['WOLFSCALE'])
+        self.wolfScale.setValue(self.st.wolfram.scale)
         self.wolfScale.setMaximumSize(100, 40)
-        self.wolfScale.valueChanged.connect(partial(self.Kwarger, 'WOLFSCALE', self.wolfScale.value))
+        self.wolfScale.valueChanged.connect(partial(self.Kwarger,
+                                            self.st.wolfram.scale, self.wolfScale.value))
         self.wolfCheck = QCheckBox('WolfWaveTM')
-        self.wolfCheck.setChecked(self.kwargs['WOLFWAVE'])
-        self.wolfCheck.stateChanged.connect(partial(self.Kwarger, 'WOLFWAVE', self.wolfCheck.isChecked))
+        self.wolfCheck.setChecked(self.st.general.wolfram)
+        self.wolfCheck.stateChanged.connect(partial(self.Kwarger,
+                                            self.st.general.wolfram, self.wolfCheck.isChecked))
         vbWolf = QVBoxLayout()
         hbt = QHBoxLayout()
         hbt.addWidget(self.automataLabel)
@@ -347,18 +347,20 @@ class MainWindow(QWidget):
         self.UBL = QLabel('UB')
         self.UB = QSpinBox()
         self.UB.setRange(-1, 1)
-        self.UB.setValue(self.kwargs['UB'])
+        self.UB.setValue(self.st.bounds.upper)
         self.UB.setMaximumSize(40, 40)
-        self.UB.valueChanged.connect(partial(self.Kwarger, 'UB', self.UB.value))
+        self.UB.valueChanged.connect(partial(self.Kwarger,
+                                        self.st.bounds.upper, self.UB.value))
         hlineUB = QFrame()
         hlineUB.setFrameShape(QFrame.HLine)
         hlineUB.setFrameShadow(QFrame.Sunken)
         self.LBL = QLabel('LB')
         self.LB = QSpinBox()
         self.LB.setRange(-1, 1)
-        self.LB.setValue(self.kwargs['LB'])
+        self.LB.setValue(self.st.bounds.lower)
         self.LB.setMaximumSize(40, 40)
-        self.LB.valueChanged.connect(partial(self.Kwarger, 'LB', self.LB.value))
+        self.LB.valueChanged.connect(partial(self.Kwarger,
+                                        self.st.bounds.lower, self.LB.value))
         vlineLB = QFrame()
         vlineLB.setFrameShape(QFrame.VLine)
         vlineLB.setFrameShadow(QFrame.Sunken)
@@ -366,9 +368,10 @@ class MainWindow(QWidget):
         self.wolfLabel = QLabel('WB')
         self.wolfPole = QSpinBox()
         self.wolfPole.setRange(-1, 1)
-        self.wolfPole.setValue(self.kwargs['WOLFPOLARITY'])
+        self.wolfPole.setValue(self.st.wolfram.polarity)
         self.wolfPole.setMaximumSize(40, 40)
-        self.wolfPole.valueChanged.connect(partial(self.Kwarger, 'WOLFPOLARITY', self.wolfPole.value))
+        self.wolfPole.valueChanged.connect(partial(self.Kwarger,
+                                         self.st.wolfram.polarity, self.wolfPole.value))
         vlineWB = QFrame()
         vlineWB.setFrameShape(QFrame.VLine)
         vlineWB.setFrameShadow(QFrame.Sunken)
@@ -376,17 +379,19 @@ class MainWindow(QWidget):
         self.RB = QSpinBox()
         self.RB.setRange(-1, 1)
         self.RB.setMaximumSize(40, 40)
-        self.RB.setValue(self.kwargs['RB'])
-        self.RB.valueChanged.connect(partial(self.Kwarger, 'RB', self.RB.value))
+        self.RB.setValue(self.st.bounds.right)
+        self.RB.valueChanged.connect(partial(self.Kwarger,
+                                        self.st.bounds.right, self.RB.value))
         vlineRB = QFrame()
         vlineRB.setFrameShape(QFrame.VLine)
         vlineRB.setFrameShadow(QFrame.Sunken)
-        self.DBL = QLabel('DB')
+        self.DBL = QLabel('LoB')
         self.DB = QSpinBox()
         self.DB.setRange(-1, 1)
-        self.DB.setValue(self.kwargs['DB'])
+        self.DB.setValue(self.st.bounds.lower)
         self.DB.setMaximumSize(40, 40)
-        self.DB.valueChanged.connect(partial(self.Kwarger, 'DB', self.DB.value))
+        self.DB.valueChanged.connect(partial(self.Kwarger,
+                                        self.st.bounds.lower, self.DB.value))
         hlineDB = QFrame()
         hlineDB.setFrameShape(QFrame.HLine)
         hlineDB.setFrameShadow(QFrame.Sunken)
@@ -410,56 +415,49 @@ class MainWindow(QWidget):
 
 
         # Default value changer
-        NLab = QLabel('NxD: ')
+        NLab = QLabel('WxH')
         NLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.NCtrl = QSpinBox()
         self.NCtrl.setRange(10, 1000)
         self.NCtrl.setSingleStep(10)
-        self.NCtrl.setValue(self.kwargs['D'])
+        self.NCtrl.setValue(self.st.canvas.dim[0])
         self.NCtrl.setMaximumSize(100, 40)
-        self.NCtrl.valueChanged.connect(partial(self.Kwarger, 'D', self.NCtrl.value))
+        self.NCtrl.valueChanged.connect(partial(self.Kwarger,
+                                        self.st.canvas.dim[0], self.NCtrl.value))
         self.DCtrl = QSpinBox()
         self.DCtrl.setRange(10, 1000)
         self.DCtrl.setSingleStep(10)
-        self.DCtrl.setValue(self.kwargs['N'])
+        self.DCtrl.setValue(self.st.canvas.dim[1])
         self.DCtrl.setMaximumSize(100, 40)
-        self.DCtrl.valueChanged.connect(partial(self.Kwarger, 'N', self.DCtrl.value))
+        self.DCtrl.valueChanged.connect(partial(self.Kwarger,
+                                        self.st.canvas.dim[1], self.DCtrl.value))
         MonteUpLab = QLabel('Monte= ')
         MonteUpLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.MonteUpCtrl = QSpinBox()
         self.MonteUpCtrl.setRange(100, 5000)
         self.MonteUpCtrl.setSingleStep(100)
-        self.MonteUpCtrl.setValue(self.kwargs['MONTEUPDATES'])
+        self.MonteUpCtrl.setValue(self.st.ising.updates)
         self.MonteUpCtrl.setMaximumSize(100, 40)
-        self.MonteUpCtrl.valueChanged.connect(partial(self.Kwarger, 'MONTEUPDATES',
-                                                      self.MonteUpCtrl.value))
+        self.MonteUpCtrl.valueChanged.connect(partial(self.Kwarger,
+                                        self.st.ising.updates, self.MonteUpCtrl.value))
         LongLab = QLabel('Long#= ')
         LongLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.LongCtrl = QSpinBox()
         self.LongCtrl.setRange(10000, 1000000)
         self.LongCtrl.setSingleStep(10000)
-        self.LongCtrl.setValue(self.kwargs['EQUILIBRATE'])
+        self.LongCtrl.setValue(self.st.ising.equilibrate)
         self.LongCtrl.setMaximumSize(100, 40)
-        self.LongCtrl.valueChanged.connect(partial(self.Kwarger, 'EQUILIBRATE',
-                                                   self.LongCtrl.value))
-        DegreeLab = QLabel('Degree= ')
-        DegreeLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.DegreeCtrl = QSpinBox()
-        self.DegreeCtrl.setRange(2, 10)
-        self.DegreeCtrl.setSingleStep(1)
-        self.DegreeCtrl.setValue(self.kwargs['DEGREE'])
-        self.DegreeCtrl.setMaximumSize(100, 40)
-        self.DegreeCtrl.valueChanged.connect(partial(self.Kwarger, 'DEGREE',
-                                                     self.DegreeCtrl.value))
+        self.LongCtrl.valueChanged.connect(partial(self.Kwarger,
+                                        self.st.ising.equilibrate, self.LongCtrl.value))
         ScaleLab = QLabel('Scale= ')
         ScaleLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.ScaleCtrl = QSpinBox()
         self.ScaleCtrl.setRange(1, 20)
         self.ScaleCtrl.setSingleStep(1)
-        self.ScaleCtrl.setValue(self.kwargs['SCALE'])
+        self.ScaleCtrl.setValue(self.st.canvas.scale)
         self.ScaleCtrl.setMaximumSize(100, 40)
-        self.ScaleCtrl.valueChanged.connect(partial(self.Kwarger, 'SCALE',
-                                                    self.ScaleCtrl.value))
+        self.ScaleCtrl.valueChanged.connect(partial(self.Kwarger,
+                                        self.st.canvas.scale, self.ScaleCtrl.value))
         SaveDefaults = QPushButton('Save Defaults')
         SaveDefaults.clicked.connect(self.save_defaults)
         defGr = QGridLayout()
@@ -493,35 +491,34 @@ class MainWindow(QWidget):
 #       sathb.addWidget(self.satCtrl)
 
         # Color buttons, two for background, two for update and two for mouse.
-        # TODO: rework the whole color organisation throughout.
         self.primaryButton = QPushButton()
         self.primaryButton.setStyleSheet('QPushButton { background-color: %s; }' %
-                                         QColor(self.kwargs['COLORLIST'][0]).name())
+                                         QColor(self.st.canvas.colorlist[0]).name())
         self.primaryButton.pressed.connect(
             partial(self.choose_color, self.set_color, self.primaryButton, 0))
         self.secondaryButton = QPushButton()
         self.secondaryButton.setStyleSheet('QPushButton { background-color: %s; }' %
-                                           QColor(self.kwargs['COLORLIST'][1]).name())
+                                           QColor(self.st.canvas.colorlist[1]).name())
         self.secondaryButton.pressed.connect(
             partial(self.choose_color, self.set_color, self.secondaryButton, 1))
         self.updateButton = QPushButton()
         self.updateButton.setStyleSheet('QPushButton { background-color: %s; }' %
-                                         QColor(self.kwargs['COLORLIST'][2]).name())
+                                         QColor(self.st.canvas.colorlist[2]).name())
         self.updateButton.pressed.connect(
             partial(self.choose_color, self.set_color, self.updateButton, 2))
         self.update2Button = QPushButton()
         self.update2Button.setStyleSheet('QPushButton { background-color: %s; }' %
-                                         QColor(self.kwargs['COLORLIST'][3]).name())
+                                         QColor(self.st.canvas.colorlist[3]).name())
         self.update2Button.pressed.connect(
             partial(self.choose_color, self.set_color, self.update2Button, 3))
         self.mouseButton = QPushButton()
         self.mouseButton.setStyleSheet('QPushButton { background-color: %s; }' %
-                                         QColor(self.kwargs['COLORLIST'][4]).name())
+                                         QColor(self.st.canvas.colorlist[4]).name())
         self.mouseButton.pressed.connect(
             partial(self.choose_color, self.set_color, self.mouseButton, 4))
         self.mouse2Button = QPushButton()
         self.mouse2Button.setStyleSheet('QPushButton { background-color: %s; }' %
-                                         QColor(self.kwargs['COLORLIST'][5]).name())
+                                         QColor(self.st.canvas.colorlist[5]).name())
         self.mouse2Button.pressed.connect(
             partial(self.choose_color, self.set_color, self.mouse2Button, 5))
         self.gr = QGridLayout()
@@ -595,9 +592,9 @@ class MainWindow(QWidget):
         self.tempCtrl.setMinimum(10)
         self.tempCtrl.setMaximum(200)
         self.tempCtrl.setPageStep(20)
-        self.tempCtrl.setValue(self.kwargs['BETA'] * 100)
+        self.tempCtrl.setValue(self.st.ising.beta * 100)
         self.tempCtrl.valueChanged.connect(self.sliderChange)
-        self.tempLabel.setText('Beta = {:01.2f}'.format(self.kwargs['BETA']))
+        self.tempLabel.setText('Beta = {:01.2f}'.format(self.st.ising.beta))
 
         # Speed slider and label
         # TODO: get this working again
@@ -606,16 +603,16 @@ class MainWindow(QWidget):
         self.speedCtrl.setTickInterval(20)
         self.speedCtrl.setMinimum(1)
         self.speedCtrl.setMaximum(100)
-        self.speedCtrl.setValue(int(1 / self.kwargs['SPEED']))
+        self.speedCtrl.setValue(int(1 / self.st.general.frametime))
         self.speedCtrl.valueChanged.connect(self.speedChange)
         self.speedLabel = QLabel()
-        self.speedLabel.setText('Max FPS = {:03d}'.format(int(1 / self.kwargs['SPEED'])))
+        self.speedLabel.setText('Max FPS = {:03d}'.format(int(1 / self.st.general.frametime)))
         self.frameLabel.setText('0000/ ')
         self.frameCtrl = QSpinBox()
         self.frameCtrl.setRange(-1, 2000)
         self.frameCtrl.setSingleStep(10)
         self.frameCtrl.setMaximumSize(100, 20)
-        self.frameCtrl.setValue(self.kwargs['IMAGEUPDATES'])
+        self.frameCtrl.setValue(self.st.general.runtodo)
         self.frameCtrl.valueChanged.connect(self.frameChange)
 
         # 'right bottom box [LEFT/MID/RIGHT]' -- sorts out the sliders
@@ -630,9 +627,9 @@ class MainWindow(QWidget):
         rbbRt.addWidget(self.frameLabel)
         rbbRt.addWidget(self.frameCtrl)
         self.stochasticBox = QCheckBox('Stochi')
-        self.stochasticBox.setChecked(self.kwargs['STOCHASTIC'])
-        self.stochasticBox.stateChanged.connect(partial(self.Kwarger, 'STOCHASTIC',
-                                                self.stochasticBox.isChecked))
+        self.stochasticBox.setChecked(self.st.general.ising)
+        self.stochasticBox.stateChanged.connect(partial(self.Kwarger,
+                                    self.st.general.ising, self.stochasticBox.isChecked))
 
         rbbR.addLayout(rbbRt)
         rbbR.addWidget(self.stochasticBox)

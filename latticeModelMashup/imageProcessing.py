@@ -16,24 +16,22 @@ class ImageCreator(QObject):
     finished = pyqtSignal()
     canvasfpsSig = pyqtSignal(float)
 
-    def __init__(self, **kwargs):
+    def __init__(self, st):
         QObject.__init__(self)
 
         self.error.emit('Image thread starting up!')
-        self.colorList = kwargs['COLORLIST']
-        self.degree = 2
+        self.colorList = st.canvas.colorlist
+        self.wolfram_color_offset = 2
 
         self.scale = kwargs['SCALE']
         self.fpsRoll = np.zeros(9, float)
-        self.kwargs = kwargs
+        self.st = st
 
-        self.N = kwargs['N']
-        self.D = kwargs['D']
         self.LIVING = np.zeros([0, 2], bool)
         self.CHANGE = np.zeros([0, 3], bool)
-        self.resize_array(self.N, self.D)
+        self.resize_array(st.canvas.dim)
 
-        line = np.random.randint(0, 2, (self.N))
+        line = np.random.randint(0, 2, (st.canvas.dim[1]))
         self.wolf = self.wolframgen(line)
         self.wavecounter = 0
         self.savecount = 0
@@ -44,76 +42,83 @@ class ImageCreator(QObject):
         self.savecount = 0
 
     # Resize/reset
-    def resize_array(self, N, D):
-        self.N = N
-        self.D = D
-        self.ARRAY = np.zeros([N, D], bool)
-        self.ARRAYOLD = np.zeros([N, D], bool)
-        self.image = QImage(N, D, QImage.Format_ARGB32)
+    def resize_array(self, dim):
+        self.ARRAY = np.zeros(dim, bool)
+        self.ARRAYOLD = np.zeros(dim, bool)
+        self.image = QImage(dim[0], dim[1], QImage.Format_ARGB32)
         self.export_array(self.ARRAY)
 
 #==============Changes the internal settings================#
 # Should make the event queue feeding this baby LIFO
-    def change_settings(self, kwargs):
-        line = np.random.randint(0, 2, (self.N))
+    def change_settings(self, st):
+        self.st = st
+        self.colorList = st.canvas.colorlist
+        self.scale = st.canvas.scale
+        line = np.random.randint(0, 2, (st.canvas.dim[1]))
         self.wolf = self.wolframgen(line)
-        for i in kwargs:
-            self.kwargs[i] = kwargs[i]
-        self.addColors()
-        self.scale = kwargs['SCALE']
-        print(self.kwargs['FULLSCREEN'])
-
-    def addColors(self):
-        self.colorList = self.kwargs['COLORLIST']
-        self.degree = self.kwargs['DEGREE']
 
 #==============Wolfram-style Cellular Automata==============#
     def wolfram_scroll(self):
-        n = int(self.D / self.kwargs['WOLFSCALE'])
+        hi = int(self.st.canvas.dim[1] / self.st.wolfram.scale)
         line = next(self.wolf)
-        [self.image.setPixel((self.wavecounter + j) % self.N, i,\
-            self.colorList[line[int(i / self.kwargs['WOLFSCALE']) % n] + 2])
-                for i in range(self.D) for j in range(self.kwargs['WOLFSCALE'])]
+        [
+            self.image.setPixel(
+                (self.wavecounter + j) % self.st.canvas.dim[0],
+                i,
+                self.colorList[
+                    line[int(i / self.st.wolfram.scale) % hi]\
+                    + self.wolfram_color_offset
+                ]
+            )
+            for i in range(self.st.canvas.dim[1])
+            for j in range(self.st.wolfram.scale)
+        ]
 
     def wolframgen(self, line):
-        n = int(self.D / self.kwargs['WOLFSCALE'])
-      # n = self.shape
-        rule = str(bin(self.kwargs['WOLFRULE']))[2:]
+        hi = int(self.st.canvas.dim[1] / self.st.wolfram.scale)
+        rule = str(bin(self.st.wolfram.rule))[2:]   #gets binary repr. of update rule
         while len(rule) < 8:
             rule = '0' + rule
         while True:
-            nb = [int(str(line[(i - 1) % n]) + str(line[i]) + str(line[(i + 1) % n]),\
-                    2) for i in range(n)]
+            nb = [
+                    int(
+                        str(line[(i - 1) % hi])
+                        + str(line[i])
+                        + str(line[(i + 1) % hi]),
+                        2)
+                    for i in range(hi)
+                ]
             line = [int(rule[-i - 1]) for i in nb]
             yield line
 
     def wolfram_paint(self):
-        D = int(self.D / self.kwargs['WOLFSCALE'])
-        N = int(self.N / self.kwargs['WOLFSCALE'])
-        im = QImage(N, D, QImage.Format_ARGB32)
+        hi = int(self.st.canvas.dim[1] / self.st.wolfram.scale)
+        wid = int(self.st.canvas.dim[0] / self.st.wolfram.scale)
+        im = QImage(wid, hi, QImage.Format_ARGB32)
       # line = np.random.randint(0, 2, (shape))
-        line = np.zeros(D, int)
-        line[int(D / 2)] = 1
+        line = np.zeros(hi, int)
+        line[int(hi / 2)] = 1
         linegen = self.wolframgen(line)
-        for idx, lin in enumerate(range(N)):
+        for idx, lin in enumerate(range(wid)):
             line = next(linegen)
             for idy, pix in enumerate(line):
-                im.setPixel(idx % N, idy, self.colorList[pix + 2])      #pix+2 means background colors
-            if idx == N:
+                im.setPixel(idx % wid, idy, self.colorList[pix + self.wolfram_color_offset])
+            if idx == wid:
                 break
         self.send_image(im)
-        self.image = im.scaled(QSize(self.N, self.D))
+        self.image = im.scaled(QSize(wid, hi))
 
 #===============Array processing and Image export=============#
     def send_image(self, image):
-        if self.kwargs['FULLSCREEN']:
+        if self.st.canvas.fullscreen:
             ims = image.scaled(QSize(self.m[0].width, self.m[0].height))
         else:
-            ims = image.scaled(QSize(self.N * self.scale, self.D * self.scale))
+            ims = image.scaled(QSize(self.st.canvas.dim[0] * self.st.canvas.scale,
+                                     self.st.canvas.dim[1] * self.st.canvas.scale))
         nupix = QPixmap()
         nupix.convertFromImage(ims)
         self.imageSig.emit(nupix)
-        if self.kwargs['RECORD']:
+        if self.st.canvas.record:
             ims.save('images/temp{:>04d}.png'.format(self.savecount), 'PNG')
             self.savecount += 1
 
@@ -122,9 +127,9 @@ class ImageCreator(QObject):
         self.process_array(array)
         self.send_image(self.image)
 
-    def processer_start(self, array, pos, N, D):
-        if not self.ARRAY.shape[0] == N or not self.ARRAY.shape[1] == D:
-            self.resize_array(N, D)
+    def processer_start(self, array, pos, dim):
+        if not self.ARRAY.shape == dim:
+            self.resize_array(dim)
         self.wavecounter = pos
         self.process_array(array)
         self.nextarraySig.emit()
@@ -141,7 +146,7 @@ class ImageCreator(QObject):
         self.ARRAY = array
         self.update_change()
         self.export_list(self.CHANGE)
-        if self.kwargs['WOLFWAVE']:
+        if self.st.general.wolfwave:
             self.wolfram_scroll()
         self.ARRAYOLD = np.copy(self.ARRAY)
         self.fpsRoll[0] = time.time()-now
@@ -181,17 +186,15 @@ class ImageCreator(QObject):
 class Canvas(QLabel):
     canvasfpsSig = pyqtSignal(float)
 
-    def initialize(self, **kwargs):
-        self.primaryColor = QColor(kwargs['COLORLIST'][0])
+    def initialize(self, st):
+        self.primaryColor = QColor(st.canvas.colorlist[0])
         self.colorList = []
-        self.degree = 2
-        self.N = kwargs['N']
-        self.D = kwargs['D']
-        self.scale = kwargs['SCALE']
+        self.st = st
         self.reset()
 
     def reset(self):
-        self.setPixmap(QPixmap(self.N * self.scale, self.D * self.scale))
+        self.setPixmap(QPixmap(self.st.canvas.dim[0] * self.st.canvas.scale,
+                                self.st.canvas.dim[1] * self.st.canvas.scale))
         self.pixmap().fill(self.primaryColor)
 
     def paint(self, image):

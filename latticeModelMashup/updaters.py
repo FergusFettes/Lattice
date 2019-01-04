@@ -21,18 +21,18 @@ class Handler(QObject):
     ARRAY = []      # Array, shared among workers
     BOUNDARY = []
 
-    def __init__(self, **kwargs):
+    def __init__(self, st):
         """ Controls workers for the array updates,
             and processes the arrays returned. """
         QObject.__init__(self)
-        self.resize_array(kwargs['N'], kwargs['D'])
+        self.resize_array(st.canvas.dim)
         self.fpsRoll = np.zeros(9, float)
 
-    def updater_start(self, frame1, frame2, N, D):
-        if not Handler.ARRAY.shape[0] == N or not Handler.ARRAY.shape[1] == D:
-            self.resize_array(N, D)
+    def updater_start(self, frame1, frame2, dim):
+        if not Handler.ARRAY.shape == dim:
+            self.resize_array(dim)
         self.process(frame1)
-        self.arrayinitSig.emit(Handler.ARRAY, frame1['wolfpos'], N, D)
+        self.arrayinitSig.emit(Handler.ARRAY, frame1['wolfpos'], dim)
         self.process(frame2)
 
     def push_single_array(self, frame):
@@ -75,8 +75,8 @@ class Handler(QObject):
         for i in range(scale):
             Handler.ARRAY[(start + i) % n, ...] = polarity
 
-    def resize_array(self, height, width):
-        Handler.ARRAY = np.zeros([height, width], bool)
+    def resize_array(self, dim):
+        Handler.ARRAY = np.zeros(dim, bool)
 
     def noise_process(self, threshold):
         A = np.random.random(Handler.ARRAY.shape) > threshold
@@ -126,5 +126,3 @@ class Handler(QObject):
         rule5 = np.bitwise_and(rule4, NB <= rule[3])
         #should just be the live cells
         Handler.ARRAY = rule2 + rule5
-        # Rule 4 was being added in here for ages! Produces mad shapes!
-        # This  is equivalent to makeing #4=8

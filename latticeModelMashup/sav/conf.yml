@@ -1,0 +1,69 @@
+# This is the YAML config file for the UltimateLatticeModelMonsterMashup!
+# This will make it nice and easy to store and share rad settings and creatures found.
+#
+# Lets get started!
+
+---
+defaults:       &DEFAULTS
+        general:
+                maxFPS: 24
+                frametime: 0.05
+                runtodo: -1                   # -1 for unlimited run
+                rundone: 0
+                clear: False
+                equilibrate: False
+                stochastic: True
+                conway: True
+                wolfwave: True
+                running: False
+                interrupt: False
+
+        canvas:
+                colorlist:
+                        - 1662807650   # These are just random rn. I was wondering
+                        - 4294951356   # if you could make a lambda function that
+                        - 4103433205   # generated them in YAML but maybe that is
+                        - 1151018145   # asking too much.
+                        - 4294967295
+                        - 4294967295
+                saturation: 80
+                dim:                            # Screen dimensions (widthxheight)
+                        - 300
+                        - 450
+                scale: 3
+                fullscreen: False
+                record: False
+
+        bounds:
+                upper: -1
+                right: -1
+                lower: -1
+                left: -1
+
+        wolfram:
+                rule: 90
+                position: 0
+                scale: 2
+                polarity: 1
+
+        noise:
+                threshold: 0.9
+
+        conway:
+                rules:
+                        - [3,6,2,2]
+                        - [3,6,3,3]
+                        - [3,4,3,3]
+                        - [3,4,2,2]
+
+        ising:
+                beta: 0.125
+                degree: 2
+                updates: 1000                   #Updates / frame
+                equilibrate: 10000              #Updates in a longer run
+                
+conway:
+        <<: *DEFAULTS
+        conway:
+                rules:
+                        - [2,3,3,3]

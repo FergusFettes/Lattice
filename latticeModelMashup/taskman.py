@@ -41,10 +41,10 @@ class RunController(QObject):
 #===============MAIN PROCESS OF THE THREAD===================#
     def process(self):
         QCoreApplication.processEvents()
-        if self.st.general.runframes == -3:
+        if self.st.general.rundone == -3:
             self.push_single_frame()
-            self.st.general.runframes += 1
-        if self.st.general.runframes == -2:
+            self.st.general.rundone += 1
+        if self.st.general.rundone == -2:
             self.error.emit('setup single step!')
         else:
             self.init_new_process()
@@ -122,7 +122,7 @@ class RunController(QObject):
             if len(rules) == 0:
                 rule = []
             else:
-                rule = rules[self.st.general.runframes % len(rules)]
+                rule = rules[self.st.general.rundone % len(rules)]
             if self.st.general.conway and self.st.general.stochastic:
                 if self.st.general.rundone % 2:
                     frame['noisesteps'] = 1

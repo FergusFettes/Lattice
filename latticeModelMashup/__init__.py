@@ -7,7 +7,7 @@ from PyQt5.QtCore import *
 from GUI import MainWindow
 import random as ra
 from munch import *
-from yaml import load
+from yaml import safe_load
 
 if __name__ == '__main__':
     colHex1 = int(ra.random() * int('0xffffffff', 16))
@@ -15,11 +15,12 @@ if __name__ == '__main__':
     colHex3 = int(ra.random() * int('0xffffffff', 16))
     colHex4 = int(ra.random() * int('0xffffffff', 16))
 
-    yaml = load(open('sav/conf.yml'))
     try:
+        yaml = safe_load(open('sav/nowconf.yml'))
         st = munchify(yaml['lastsave'])
     except:
         print('No saved file, using defaults')
+        yaml = safe_load(open('sav/defconf.yml'))
         st = munchify(yaml['defaults'])
 
 

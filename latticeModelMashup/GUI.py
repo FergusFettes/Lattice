@@ -13,7 +13,7 @@ import os
 import re
 import glob
 from munch import *
-from yaml import dump
+from yaml import safe_load, safe_dump
 
 # Draws the main window and contains the simulation code
 class MainWindow(QWidget):
@@ -222,7 +222,10 @@ class MainWindow(QWidget):
 
     #TODO: make it save the previous configuration before overwriting
     def save_defaults(self):
-        yaml.dump(unmunchify(self.st), open('sav/conf.yml', 'w'))
+        original = safe_load(open('sav/defconf.yml'))
+        sav = {'lastsave': unmunchify(self.st)}
+        original.update(sav)
+        safe_dump(original, open('sav/nowconf.yml', 'w'))
 
     def keyPressEvent(self, e):
         print(e.key())

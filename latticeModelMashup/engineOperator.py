@@ -65,7 +65,7 @@ class EngineOperator(QObject):
         self.st.general.running = True
         self.st.general.equilibrate = False
         self.st.general.clear = False
-        self.st.general.runframes = -2
+        self.st.general.rundone = -2
         self.settingsSig.emit(self.st)
         self.taskthread.start()
 
@@ -74,7 +74,7 @@ class EngineOperator(QObject):
         self.st.general.running = True
         self.st.general.equilibrate = False
         self.st.general.clear = False
-        self.st.general.runframes = 0
+        self.st.general.rundone = 0
         self.settingsSig.emit(self.st)
         self.taskthread.start()
 
@@ -83,7 +83,7 @@ class EngineOperator(QObject):
         self.st.general.running = False
         self.st.general.equilibrate = True
         self.st.general.clear = False
-        self.st.general.runframes = -3
+        self.st.general.rundone = -3
         self.settingsSig.emit(self.st)
         self.taskthread.start()
 
@@ -97,7 +97,7 @@ class EngineOperator(QObject):
         self.st.general.running = False
         self.st.general.equilibrate = False
         self.st.general.clear = True
-        self.st.general.runframes = -3
+        self.st.general.rundone = -3
         self.settingsSig.emit(self.st)
         self.plainSig.emit(self.st.canvas.dim)
         self.imagethread.start()
@@ -115,7 +115,7 @@ class EngineOperator(QObject):
     def frame_value_update(self, value):
         self.frameLabel.setText(str(value))
         if not value % 10:
-            self.st.general.runframes = value
+            self.st.general.rundone = value
 
     def error_string(self, error='Unlabelled Error! Oh no!'):
         print(error)

@@ -1,0 +1,51 @@
+conway:
+  bounds: &id001 {left: -1, lower: -1, right: -1, upper: -1}
+  canvas: &id002
+    colorlist: [1662807650, 4294951356, 4103433205, 1151018145, 4294967295, 4294967295]
+    dim: [300, 200]
+    fullscreen: false
+    record: false
+    saturation: 80
+    scale: 2
+  conway:
+    rules:
+    - [2, 3, 3, 3]
+  general: &id003 {clear: false, conway: true, equilibrate: false, frametime: 0.05,
+    interrupt: false, maxFPS: 24, rundone: 0, running: false, runtodo: -1, stochastic: true,
+    wolfwave: true}
+  ising: &id004 {beta: 0.125, degree: 2, equilibrate: 10000, updates: 1000}
+  noise: &id005 {threshold: 0.9}
+  wolfram: &id006 {polarity: 1, position: 0, rule: 90, scale: 2}
+defaults:
+  bounds: *id001
+  canvas: *id002
+  conway:
+    rules:
+    - [3, 6, 2, 2]
+    - [3, 6, 3, 3]
+    - [3, 4, 3, 3]
+    - [3, 4, 2, 2]
+  general: *id003
+  ising: *id004
+  noise: *id005
+  wolfram: *id006
+lastsave:
+  bounds: {left: -1, lower: -1, right: -1, upper: -1}
+  canvas:
+    colorlist: [2553758031, 1855231319, 3130955967, 3927161909, 4294967295, 4294967295]
+    dim: [300, 200]
+    fullscreen: false
+    record: false
+    saturation: 80
+    scale: 2
+  conway:
+    rules:
+    - [3, 6, 2, 2]
+    - [3, 6, 3, 3]
+    - [3, 4, 3, 3]
+    - [3, 4, 2, 2]
+  general: {clear: false, conway: true, equilibrate: false, frametime: 0.05, interrupt: false,
+    maxFPS: 24, rundone: 221, running: true, runtodo: -1, stochastic: true, wolfwave: true}
+  ising: {beta: 0.125, degree: 2, equilibrate: 10000, updates: 1000}
+  noise: {threshold: 0.9995382384234759}
+  wolfram: {polarity: 1, position: 0, rule: 90, scale: 2}

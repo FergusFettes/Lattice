@@ -43,20 +43,21 @@ The app is currently based on the following models:
 - [x] **Conway's GoL** actually the engine is what they call 'Life-like' and can accept almost arbitrary rulesets. The rules are entered into the green box on the left. Some suggestions are below.
 ![Conway-style Life](latticeModelMashup/img/conway.gif)
 - [x] **Cellular Automata** Wolfram-style cellular automata can be painted on the screen (**B**), and a scroller is also available that will either wipe out all the cells or paint on full cells. Currently there is no meaningful interaction between the 2D automata and the other models, it is largely aesthetic. Lets see what becomes of it.
-![Advanced rules make more developed lifeforms](latticeModelMashup/img/advanced.gif)
+![Pulsating Lifeforms](latticeModelMashup/img/pulse.gif)
 - [ ] Potts Model is actually in there, or it was, but has been depreceated. This is a nice version of Ising with more states, but currently the models only have 2 states so this is inactive. Might bring it back.
 
 
 ## Features in Version 1
 - Ising model
 - Life-like automata with time-varying rules
+- Dynamic update of settings without having to restart
 - 'Wolfram' 2D automata painter
 - Arbitrary boundary conditions on top, sides and scroller
 - Colors!
-- Basic recording function (makes gifs, very buggy)
+- Basic recording function (makes gifs, pretty buggy)
+![Fresh](latticeModelMashup/img/clouds.gif)
 
 ## Features coming in Version 2
-- Dynamic update of settings without having to restart
 - Fancy shader graphics
 - Faster engines, better integrated with one another
 - Analytic engine, so you can automatically characterise different update rules

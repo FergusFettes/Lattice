@@ -5,6 +5,7 @@ from PyQt5.QtCore import *
 import numpy as np
 import time
 import munch
+from src.pureUp import *
 
 
 ##===============TaskManager===============##
@@ -134,3 +135,39 @@ class RunController(QObject):
                 frame['isingupdates'] = self.st.ising.updates * self.st.general.stochastic
                 frame['conwayrules'] = rule
         return frame
+
+
+##==============Workers============##
+##=================================##
+class Handler(QObject, pureHandler):
+    arraySig = pyqtSignal(np.ndarray, int)
+    arraySingleSig = pyqtSignal(np.ndarray, int)
+    arrayinitSig = pyqtSignal(np.ndarray, int, list)
+    arrayfpsSig = pyqtSignal(float)
+    error = pyqtSignal(str)
+
+    def __init__(self, st):
+        """ Controls workers for the array updates,
+            and processes the arrays returned. """
+        QObject.__init__(self)
+        self.array = super().resize_array(st.canvas.dim)
+        self.fpsRoll = np.zeros(9, float)
+
+    def updater_start(self, frame1, frame2, dim):
+        if not self.array == tuple(dim):
+            self.resize_array(dim)
+        self.array = super().process(frame1, self.array)
+        self.arrayinitSig.emit(self.array, frame1['wolfpos'], dim)
+        self.array = super().process(frame2, self.array)
+
+    def push_single_array(self, frame):
+        self.array = super().process(frame, self.array)
+        self.arraySingleSig.emit(self.array, frame['wolfpos'])
+
+    def next_array(self, frame):
+        now = time.time()
+        self.arraySig.emit(self.array, frame['wolfpos'])
+        self.array = super().process(frame, self.array)
+        self.fpsRoll[0] = time.time()-now
+        self.fpsRoll = np.roll(self.fpsRoll, 1)
+        self.arrayfpsSig.emit(np.mean(self.fpsRoll))

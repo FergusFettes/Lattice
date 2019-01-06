@@ -60,6 +60,7 @@ The app is currently based on the following models:
 ## Features coming in Version 2
 - Fancy shader graphics
 - Faster engines, better integrated with one another
+-- > in fact I think a complete rewrite of the update engines in cython is necc.
 - Analytic engine, so you can automatically characterise different update rules
 - Easy interaction, can paint different initial conditions onto the canvas
 - Good support for exporting videos/ gifs

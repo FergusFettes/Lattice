@@ -1,6 +1,7 @@
 import numpy as np
+cimport numpy as np
 
-def ising_update_beta(A, UPDATES, BETA):
+def ising_update_betaC(A, UPDATES, BETA):
     cost = np.zeros(3, float)
     cost[1] = np.exp(-4 * BETA)
     cost[2] = cost[1] * cost[1]

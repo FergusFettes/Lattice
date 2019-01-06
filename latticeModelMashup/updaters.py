@@ -29,7 +29,7 @@ class Handler(QObject):
         self.fpsRoll = np.zeros(9, float)
 
     def updater_start(self, frame1, frame2, dim):
-        if not Handler.ARRAY.shape == dim:
+        if not Handler.ARRAY.shape == tuple(dim):
             self.resize_array(dim)
         self.process(frame1)
         self.arrayinitSig.emit(Handler.ARRAY, frame1['wolfpos'], dim)
@@ -48,6 +48,8 @@ class Handler(QObject):
         self.arrayfpsSig.emit(np.mean(self.fpsRoll))
 
     def process(self, job):
+        if not Handler.ARRAY.shape == tuple(job['dim']):
+            self.resize_array(job['dim'])
         if job['clear']:
             self.resize_array(Handler.ARRAY.shape)
         if job['wolfpole'] >= 0:
@@ -62,13 +64,13 @@ class Handler(QObject):
 
     def set_boundary(self, ub, rb, db, lb):
         if ub >= 0:
-            Handler.ARRAY[0, ...] = ub
+            Handler.ARRAY[..., 0] = ub
         if db >= 0:
-            Handler.ARRAY[-1, ...] = db
+            Handler.ARRAY[..., -1] = db
         if lb >= 0:
-            Handler.ARRAY[..., 0] = lb
+            Handler.ARRAY[0, ...] = lb
         if rb >= 0:
-            Handler.ARRAY[..., -1] = rb
+            Handler.ARRAY[-1, ...] = rb
 
     def clear_wavefront(self, start, scale, polarity):
         n = Handler.ARRAY.shape[0]

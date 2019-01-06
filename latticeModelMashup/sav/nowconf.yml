@@ -30,10 +30,10 @@ defaults:
   noise: *id005
   wolfram: *id006
 lastsave:
-  bounds: {left: -1, lower: -1, right: -1, upper: -1}
+  bounds: {left: -1, lower: 1, right: -1, upper: 1}
   canvas:
-    colorlist: [2553758031, 1855231319, 3130955967, 3927161909, 4294967295, 4294967295]
-    dim: [300, 200]
+    colorlist: [1609293580, 2407318030, 2412546068, 1156243846, 4294967295, 4294967295]
+    dim: [400, 250]
     fullscreen: false
     record: false
     saturation: 80
@@ -41,11 +41,9 @@ lastsave:
   conway:
     rules:
     - [3, 6, 2, 2]
-    - [3, 6, 3, 3]
     - [3, 4, 3, 3]
-    - [3, 4, 2, 2]
   general: {clear: false, conway: true, equilibrate: false, frametime: 0.05, interrupt: false,
-    maxFPS: 24, rundone: 221, running: true, runtodo: -1, stochastic: true, wolfwave: true}
+    maxFPS: 24, rundone: 517, running: true, runtodo: -1, stochastic: true, wolfwave: false}
   ising: {beta: 0.125, degree: 2, equilibrate: 10000, updates: 1000}
   noise: {threshold: 0.9995382384234759}
-  wolfram: {polarity: 1, position: 0, rule: 90, scale: 2}
+  wolfram: {polarity: 0, position: 0, rule: 90, scale: 2}

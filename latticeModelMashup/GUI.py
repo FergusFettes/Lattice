@@ -33,95 +33,69 @@ class MainWindow(QWidget):
         self.st = st
 
         # INITS
-        self.kwarg_send_timer = QTimer()
-        self.kwarg_send_timer.timeout.connect(self.kwarg_send)
         # This means that you have to stop manipulating the controls for half a
         # second for the changes to be sent to the thread. This stops uneccesary
         # restarts, but needs to be tuned for comfort.
-        self.kwarg_send_timer.setInterval(500)
         self.initGUI(st)
 
 #=====================Settings controllers================#
-    def kwarg_send(self):
-        print('Sending new kwargs')
-        self.engine.update_kwargs(self.st)
-        self.kwarg_send_timer.stop()
-
     def wolfram_rule(self, val):
         self.st.wolfram.rule = val()
-        self.kwarg_send_timer.start()
 
     def wolfram_scale(self, val):
         self.st.wolfram.scale = val()
-        self.kwarg_send_timer.start()
 
     def general_wolfwave(self, val):
         self.st.general.wolfwave = val()
-        self.kwarg_send_timer.start()
 
     def wolfram_polarity(self, val):
         self.st.wolfram.polarity = val()
-        self.kwarg_send_timer.start()
 
     def bounds_upper(self, val):
         self.st.bounds.upper = val()
-        self.kwarg_send_timer.start()
 
     def bounds_lower(self, val):
         self.st.bounds.lower = val()
-        self.kwarg_send_timer.start()
 
     def bounds_right(self, val):
         self.st.bounds.right = val()
-        self.kwarg_send_timer.start()
 
     def bounds_left(self, val):
         self.st.bounds.left = val()
-        self.kwarg_send_timer.start()
 
     def canvas_dim(self, val, dim):
         self.st.canvas.dim[dim] = val()
-        self.kwarg_send_timer.start()
 
     def ising_updates(self, val):
         self.st.ising.updates = val()
-        self.kwarg_send_timer.start()
 
     def ising_equilibrate(self, val):
         self.st.ising.equilibrate = val()
-        self.kwarg_send_timer.start()
 
     def ising_degree(self, val):
         self.st.ising.degree = val()
-        self.kwarg_send_timer.start()
 
     def canvas_scale(self, val):
         self.st.canvas.scale = val()
-        self.kwarg_send_timer.start()
 
     def general_stochastic(self, val):
         self.st.general.stochastic = val()
-        self.kwarg_send_timer.start()
 
     def frameChange(self):
         self.st.general.runtodo = self.frameCtrl.value()
-        self.kwarg_send_timer.start()
 
     def speedChange(self):
         self.st.general.frametime = 1 / self.speedCtrl.value()
         self.speedLabel.setText('Max FPS = {:d}'.format(int(self.speedCtrl.value())))
-        self.kwarg_send_timer.start()
 
     def coverageChange(self):
         coverage = self.thresholdCtrl.value()
         self.st.noise.threshold = self.threshval[coverage]
         self.thresholdLabel.setText('Threshold = {:2.2f}'.format(self.threshval[coverage]))
-        self.kwarg_send_timer.start()
 
     def sliderChange(self):
         self.st.ising.beta = self.tempCtrl.value() / 100
         self.tempLabel.setText('Beta = {:01.2f}'.format(self.tempCtrl.value() / 100))
-        self.kwarg_send_timer.start()
 
     def choose_color(self, callback, *args):
         dlg = QColorDialog()
@@ -133,7 +107,6 @@ class MainWindow(QWidget):
         templist[num] = QColor(hexx).rgba()
         self.st.canvas.colorlist = templist
         button.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
-        self.kwarg_send_timer.start()
 
     #TODO: get rid of this, its dumb
     def conway_mangler(self):
@@ -158,7 +131,6 @@ class MainWindow(QWidget):
                                             QColor(Qt.white).name())
             self.gif_creator()
             self.engine.reset_gifcount()
-        self.kwarg_send_timer.start()
 
 
     def rulesChange(self):
@@ -183,11 +155,9 @@ class MainWindow(QWidget):
         rules = [[int(j) for j in i] for i in self.rul]
         self.st.conway.rules = rules
         self.st.general.conway = not rules == []
-        self.kwarg_send_timer.start()
 
     def make_fullscreen(self):
         self.st.general.fullscreen = not self.st.general.fullscreen
-        self.kwarg_send_timer.start()
 
 #=====================Save defaults and GUI ket controls===============#
     def gif_creator(self):
@@ -236,7 +206,6 @@ class MainWindow(QWidget):
                 self.st.general.equilibrate = False
                 self.st.general.clear = False
                 self.st.general.running = False
-                self.kwarg_send()
                 self.engine.taskthread.requestInterruption()
                 self.engine.updatethread.requestInterruption()
                 self.engine.imagethread.quit()

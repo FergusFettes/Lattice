@@ -22,7 +22,6 @@ import queue as queue
 # This is the interface between the GUI and the threads.
 # Controls the Updater thread and the CanvasThread
 class EngineOperator(QObject):
-    settingsSig = pyqtSignal(munch.Munch)
     interruptSig = pyqtSignal()
     backgroundSig = pyqtSignal()
     gifresetSig = pyqtSignal()
@@ -42,10 +41,6 @@ class EngineOperator(QObject):
         self.taskman_init()
 
 #=============Thread Communicators======#
-    def update_kwargs(self, st):
-        self.st = st
-        self.settingsSig.emit(self.st)
-
     def reset_gifcount(self):
         self.gifresetSig.emit()
 
@@ -54,7 +49,6 @@ class EngineOperator(QObject):
         self.st.general.running = False
         self.st.general.equilibrate = False
         self.st.general.clear = False
-        self.settingsSig.emit(self.st)
 
     def thread_looper(self):
         print('Thread standing by.')
@@ -66,7 +60,6 @@ class EngineOperator(QObject):
         self.st.general.equilibrate = False
         self.st.general.clear = False
         self.st.general.rundone = -2
-        self.settingsSig.emit(self.st)
         self.taskthread.start()
 
     def dynamic_run(self):
@@ -74,8 +67,6 @@ class EngineOperator(QObject):
         self.st.general.running = True
         self.st.general.equilibrate = False
         self.st.general.clear = False
-        self.st.general.rundone = 0
-        self.settingsSig.emit(self.st)
         self.taskthread.start()
 
     def long_run(self):
@@ -84,11 +75,9 @@ class EngineOperator(QObject):
         self.st.general.equilibrate = True
         self.st.general.clear = False
         self.st.general.rundone = -3
-        self.settingsSig.emit(self.st)
         self.taskthread.start()
 
     def clear_background(self):
-        self.settingsSig.emit(self.st)
         self.backgroundSig.emit()
         self.imagethread.start()
 
@@ -98,7 +87,6 @@ class EngineOperator(QObject):
         self.st.general.equilibrate = False
         self.st.general.clear = True
         self.st.general.rundone = -3
-        self.settingsSig.emit(self.st)
         self.plainSig.emit(self.st.canvas.dim)
         self.imagethread.start()
         self.taskthread.start()
@@ -139,8 +127,6 @@ class EngineOperator(QObject):
         self.taskthread.started.connect(self.updatethread.start)
 
         # Connections from the engine to the workers
-        self.settingsSig.connect(self.taskman.change_settings)
-        self.settingsSig.connect(self.image.change_settings)
         self.interruptSig.connect(self.breaker)
         self.backgroundSig.connect(self.image.wolfram_paint)
         self.plainSig.connect(self.image.resize_array)

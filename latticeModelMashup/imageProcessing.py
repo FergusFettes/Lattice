@@ -48,15 +48,6 @@ class ImageCreator(QObject):
         self.image = QImage(dim[0], dim[1], QImage.Format_ARGB32)
         self.export_array(self.ARRAY)
 
-#==============Changes the internal settings================#
-# Should make the event queue feeding this baby LIFO
-    def change_settings(self, st):
-        self.st = st
-        self.colorList = st.canvas.colorlist
-        self.scale = st.canvas.scale
-        line = np.random.randint(0, 2, (st.canvas.dim[1]))
-        self.wolf = self.wolframgen(line)
-
 #==============Wolfram-style Cellular Automata==============#
     def wolfram_scroll(self):
         hi = int(self.st.canvas.dim[1] / self.st.wolfram.scale)
@@ -106,7 +97,7 @@ class ImageCreator(QObject):
             if idx == wid:
                 break
         self.send_image(im)
-        self.image = im.scaled(QSize(wid, hi))
+        self.image = im.scaled(QSize(self.st.canvas.dim[0], self.st.canvas.dim[1]))
 
 #===============Array processing and Image export=============#
     def send_image(self, image):
@@ -128,7 +119,7 @@ class ImageCreator(QObject):
         self.send_image(self.image)
 
     def processer_start(self, array, pos, dim):
-        if not self.ARRAY.shape == dim:
+        if not self.ARRAY.shape == tuple(dim):
             self.resize_array(dim)
         self.wavecounter = pos
         self.process_array(array)
@@ -136,6 +127,8 @@ class ImageCreator(QObject):
 
 
     def process(self, array, pos):
+        if not array.shape == self.ARRAYOLD.shape:
+            self.resize_array(array.shape)
         self.wavecounter = pos
         self.send_image(self.image)
         self.process_array(array)

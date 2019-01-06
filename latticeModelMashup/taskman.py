@@ -28,31 +28,31 @@ class RunController(QObject):
         self.st = st
 
         self.wavecounter = 0
+        self.st.general.rundone = 0
 
         # How often does a dynamic run break to look for new settings?
         self.mainTime = QTimer(self)
         self.mainTime.setInterval(99000)
-
-#==============Changes the internal settings================#
-# Should make the event queue feeding this baby LIFO
-    def change_settings(self, st):
-        self.st = st
 
 #===============MAIN PROCESS OF THE THREAD===================#
     def process(self):
         QCoreApplication.processEvents()
         if self.st.general.rundone == -3:
             self.push_single_frame()
-            self.st.general.rundone += 1
-        if self.st.general.rundone == -2:
-            self.error.emit('setup single step!')
+        elif self.st.general.rundone == -2:
+            self.next_frame()
         else:
-            self.init_new_process()
+            if self.st.general.rundone == 0:
+                self.init_new_process()
+            else:
+                self.next_frame()
 
     def init_new_process(self):
         self.mainTime.start()
         frame1 = self.prepare_frame()
+        self.st.general.rundone += 1
         frame2 = self.prepare_frame()
+        self.st.general.rundone += 1
         self.handlerinitSig.emit(frame1, frame2, self.st.canvas.dim)
         self.frame = self.prepare_frame()
         self.frametime = time.time()
@@ -61,6 +61,7 @@ class RunController(QObject):
         self.error.emit('Pushing single frame')
         self.frame = self.prepare_frame()
         self.handlerSingleSig.emit(self.frame)
+        self.st.general.rundone += 1
         self.finished.emit()
 
     def next_frame(self):
@@ -69,6 +70,7 @@ class RunController(QObject):
             QThread.msleep(1)
         if self.st.general.rundone == -1:
             self.error.emit('Step/Clear/Equilibrate done')
+            self.st.general.rundone += 1
             self.finished.emit()
             return
         if self.st.general.runtodo > 0\
@@ -106,7 +108,7 @@ class RunController(QObject):
         self.wavecounter += self.st.wolfram.scale
         self.wavecounter %= self.st.canvas.dim[0]
         frame['wolfpos'] = self.wavecounter
-        if self.st.general.wolfwave == 0:
+        if self.st.general.wolfwave == False:
             frame['wolfpole'] = -1
         if self.st.general.equilibrate:
             frame['conwayrules'] = []
@@ -124,10 +126,10 @@ class RunController(QObject):
             else:
                 rule = rules[self.st.general.rundone % len(rules)]
             if self.st.general.conway and self.st.general.stochastic:
-                if self.st.general.rundone % 2:
-                    frame['noisesteps'] = 1
-                else:
-                    frame['conwayrules'] = rule
+#               if self.st.general.rundone % 2:
+                frame['noisesteps'] = 1
+#               else:
+                frame['conwayrules'] = rule
             else:
                 frame['isingupdates'] = self.st.ising.updates * self.st.general.stochastic
                 frame['conwayrules'] = rule

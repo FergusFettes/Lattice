@@ -18,6 +18,11 @@ defaults:       &DEFAULTS
                 running: False
                 interrupt: False
 
+        analysis:
+                steady:
+                        entropy: None
+                        population: None
+                        radius: None
         canvas:
                 colorlist:
                         - 1662807650   # These are just random rn. I was wondering
@@ -67,3 +72,10 @@ conway:
         conway:
                 rules:
                         - [2,3,3,3]
+
+monstro:
+        <<: *DEFAULTS
+        conway:
+                rules:
+                        - [3,6,2,2]
+                        - [3,4,3,3]

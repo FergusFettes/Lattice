@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.core.umath_tests import inner1d
 
 
 class pureHandler():
@@ -31,12 +32,6 @@ class pureHandler():
             array[0, ...] = lb
         if rb >= 0:
             array[-1, ...] = rb
-        return array
-
-    def clear_wavefront(self, start, scale, polarity, array):
-        n = array.shape[0]
-        for i in range(scale):
-            array[(start + i) % n, ...] = polarity
         return array
 
     def resize_array(self, dim):
@@ -90,3 +85,123 @@ class pureHandler():
         # should just be the live cells
         array = rule2 + rule5
         return array
+
+#==============WOLFRAM==========================#
+    # Make little wolfline and array
+    def make_wolf(self, random, dim, scale, rule):
+        hi = int(dim[1] / scale)
+        wid = int(dim[0] / scale)
+        if random:
+            line = np.random.randint(0, 2, hi, int)
+        else:
+            line = np.zeros(hi, int)
+            line[int(hi / 2)] = 1
+        self.wolf = self.wolframgen(line, hi, rule)
+        self.wolfarray = np.zeros([wid, hi], bool)
+
+    # Generates the next wolfram line every time it is called
+    def wolframgen(self, line, hi, rule):
+        rule = str(bin(rule))[2:]   #gets binary repr. of update rule
+        while len(rule) < 8:
+            rule = '0' + rule
+        while True:
+            nb = [
+                    int(
+                        str(line[(i - 1) % hi])
+                        + str(line[i])
+                        + str(line[(i + 1) % hi]),
+                        2)
+                    for i in range(hi)
+                ]
+            line = [int(rule[-i - 1]) for i in nb]
+            yield line
+
+    def clear_wavefront(self, start, scale, polarity, array):
+        wid = array.shape[0]
+        for i in range(scale):
+            array[(start + i) % wid, ...] = polarity
+        return array
+
+    def wolfram_scroll(self, start, scale, array):
+        line = next(self.wolf)
+        hi = len(line)
+        wid = array.shape[0]
+        HI = array.shape[1]
+        for i in range(HI):
+            for j in range(scale):
+                array[(start + j) % wid, i] = line[int(i / scale) % hi]
+        return array
+
+    # TODO: Can probably add entire lines at a time instead of this
+    # Creates a wolfram array, typically slightly smaller than the image, which can then
+    # be scaled onto the top
+    def wolfram_screen(self):
+        wid = self.wolfarray.shape[0]
+        linegen = self.wolf
+        for lin in range(wid):
+            line = next(linegen)
+            for idy, pix in enumerate(line):
+                self.wolfarray[lin, idy] = pix
+        return self.wolfarray
+
+##================Analysis=========================##
+##=================================================##
+    def save_array(self, array):
+        self.arrayold = np.copy(array)
+
+    def export(self):
+        self.truncate()
+        return self.center, self.population, self.radius
+
+    def truncate(self):
+        if not self.population[0]:
+            return
+        last = np.nonzero(self.population)[0][-1]
+        self.center = self.center[0:last + 1]
+        self.population = self.population[0:last + 1]
+        self.radius = self.radius[0:last + 1]
+
+    def clear(self):
+        # Its faster to initialse the array, but the length is arbitrary, so change this
+        # to suit whatever turns out to be appropriate.
+        run_length = 2000
+        self.count = 0
+
+        self.center = np.zeros([run_length, 2], float)
+        self.population = np.zeros([run_length, 1], int)
+        self.radius = np.zeros([run_length, 1], float)
+
+    def analyze(self, array):
+        positions = self.living(array)
+        population = positions.shape[0]
+        self.population[self.count] = population
+        center = self.center_of_mass(positions, population)
+        self.center[self.count] = center
+        radius = self.radius_of_gyration(center, positions, population)
+        self.radius[self.count] = radius
+        self.count += 1
+
+    def center_of_mass(self, positions, population):
+        if not population:
+            return 0
+        return np.sum(positions, axis=0) / population
+
+    def radius_of_gyration(self, center, positions, population):
+        if not population:
+            return 0
+        rel = positions - center
+        square_distance = inner1d(rel, rel)
+        return np.sqrt(np.sum(square_distance, axis=0) / population)
+
+    def living(self, array):
+        return np.argwhere(array)
+
+    def change(self, array):
+        common = np.bitwise_and(array, self.arrayold)
+        onlyOld = np.bitwise_xor(common, self.arrayold)
+        onlyNew = np.bitwise_xor(common, array)
+        births = np.argwhere(onlyNew)
+        deaths = np.argwhere(onlyOld)
+        b = np.concatenate((births, np.ones([births.shape[0], 1], int)), axis=1)
+        d = np.concatenate((deaths, np.zeros([deaths.shape[0], 1], int)), axis=1)
+        return np.concatenate((b, d))

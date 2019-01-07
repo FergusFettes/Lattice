@@ -140,8 +140,8 @@ class RunController(QObject):
 ##==============Workers============##
 ##=================================##
 class Handler(QObject, pureHandler):
-    arraySig = pyqtSignal(np.ndarray, int)
-    arraySingleSig = pyqtSignal(np.ndarray, int)
+    arraySig = pyqtSignal(np.ndarray, int, list)
+    arraySingleSig = pyqtSignal(np.ndarray, int, list)
     arrayinitSig = pyqtSignal(np.ndarray, int, list)
     arrayfpsSig = pyqtSignal(float)
     error = pyqtSignal(str)
@@ -162,11 +162,11 @@ class Handler(QObject, pureHandler):
 
     def push_single_array(self, frame):
         self.array = super().process(frame, self.array)
-        self.arraySingleSig.emit(self.array, frame['wolfpos'])
+        self.arraySingleSig.emit(self.array, frame['wolfpos'], frame['dim'])
 
     def next_array(self, frame):
         now = time.time()
-        self.arraySig.emit(self.array, frame['wolfpos'])
+        self.arraySig.emit(self.array, frame['wolfpos'], frame['dim'])
         self.array = super().process(frame, self.array)
         self.fpsRoll[0] = time.time()-now
         self.fpsRoll = np.roll(self.fpsRoll, 1)

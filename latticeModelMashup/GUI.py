@@ -157,7 +157,7 @@ class MainWindow(QWidget):
         self.st.general.conway = not rules == []
 
     def make_fullscreen(self):
-        self.st.general.fullscreen = not self.st.general.fullscreen
+        self.st.canvas.fullscreen = not self.st.canvas.fullscreen
 
 #=====================Save defaults and GUI ket controls===============#
     def gif_creator(self):
@@ -279,7 +279,7 @@ class MainWindow(QWidget):
                                          QColor('#ffff00ff').name())
         self.dynamic.clicked.connect(self.engine.dynamic_run)
 
-        # Buttons and slier in the top left
+        # Buttons and slider in the top left
         self.short = QPushButton()
         self.equilibrate = QPushButton()
         self.short.setText('Step')

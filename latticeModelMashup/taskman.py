@@ -154,8 +154,8 @@ class Handler(QObject, pureHandler):
         self.fpsRoll = np.zeros(9, float)
 
     def updater_start(self, frame1, frame2, dim):
-        if not self.array == tuple(dim):
-            self.resize_array(dim)
+        if not self.array.shape == tuple(dim):
+            self.array = super().resize_array(dim)
         self.array = super().process(frame1, self.array)
         self.arrayinitSig.emit(self.array, frame1['wolfpos'], dim)
         self.array = super().process(frame2, self.array)
@@ -165,6 +165,8 @@ class Handler(QObject, pureHandler):
         self.arraySingleSig.emit(self.array, frame['wolfpos'], frame['dim'])
 
     def next_array(self, frame):
+        if not self.array.shape == tuple(frame['dim']):
+            self.array = super().resize_array(frame['dim'])
         now = time.time()
         self.arraySig.emit(self.array, frame['wolfpos'], frame['dim'])
         self.array = super().process(frame, self.array)

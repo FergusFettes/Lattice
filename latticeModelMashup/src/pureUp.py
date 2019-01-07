@@ -4,6 +4,7 @@ from numpy.core.umath_tests import inner1d
 
 class pureHandler():
 
+
     def process(self, job, array):
         if not array.shape == tuple(job['dim']):
             array = self.resize_array(job['dim'])
@@ -149,6 +150,9 @@ class pureHandler():
     def save_array(self, array):
         self.arrayold = np.copy(array)
 
+    def array_old(self):
+        return self.arrayold
+
     def export(self):
         self.truncate()
         return self.center, self.population, self.radius
@@ -168,10 +172,12 @@ class pureHandler():
         self.count = 0
 
         self.center = np.zeros([run_length, 2], float)
-        self.population = np.zeros([run_length, 1], int)
-        self.radius = np.zeros([run_length, 1], float)
+        self.population = np.zeros(run_length, int)
+        self.radius = np.zeros(run_length, float)
 
-    def analyze(self, array):
+        self.count += 1
+
+    def analyse(self, array):
         positions = self.living(array)
         population = positions.shape[0]
         self.population[self.count] = population
@@ -197,6 +203,8 @@ class pureHandler():
         return np.argwhere(array)
 
     def change(self, array):
+        if not self.arrayold.shape == array.shape:
+            self.save_array(array)
         common = np.bitwise_and(array, self.arrayold)
         onlyOld = np.bitwise_xor(common, self.arrayold)
         onlyNew = np.bitwise_xor(common, array)

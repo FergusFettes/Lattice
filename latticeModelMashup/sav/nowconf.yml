@@ -37,7 +37,7 @@ lastsave:
     steady: {entropy: None, population: None, radius: None}
   bounds: {left: -1, lower: 1, right: -1, upper: 1}
   canvas:
-    colorlist: [65466700, 3241114047, 3272973952, 3062383441, 4294967295, 4294967295]
+    colorlist: [3356512639, 3661593462, 2775837886, 2812289645, 4294967295, 4294967295]
     dim: [300, 200]
     fullscreen: false
     record: false
@@ -45,12 +45,11 @@ lastsave:
     scale: 2
   conway:
     rules:
-    - [3, 6, 2, 2]
-    - [3, 4, 3, 3]
+    - [4, 5, 4, 6]
   general: {clear: false, conway: true, equilibrate: false, frametime: 0.05, interrupt: false,
-    maxFPS: 24, rundone: 868, running: true, runtodo: -1, stochastic: true, wolfwave: false}
-  ising: {beta: 0.125, degree: 2, equilibrate: 10000, updates: 1000}
-  noise: {threshold: 0.9999938558253978}
+    maxFPS: 24, rundone: 0, running: true, runtodo: -1, stochastic: true, wolfwave: true}
+  ising: {beta: 0.125, degree: 4, equilibrate: 10000, updates: 1000}
+  noise: {threshold: 0.9999322758503802}
   wolfram: {polarity: 1, position: 0, rule: 90, scale: 2}
 monstro:
   analysis: *id001

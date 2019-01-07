@@ -5,6 +5,7 @@ from functools import partial
 
 from imageProcessing import *
 from taskman import *
+from graphs import *
 
 import munch
 
@@ -26,12 +27,13 @@ class EngineOperator(QObject):
     gifresetSig = pyqtSignal()
     plainSig = pyqtSignal(list)
 
-    def __init__(self, canvas, frameLabel, arrayfpsLabel, canvasfpsLabel, st):
+    def __init__(self, canvas, graphs, frameLabel, arrayfpsLabel, canvasfpsLabel, st):
     # The kwargs consists of the following: speed, updates, frames, beta,
     # stochastic?, threshold/coverage.
         QObject.__init__(self)
         self.st = st
         self.canvas = canvas
+        self.graphs = graphs
         self.frameLabel = frameLabel
         self.arrayfpsLabel = arrayfpsLabel
         self.canvasfpsLabel = canvasfpsLabel
@@ -100,7 +102,7 @@ class EngineOperator(QObject):
             self.canvasfpsLabel.setText('Canvas fps: {:03.3f}'.format(1 / value))
 
     def frame_value_update(self, value):
-        self.frameLabel.setText(str(value))
+        self.frameLabel.setText('Frames: {:04d}/'.format(value))
         if not value % 10:
             self.st.general.rundone = value
 
@@ -114,16 +116,20 @@ class EngineOperator(QObject):
         self.taskthread = QThread()
         self.imagethread = QThread()
         self.updatethread = QThread()
+        self.analysisthread = QThread()
         self.handler = Handler(self.st)
         self.taskman = RunController(self.st)
         self.image = ImageCreator(self.st)
+        self.analyser = Analyser(self.st)
         self.taskman.moveToThread(self.taskthread)
         self.handler.moveToThread(self.updatethread)
         self.image.moveToThread(self.imagethread)
+        self.analyser.moveToThread(self.analysisthread)
 
         self.taskthread.started.connect(self.taskman.process)
         self.taskthread.started.connect(self.imagethread.start)
         self.taskthread.started.connect(self.updatethread.start)
+        self.taskthread.started.connect(self.analysisthread.start)
 
         # Connections from the engine to the workers
         self.interruptSig.connect(self.breaker)
@@ -138,7 +144,8 @@ class EngineOperator(QObject):
         self.handler.arraySig.connect(self.image.process)
         self.handler.arraySingleSig.connect(self.image.process_single)
         self.handler.arrayinitSig.connect(self.image.processer_start)
-        self.image.nextarraySig.connect(self.taskman.next_frame)
+        self.image.analyseSig.connect(self.analyser.process)
+        self.analyser.nextarraySig.connect(self.taskman.next_frame)
 
         # Connections for closing threads WORK NECC HERE
         # Need to figure out exactly ho long a thread will stay waiting, what activates
@@ -147,6 +154,7 @@ class EngineOperator(QObject):
         self.taskman.finished.connect(self.taskthread.quit)
         self.taskman.finished.connect(self.updatethread.quit)
         self.taskman.finished.connect(self.imagethread.quit)
+        self.taskman.finished.connect(self.analysisthread.quit)
         self.taskthread.finished.connect(self.thread_looper)
         self.image.breakSig.connect(self.breaker)
         self.taskman.breakSig.connect(self.breaker)
@@ -159,3 +167,5 @@ class EngineOperator(QObject):
         self.image.error.connect(self.error_string)
         self.handler.error.connect(self.error_string)
         self.image.imageSig.connect(self.canvas.paint)
+        self.analyser.popSig.connect(self.graphs.paint)
+        self.analyser.radSig.connect(self.graphs.paint)

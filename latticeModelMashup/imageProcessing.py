@@ -10,7 +10,7 @@ from src.pureUp import *
 
 class ImageCreator(QObject, pureHandler):
     imageSig = pyqtSignal(QPixmap)
-    nextarraySig = pyqtSignal()
+    analyseSig = pyqtSignal(np.ndarray)
     breakSig = pyqtSignal()
     error = pyqtSignal(str)
     finished = pyqtSignal()
@@ -23,7 +23,6 @@ class ImageCreator(QObject, pureHandler):
         self.colorList = st.canvas.colorlist
         self.wolfram_color_offset = 2
         self.resize_image(st.canvas.dim)
-        super().resize_array(st.canvas.dim)
 
         self.scale = st.canvas.scale
         self.fpsRoll = np.zeros(9, float)
@@ -41,6 +40,7 @@ class ImageCreator(QObject, pureHandler):
     # Resize/reset
     def resize_image(self, dim):
         self.image = QImage(dim[0], dim[1], QImage.Format_ARGB32)
+        self.imageDim = dim
 
 #===============Array processing and Image export=============#
     def send_image(self, image):
@@ -62,21 +62,18 @@ class ImageCreator(QObject, pureHandler):
         self.send_image(self.image)
 
     def processer_start(self, array, pos, dim):
-        if not array.shape == tuple(dim):
-            self.resize_image(dim)
-            super().resize_array(dim)
+        self.resize_image(dim)
         self.wavecounter = pos
         super().make_wolf(True, dim, self.st.wolfram.scale, self.st.wolfram.rule)
         super().save_array(array)
         self.process_array(array)
-        self.nextarraySig.emit()
+        self.analyseSig.emit(array)
 
     def process(self, array, pos, dim):
-        if not array.shape == tuple(dim):
+        if not self.imageDim == dim:
             self.resize_image(dim)
-            super().resize_array(dim)
         self.send_image(self.image)
-        self.nextarraySig.emit()
+        self.analyseSig.emit(array)
         self.wavecounter = pos
         self.process_array(array)
 

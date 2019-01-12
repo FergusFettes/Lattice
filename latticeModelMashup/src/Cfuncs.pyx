@@ -85,5 +85,3 @@ cpdef set_boundary(int ub, int rb, int db, int lb, int[:] dim, int[:, :] array):
         for i in range(dim[1]):
             array[0][i] = lb
     if rb >= 0:
-        for i in range(dim[1]):
-            array[dim[0] - 1][i] = rb

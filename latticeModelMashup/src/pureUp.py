@@ -4,6 +4,12 @@ from numpy.core.umath_tests import inner1d
 
 class pureHandler():
 
+    def test_process(self, updates, beta, threshold, rule, dim):
+        arr = self.resize_array(dim)
+        self.noise_process(threshold, arr)
+        self.ising_process(updates, beta, arr)
+        self.set_boundary(1, 1, 1, 1, arr)
+        self.conway_process(rule, arr)
 
     def process(self, job, array):
         if not array.shape == tuple(job['dim']):

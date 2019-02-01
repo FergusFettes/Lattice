@@ -1,51 +1,68 @@
 import numpy as np
 from numpy.core.umath_tests import inner1d
 
-def clear_columns(num, width, array):
+def axial_diameter(positions):
+    width = max(positions[0,:]) - min(positions[0,:])
+    height = max(positions[1,:]) - min(positions[1,:])
+    return max(width, height), min(width, height)
+
+def center_of_mass(positions, population):
+    if not population:
+        return 0
+    return np.sum(positions, axis=0) / population
+
+def radius_of_gyration(center, positions, population):
+    if not population:
+        return 0
+    rel = positions - center
+    square_distance = inner1d(rel, rel)
+    return np.sqrt(np.sum(square_distance, axis=0) / population)
+
+def clear_columns_P(num, width, array):
     for i in range(width):
         array = clear_column((num + i) % array.shape[1], array)
     return array
 
-def fill_columns(num, width, array):
+def fill_columns_P(num, width, array):
     for i in range(width):
         array = fill_column((num + i) % array.shape[1], array)
     return array
 
-def replace_columns(num, width, nucol, array):
+def replace_columns_P(num, width, nucol, array):
     for i in range(width):
         array = replace_column((num + i) % array.shape[1], nucol, array)
     return array
 
-def clear_rows(num, width, array):
+def clear_rows_P(num, width, array):
     for i in range(width):
         array = clear_row((num + i) % array.shape[0], array)
     return array
 
-def fill_rows(num, width, array):
+def fill_rows_P(num, width, array):
     for i in range(width):
         array = fill_row((num + i) % array.shape[0], array)
     return array
 
-def replace_rows(num, width, nucol, array):
+def replace_rows_P(num, width, nucol, array):
     for i in range(width):
         array = replace_row((num + i) % array.shape[0], nucol, array)
     return array
 
-def fill_bounds(array):
+def fill_bounds_P(array):
     array = fill_column(0, array)
     array = fill_column(-1, array)
     array = fill_row(0, array)
     array = fill_row(-1, array)
     return array
 
-def clear_bounds(array):
+def clear_bounds_P(array):
     array = clear_column(0, array)
     array = clear_column(-1, array)
     array = clear_row(0, array)
     array = clear_row(-1, array)
     return array
 
-def set_bounds(ub, rb, db, lb, array):
+def set_bounds_P(ub, rb, db, lb, array):
     if ub >= 0:
         array[..., 0] = ub
     if db >= 0:
@@ -57,13 +74,13 @@ def set_bounds(ub, rb, db, lb, array):
     return array
 
 #=========================LOW-LEVEL==========================
-def clear_array(array):
+def clear_array_P(array):
     return np.zeros(array.shape, np.intc)
 
-def fill_array(array):
+def fill_array_P(array):
     return np.ones(array.shape, np.intc)
 
-def replace_array(offset, nuarr, array):
+def replace_array_P(offset, nuarr, array):
     array[offset[0]: offset[0] + nuarr.shape[0], offset[1]: offset[1] + nuarr.shape[1]] = nuarr
     return array
 

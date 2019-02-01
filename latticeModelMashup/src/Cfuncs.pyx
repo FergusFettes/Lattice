@@ -10,20 +10,9 @@ from libc.stdlib cimport rand, RAND_MAX
 from cpython cimport array
 cimport numpy as np
 
-cpdef test_process(int updates, float beta, float threshold, int[:] rule_v, int[:] dim_v):
-    cdef np.ndarray arr = resize_array(dim_v)
-    cdef int[:, :] arr_v = arr
-    noise_process(threshold, dim_v, arr_v)
-    ising_process(updates, beta, dim_v, arr_v)
-    set_boundary(1, 1, 1, 1, dim_v, arr_v)
-    conway_process(rule_v, dim_v, arr_v)
-
-cpdef resize_array(int[:] dim):
-    return np.zeros(dim, np.intc)
-
 #@cython.boundscheck(False)
 #@cython.wraparound(False)
-cpdef noise_process(float threshold, int[:] dim, int[:, :] array):
+cpdef add_noise(float threshold, int[:] dim, int[:, :] array):
     cdef int[:, :] narr = np.random.randint(0, 2, dim, np.intc)
     cdef Py_ssize_t x, y
     for x in range(dim[0]):
@@ -73,17 +62,41 @@ cpdef conway_process(int[:] rule, int[:] dim, int[:, :] array):
                 if rule[2] <= NB <= rule[3]:
                     array[i][j] = 1
 
-#NB: this is 5x slower than the numpy version :( but i want to be sure my arrays are all pointers
-cpdef set_boundary(int ub, int rb, int db, int lb, int[:] dim, int[:, :] array):
-    if ub >= 0:
-        for i in range(dim[0]):
-            array[i][0] = ub
-    if db >= 0:
-        for i in range(dim[0]):
-            array[i][dim[1] - 1] = db
-    if lb >= 0:
-        for i in range(dim[1]):
-            array[0][i] = lb
-    if rb >= 0:
-        for i in range(dim[1]):
-            array[dim[0]][i] = rb
+cpdef fill_array(int[:] dim, int[: :] array):
+    for i in range(dim[0]):
+        for j in range(dim[1]):
+            array[i][j] = 1
+
+cpdef clear_array(int[:] dim, int[: :] array):
+    for i in range(dim[0]):
+        for j in range(dim[1]):
+            array[i][j] = 0
+
+cpdef replace_array(int[:] offset, int[:] dim_nu, int[:, :] nuarr, int[: :] array):
+    for i in range(dim_nu[0]):
+        for j in range(dim_nu[1]):
+            array[i + offset[0]][j + offset[1]] = nuarr[i][j]
+
+cpdef fill_row(int num, int[:] dim, int[:, :] array):
+    for i in range(dim[1]):
+        array[num][i] = 1
+
+cpdef clear_row(int num, int[:] dim, int[:, :] array):
+    for i in range(dim[1]):
+        array[num][i] = 0
+
+cpdef replace_row(int num, int[:] dim, int[:] nurow, int[:, :] array):
+    for i in range(dim[1]):
+        array[num][i] = nurow[i]
+
+cpdef fill_column(int num, int[:] dim, int[:, :] array):
+    for i in range(dim[0]):
+        array[i][num] = 1
+
+cpdef clear_column(int num, int[:] dim, int[:, :] array):
+    for i in range(dim[0]):
+        array[i][num] = 0
+
+cpdef replace_column(int num, int[:] dim, int[:] nucol, int[:, :] array):
+    for i in range(dim[0]):
+        array[i][num] = nucol[i]

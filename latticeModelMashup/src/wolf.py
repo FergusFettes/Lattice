@@ -1,8 +1,6 @@
 import numpy as np
 
 class Wolf():
-
-
     #==============WOLFRAM==========================#
     # Make little wolfline and array
     def make(self, random, dim, scale, rule):

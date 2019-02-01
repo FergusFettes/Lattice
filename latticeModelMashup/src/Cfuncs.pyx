@@ -8,6 +8,7 @@ import numpy as np
 import time
 
 from libc.stdlib cimport rand, RAND_MAX
+from latticeModelMashup.src.Pfuncs import *
 from cpython cimport array
 cimport numpy as np
 
@@ -29,7 +30,7 @@ cpdef init_array(int[:] size, rule=None):
     cdef int[:] rule_v = rule
     return dim, dim_v, arr, arr_v, rule, rule_v
 
-cpdef randomize_center(int size, int[:] dim, int[:, :] arr):
+cpdef randomize_center(int siz, int[:] dim, int[:, :] arr):
     """
     Puts a little random array in the center of the array
 
@@ -38,11 +39,11 @@ cpdef randomize_center(int size, int[:] dim, int[:, :] arr):
     :param array:       (2D pointer) array
     :returns:           None
     """
-    size = array.array('i', [size, size])
+    size = array.array('i', [siz, siz])
     cdef int[:] size_v = size
     _, dim_v, _, arr_v, _, _ = init_array(size_v)
     add_noise(0.8, dim_v, arr_v)
-    offset = array.array('i', [int((dim[0] - size[0])/2), int((dim[1] - size[1])/2)])
+    offset = array.array('i', [int((dim[0] - size_v[0])/2), int((dim[1] - size_v[1])/2)])
     cdef int[:] offset_v = offset
     replace_array(offset_v, dim_v, arr_v, arr)
 
@@ -60,11 +61,15 @@ cpdef simple_run(int updates, float beta, int[:] rule, int[:] dim, int[:, :] arr
     while True:
         ising_process(updates, beta, dim, arr)
         conway_process(rule, dim, arr)
-        print(arr)
+        print(np.asarray(arr))
         time.sleep(0.5)
         tot = check_rim(dim, arr)
+        if len(get_living(np.asarray(arr)))==0:
+            print('ded')
+            return
         if tot:
-            return tot
+            print('edge')
+            return
 
 #@cython.boundscheck(False)
 #@cython.wraparound(False)

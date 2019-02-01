@@ -7,6 +7,7 @@ import array
 import numpy as np
 
 from libc.stdlib cimport rand, RAND_MAX
-from src.Cfuncs cimport *
+from latticeModelMashup.src.Cfuncs import *
+from latticeModelMashup.src.Pfuncs import *
 from cpython cimport array
 cimport numpy as np

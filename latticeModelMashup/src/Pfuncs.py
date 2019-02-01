@@ -3,7 +3,9 @@ from numpy.core.umath_tests import inner1d
 
 def axial_diameter(positions):
     width = max(positions[0,:]) - min(positions[0,:])
+    print(width)
     height = max(positions[1,:]) - min(positions[1,:])
+    print(height)
     return max(width, height), min(width, height)
 
 def center_of_mass(positions, population):

@@ -41,10 +41,14 @@ while True:
     tot = check_rim(dim_v, arr_v)
     positions = get_living(arr)
     com = center_of_mass(positions, len(positions))
-    recenter(com, dim_v, arr_v)
+    rad = radius_of_gyration(com, positions, len(positions))
+    print(rad)
+    maxx, minn = axial_diameter(positions)
+    print(maxx, minn)
     if len(positions)==0:
         print('ded')
         break
     if tot:
         print('edge')
         break
+    recenter(com, dim_v, arr_v)

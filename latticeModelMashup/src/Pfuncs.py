@@ -1,37 +1,95 @@
 import numpy as np
 from numpy.core.umath_tests import inner1d
 
-def make_buffer(dim, buffer_length):
-    # TODO: check this is the right sort of contiguous
-    return np.zeros([dim[0], dim[1], buffer_length], np.intc)
+def clear_columns(num, width, array):
+    for i in range(width):
+        array = clear_column((num + i) % array.shape[1], array)
+    return array
 
+def fill_columns(num, width, array):
+    for i in range(width):
+        array = fill_column((num + i) % array.shape[1], array)
+    return array
+
+def replace_columns(num, width, nucol, array):
+    for i in range(width):
+        array = replace_column((num + i) % array.shape[1], nucol, array)
+    return array
+
+def clear_rows(num, width, array):
+    for i in range(width):
+        array = clear_row((num + i) % array.shape[0], array)
+    return array
+
+def fill_rows(num, width, array):
+    for i in range(width):
+        array = fill_row((num + i) % array.shape[0], array)
+    return array
+
+def replace_rows(num, width, nucol, array):
+    for i in range(width):
+        array = replace_row((num + i) % array.shape[0], nucol, array)
+    return array
+
+def fill_bounds(array):
+    array = fill_column(0, array)
+    array = fill_column(-1, array)
+    array = fill_row(0, array)
+    array = fill_row(-1, array)
+    return array
+
+def clear_bounds(array):
+    array = clear_column(0, array)
+    array = clear_column(-1, array)
+    array = clear_row(0, array)
+    array = clear_row(-1, array)
+    return array
+
+def set_bounds(ub, rb, db, lb, array):
+    if ub >= 0:
+        array[..., 0] = ub
+    if db >= 0:
+        array[..., -1] = db
+    if lb >= 0:
+        array[0, ...] = lb
+    if rb >= 0:
+        array[-1, ...] = rb
+    return array
+
+#=========================LOW-LEVEL==========================
 def clear_array(array):
-    return array(..., ...) = 0
+    return np.zeros(array.shape, np.intc)
 
-def fill_arrray(array):
-    return array(..., ...) = 1
+def fill_array(array):
+    return np.ones(array.shape, np.intc)
 
-#TODO: test this guy
 def replace_array(offset, nuarr, array):
-    return array(offset[0]:, offset[1]:) = nuarr
+    array[offset[0]: offset[0] + nuarr.shape[0], offset[1]: offset[1] + nuarr.shape[1]] = nuarr
+    return array
 
 def fill_row(num, array):
-    return array(num, ...) = 1
+    array[num, ...] = 1
+    return array
 
 def fill_column(num, array):
-    return array(..., num) = 1
+    array[..., num] = 1
+    return array
 
 def clear_row(num, array):
-    return array(num, ...) = 0
+    array[num, ...] = 0
+    return array
 
 def clear_column(num, array):
-    return array(..., num) = 0
+    array[..., num] = 0
+    return array
 
 def replace_row(num, nurow, array):
-    return array(num, ...) = nurow
+    array[num, ...] = nurow
+    return array
 
 def replace_column(num, nucol, array):
-    return array(..., num) = nucol
+    array[..., num] = nucol
+    return array
 
 def roll_array(up, right, array):
     array = np.roll(array, up, axis=0)

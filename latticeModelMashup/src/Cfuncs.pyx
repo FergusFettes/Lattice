@@ -100,6 +100,35 @@ cpdef fill_bounds(int[:] dim, int[:, :] array):
     fill_column(0, dim, array)
     fill_column(dim[0] - 1, dim, array)
 
+cpdef set_bounds(int ub, int rb, int db, int lb, int[:] dim, int[:, :] array):
+    """
+    Sets boundaries
+
+    :param ub:      (int) upper bound value
+    :param rb:      (int) right bound value
+    :param db:      (int) down bound value
+    :param lb:      (int) left bound value
+    :param dim:     (pointer) dimensions of array
+    :param array:   (2D pointer) array
+    :return:        None
+    """
+    if ub:
+        fill_row(0, dim, array)
+    else:
+        clear_row(0, dim, array)
+    if db:
+        fill_row(dim[0] - 1, dim, array)
+    else:
+        clear_row(dim[0] - 1, dim, array)
+    if lb:
+        fill_column(0, dim, array)
+    else:
+        clear_column(0, dim, array)
+    if rb:
+        fill_column(dim[0] - 1, dim, array)
+    else:
+        clear_column(dim[0] - 1, dim, array)
+
 cpdef clear_bounds(int[:] dim, int[:, :] array):
     """
     Sets boundaries to 0
@@ -232,76 +261,82 @@ cpdef replace_array(int[:] offset, int[:] dim_nu, int[:, :] nuarr, int[:, :] arr
         for j in range(dim_nu[1]):
             array[i + offset[0]][j + offset[1]] = nuarr[i][j]
 
-cpdef fill_row(int num, int[:] dim, int[:, :] array):
-    """
-    Fills row of array with 1s
+cpdef roll_columns_pointer(int num, int[:] dim, int[:, :] array):
+    return memoryview(np.roll(np.asarray(array), num, axis=1))
 
-    :param num:     (int) index of row
-    :param dim:     (pointer) dimensions of array
-    :param array:   (2D pointer) array
-    :return:        None
-    """
+cpdef roll_columns(int num, int[:] dim, int[:, :] array):
+    cdef int[:] offset_v = np.zeros(2, np.intc)
+    cdef int[:, :] nuarr_v = np.roll(np.asarray(array), num, axis=1)
+    replace_array(offset_v, dim, nuarr_v, array)
+
+cpdef roll_columns_manual(int num, int[:] dim, int[:, :] array):
+    temp = np.zeros([dim[0], num], np.intc)
+    for i in range(dim[0]):
+        for j in range(num):
+            temp[i][j] = array[i][j]
+    for i in range(dim[0]):
+        for j in range(dim[1]-num):
+            array[i][j] = array[i][j+num]
+    for i in range(dim[0]):
+        for idx, j in enumerate(range(dim[1]-num, dim[1])):
+            array[i][j] = temp[i][idx]
+
+cpdef roll_columns_manual_single(int num, int[:] dim, int[:, :] array):
+    for i in range(num):
+        roll_columns_single(dim, array)
+
+cdef roll_columns_single(int[:] dim, int[:, :] array):
+    temp = np.zeros(dim[0], np.intc)
+    for i in range(dim[0]):
+        temp[i] = array[i][0]
+    for i in range(dim[0]):
+        for j in range(dim[1]-1):
+            array[i][j] = array[i][j+1]
+    for i in range(dim[0]):
+        array[i][dim[1] - 1] = temp[i]
+
+cpdef roll_columns_manual_twoloop(int num, int[:] dim, int[:, :] array):
+    temp = np.zeros([dim[0], num], np.intc)
+    for i in range(dim[0]):
+        for j in range(dim[1]-num):
+            if j < num:
+                temp[i][j] = array[i][j]
+            array[i][j] = array[i][j+num]
+    for i in range(dim[0]):
+        for idx, j in enumerate(range(dim[1]-num, dim[1])):
+            array[i][j] = temp[i][idx]
+
+cpdef roll_columns_manual_oneloop(int num, int[:] dim, int[:, :] array):
+    temp = np.zeros([dim[0], num], np.intc)
+    for i in range(dim[0]):
+        for j in range(dim[1]):
+            if j < num:
+                temp[i][j] = array[i][j]
+            if j < dim[1] - num:
+                array[i][j] = array[i][j+num]
+            if j >= dim[1] - num:
+                array[i][j] = temp[i][j - (dim[1] - num) - 1]
+
+cdef fill_row(int num, int[:] dim, int[:, :] array):
     for i in range(dim[1]):
         array[num][i] = 1
 
-cpdef clear_row(int num, int[:] dim, int[:, :] array):
-    """
-    Fills row of array with 0s
-
-    :param num:     (int) index of row
-    :param dim:     (pointer) dimensions of array
-    :param array:   (2D pointer) array
-    :return:        None
-    """
+cdef clear_row(int num, int[:] dim, int[:, :] array):
     for i in range(dim[1]):
         array[num][i] = 0
 
-cpdef replace_row(int num, int[:] dim, int[:] nurow, int[:, :] array):
-    """
-    Fills row of array with another row
-
-    :param num:     (int) index of row
-    :param dim:     (pointer) dimensions of array
-    :param nurow:   (pointer) new row values
-    :param array:   (2D pointer) array
-    :return:        None
-    """
+cdef replace_row(int num, int[:] dim, int[:] nurow, int[:, :] array):
     for i in range(dim[1]):
         array[num][i] = nurow[i]
 
-cpdef fill_column(int num, int[:] dim, int[:, :] array):
-    """
-    Fills column of array with 1s
-
-    :param num:     (int) index of column
-    :param dim:     (pointer) dimensions of array
-    :param array:   (2D pointer) array
-    :return:        None
-    """
+cdef fill_column(int num, int[:] dim, int[:, :] array):
     for i in range(dim[0]):
         array[i][num] = 1
 
-cpdef clear_column(int num, int[:] dim, int[:, :] array):
-    """
-    Fills column of array with 0s
-
-    :param num:     (int) index of column
-    :param dim:     (pointer) dimensions of array
-    :param array:   (2D pointer) array
-    :return:        None
-    """
+cdef clear_column(int num, int[:] dim, int[:, :] array):
     for i in range(dim[0]):
         array[i][num] = 0
 
-cpdef replace_column(int num, int[:] dim, int[:] nucol, int[:, :] array):
-    """
-    Fills column of array with new values
-
-    :param num:     (int) index of column
-    :param dim:     (pointer) dimensions of array
-    :param nucol:   (pointer) values to fill column
-    :param array:   (2D pointer) array
-    :return:        None
-    """
+cdef replace_column(int num, int[:] dim, int[:] nucol, int[:, :] array):
     for i in range(dim[0]):
         array[i][num] = nucol[i]

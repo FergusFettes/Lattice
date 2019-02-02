@@ -1,12 +1,25 @@
 import numpy as np
 from numpy.core.umath_tests import inner1d
 
+def population_density(rad, pop):
+    if pop == 0:
+        return 0
+    return pop/(np.pi*rad**2)
+
 def axial_diameter(positions):
-    width = max(positions[0,:]) - min(positions[0,:])
-    print(width)
-    height = max(positions[1,:]) - min(positions[1,:])
-    print(height)
+    if len(positions) == 0:
+        return 0, 0
+    width = max(positions[:,0]) - min(positions[:,0])
+    height = max(positions[:,1]) - min(positions[:,1])
     return max(width, height), min(width, height)
+
+def diameter_growth_rate(max_diameter):
+    if len(max_diameter) < 3:
+        return 0
+    pair = np.zeros(len(max_diameter) - 1)
+    for i in range(len(max_diameter) - 1):
+        pair[i] = (max_diameter[i + 1] - max_diameter[i])/2
+    return np.mean(pair)
 
 def center_of_mass(positions, population):
     if not population:

@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import cython
 
 import array
@@ -8,27 +5,49 @@ import numpy as np
 import time
 
 from libc.stdlib cimport rand, RAND_MAX
-from latticeModelMashup.src.Pfuncs import *
 from cpython cimport array
 cimport numpy as np
 
 
-cpdef init_array(int[:] size, rule=None):
+cpdef resize_array(int[:] dim_old, int[:, :] arr_old, int add=0):
+    """
+    Creates a new array and places th old array in its center.
+
+    :param dim:
+    :param arr:
+    :param add:     amount of space to add at the edges of the new array
+    :returns:       dim, dim_v, arr, arr_v
+    """
+    cdef int[:] offset_v, dim_v, size_v
+    cdef int[:, :] arr_v
+    add = add if add is not 0 else 1
+    offset_v = array.array('i', [add, add])
+    size_v = array.array('i', [dim_old[0] + add * 2, dim_old[1] + add * 2])
+    dim_v, arr_v = init_array(size_v)
+    replace_array(offset_v, dim_old, arr_old, arr_v)
+    return dim_v, arr_v
+
+cpdef init_array(int[:] size):
     """
     Creates a little array for testing
 
     :param size:    (pointer) size of the array
-    :param rule:    (list) rule for conway
-    :returns:       (arr) dim, (pointer) dim_v, (arr) array, (pointer) arr_v, (arr) rule,
-                        (pointer) rule_v
+    :return:        (pointer) dim_v, (pointer) arr_v, (arr) rule
     """
-    dim = array.array('i', size)
-    cdef int[:] dim_v = dim
-    arr = np.zeros(dim, np.intc)
-    cdef int[:, :] arr_v = arr
-    rule = array.array('i', rule) if rule is not None else array.array('i', [2,3,3,3])
-    cdef int[:] rule_v = rule
-    return dim, dim_v, arr, arr_v, rule, rule_v
+    cdef int[:] dim_v = array.array('i', size)
+    cdef int[:, :] arr_v = np.zeros(dim_v, np.intc)
+    return dim_v, arr_v
+
+cpdef prepair_rule(list rules, int frame):
+    """
+    Prepairs rule for this frame
+
+    :param rules:       (list) full rule list
+    :param frame:       (int) framnumber
+    :return:            (pointer) current rule
+    """
+    cdef int[:] rule_v = array.array('i', rules[frame % len(rules)])
+    return rule_v
 
 cpdef randomize_center(int siz, int[:] dim, int[:, :] arr):
     """
@@ -37,39 +56,15 @@ cpdef randomize_center(int siz, int[:] dim, int[:, :] arr):
     :param size:        (pointer) size of small array
     :param dim:         (pointer) dimensions
     :param array:       (2D pointer) array
-    :returns:           None
+    :return:            None
     """
-    size = array.array('i', [siz, siz])
-    cdef int[:] size_v = size
-    _, dim_v, _, arr_v, _, _ = init_array(size_v)
+    cdef int[:] size_v, dim_v, offset_v
+    cdef int[:, :] arr_v
+    size_v = array.array('i', [siz, siz])
+    dim_v, arr_v = init_array(size_v)
     add_noise(0.8, dim_v, arr_v)
-    offset = array.array('i', [int((dim[0] - size_v[0])/2), int((dim[1] - size_v[1])/2)])
-    cdef int[:] offset_v = offset
+    offset_v = array.array('i', [int((dim[0] - size_v[0])/2), int((dim[1] - size_v[1])/2)])
     replace_array(offset_v, dim_v, arr_v, arr)
-
-cpdef simple_run(int updates, float beta, int[:] rule, int[:] dim, int[:, :] arr):
-    """
-    Performs a simple run
-
-    :param updates:     (int) Ising updates
-    :param beta:        (float) inverse temp
-    :param rule:        (pointer) rule
-    :param dim:         (pointer) dimensions
-    :param array:       (2D pointer) array
-    :returns:           None
-    """
-    while True:
-        ising_process(updates, beta, dim, arr)
-        conway_process(rule, dim, arr)
-        print(np.asarray(arr))
-        time.sleep(0.5)
-        tot = check_rim(dim, arr)
-        if len(get_living(np.asarray(arr)))==0:
-            print('ded')
-            return
-        if tot:
-            print('edge')
-            return
 
 #@cython.boundscheck(False)
 #@cython.wraparound(False)
@@ -88,7 +83,22 @@ cpdef add_noise(float threshold, int[:] dim, int[:, :] array):
         for y in range(dim[1]):
             array[x][y] = array[x][y] ^ narr[x][y]
 
+cpdef add_noise_C(float threshold, int[:] dim, int[:, :] array):
+    """
+    Adds simple noise to an array.
+
+    :param threshold: (float) Noise threshold (0-1)
+    :param dim:     (pointer) dimensions of array
+    :param array:   (2D pointer) array
+    :return: None
+    """
+    cdef Py_ssize_t x, y
+    for x in range(dim[0]):
+        for y in range(dim[1]):
+            array[x][y] = array[x][y] ^ (rand() % 2)
+
 cpdef ising_process(int updates, float beta, int[:] dim, int[:, :] array):
+    #TODO: removing all the mods makes it a little more performant, maybe do that sometime
     """
     Performs ising updates on the array.
 
@@ -113,6 +123,42 @@ cpdef ising_process(int updates, float beta, int[:] dim, int[:, :] array):
         u = int(array[a][b] == array[a][(b + 1) % D])
         d = int(array[a][b] == array[a][(b - 1) % D])
         nb = l + u + d + r - 2
+        if nb <= 0 or (rand() / RAND_MAX) < cost[nb]:
+            array[a][b] = not array[a][b]
+
+cpdef ising_process_nomod(int updates, float beta, int[:] dim, int[:, :] array):
+    #TODO: removing all the mods makes it a little more performant, maybe do that sometime
+    """
+    Performs ising updates on the array.
+
+    :param updates: (int) Number of updates to perform
+    :param beta:    (float) Inverse temperature (>1/8 --> pure noise)
+    :param dim:     (pointer) dimensions of array
+    :param array:   (2D pointer) array
+    :return:        None
+    """
+    cdef float[:] cost = np.zeros(3, np.float32)
+    cost[1] = np.exp(-4 * beta)
+    cost[2] = cost[1] ** 2
+    N = dim[0]
+    D = dim[1]
+    cdef Py_ssize_t _
+    cdef int a, b, l, r, u, d, nb
+    for _ in range(updates):
+        a = rand() % N
+        b = rand() % D
+        if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
+            l = int(array[a][b] == array[(a + 1) % N][b])
+            r = int(array[a][b] == array[(a - 1) % N][b])
+            u = int(array[a][b] == array[a][(b + 1) % D])
+            d = int(array[a][b] == array[a][(b - 1) % D])
+            nb = l + u + d + r - 2
+        else:
+            l = int(array[a][b] == array[(a + 1)][b])
+            r = int(array[a][b] == array[(a - 1)][b])
+            u = int(array[a][b] == array[a][(b + 1)])
+            d = int(array[a][b] == array[a][(b - 1)])
+            nb = l + u + d + r - 2
         if nb <= 0 or (rand() / RAND_MAX) < cost[nb]:
             array[a][b] = not array[a][b]
 
@@ -369,7 +415,7 @@ cpdef roll_columns(int[:] dim, int[:, :] array):
 
     :param dim:         (pointer) dimensions of array
     :param array:       (2D pointer) array
-    :returns:           (2D pointer) new array
+    :return:            (2D pointer) new array
     """
     cdef int[:, :] arrout = np.zeros(dim, np.intc)
     cdef Py_ssize_t i, j
@@ -386,7 +432,7 @@ cpdef roll_columns_back(int[:] dim, int[:, :] array):
 
     :param dim:         (pointer) dimensions of array
     :param array:       (2D pointer) array
-    :returns:           (2D pointer) new array
+    :return:            (2D pointer) new array
     """
     cdef int[:, :] arrout = np.zeros(dim, np.intc)
     cdef Py_ssize_t i, j
@@ -403,7 +449,7 @@ cpdef roll_rows(int[:] dim, int[:, :] array):
 
     :param dim:         (pointer) dimensions of array
     :param array:       (2D pointer) array
-    :returns:           (2D pointer) new array
+    :return:            (2D pointer) new array
     """
     cdef int[:, :] arrout = np.zeros(dim, np.intc)
     cdef Py_ssize_t i, j
@@ -420,7 +466,7 @@ cpdef roll_rows_back(int[:] dim, int[:, :] array):
 
     :param dim:         (pointer) dimensions of array
     :param array:       (2D pointer) array
-    :returns:           (2D pointer) new array
+    :return:            (2D pointer) new array
     """
     cdef int[:, :] arrout = np.zeros(dim, np.intc)
     cdef Py_ssize_t i, j
@@ -431,13 +477,13 @@ cpdef roll_rows_back(int[:] dim, int[:, :] array):
             arrout[j][i] = array[j-1][i]
     return arrout
 
-cpdef roll_columns_old(int[:] dim, int[:, :] array):
+cpdef roll_columns_pointer(int[:] dim, int[:, :] array):
     """
     Rolls along the columns axis (1)
 
     :param dim:         (pointer) dimensions of array
     :param array:       (2D pointer) array
-    :returns:           None
+    :return:            None
     """
     cdef int[:] temp = np.zeros(dim[0], np.intc)
     cdef Py_ssize_t i, j
@@ -449,13 +495,13 @@ cpdef roll_columns_old(int[:] dim, int[:, :] array):
     for i in range(dim[0]):
         array[i][dim[1] - 1] = temp[i]
 
-cpdef roll_columns_back_old(int[:] dim, int[:, :] array):
+cpdef roll_columns_back_pointer(int[:] dim, int[:, :] array):
     """
     Rolls back along the columns axis (1)
 
     :param dim:         (pointer) dimensions of array
     :param array:       (2D pointer) array
-    :returns:           None
+    :return:            None
     """
     cdef int[:] temp = np.zeros(dim[0], np.intc)
     cdef Py_ssize_t i, j
@@ -467,13 +513,13 @@ cpdef roll_columns_back_old(int[:] dim, int[:, :] array):
     for i in range(dim[0]):
         array[i][0] = temp[i]
 
-cpdef roll_rows_old(int[:] dim, int[:, :] array):
+cpdef roll_rows_pointer(int[:] dim, int[:, :] array):
     """
     Rolls along the rows axis (0)
 
     :param dim:         (pointer) dimensions of array
     :param array:       (2D pointer) array
-    :returns:           None
+    :return:            None
     """
     cdef int[:] temp = np.zeros(dim[1], np.intc)
     cdef Py_ssize_t i, j
@@ -485,13 +531,13 @@ cpdef roll_rows_old(int[:] dim, int[:, :] array):
     for i in range(dim[1]):
         array[dim[0] - 1][i] = temp[i]
 
-cpdef roll_rows_back_old(int[:] dim, int[:, :] array):
+cpdef roll_rows_back_pointer(int[:] dim, int[:, :] array):
     """
     Rolls back along the rows axis (0)
 
     :param dim:         (pointer) dimensions of array
     :param array:       (2D pointer) array
-    :returns:           None
+    :return:            None
     """
     cdef int[:] temp = np.zeros(dim[1], np.intc)
     cdef Py_ssize_t i, j
@@ -509,7 +555,7 @@ cpdef check_rim(int[:] dim, int[:, :] array):
 
     :param dim:     (pointer) array dimensions
     :param array:   (2D pointer) array
-    :returns:       (int) total
+    :return:        (int) total
     """
     tot = 0
     cdef Py_ssize_t i, j
@@ -531,7 +577,7 @@ cpdef create_box(int left, int top, int right, int bottom, int[:] dim, int[:, :]
     :param bottom:  (int)
     :param dim:     (pointer) array dimensions
     :param array:   (2D pointer) array
-    :returns:       (int) total
+    :return:        (int) total
     """
     cdef Py_ssize_t i, j
     for i in range(left, right):
@@ -545,7 +591,7 @@ cpdef set_points(int[:, :] points, int[:] dim, int[:, :] array):
     :param points:  (pointer)
     :param dim:     (pointer) array dimensions
     :param array:   (2D pointer) array
-    :returns:       (int) total
+    :return:        (int) total
     """
     cdef int[:] i
     for i in points:

@@ -5,36 +5,29 @@ from Cfuncs import *
 from Pfuncs import *
 
 
-def resize_array_P(dim_old, arr_old, add=None):
+def resize_array_buffer(dim_old, arr_old, add=0):
     """
-    Creates a new array and places th old array in its center.
+    Creates a new array, larger than the old one.
 
     :param dim:
     :param arr:
     :param add:     amount of space to add at the edges of the new array
-    :returns:       dim, dim_v, arr, arr_v
+    :returns:       (3D pointer) buf_v
     """
-    add = add if add is not None else 1
-    offset = array.array('i', [add, add])
-    offset_v = memoryview(offset)
+    add = add if add is not 0 else 1
     size = [dim_old[0] + add * 2, dim_old[1] + add * 2]
-    dim, dim_v, arr, arr_v = init_array_P(size)
-    replace_array(offset_v, dim_old, arr_old, arr_v)
-    return dim_v, arr_v
+    return init_array_buffer(size, buffer_length)
 
-def init_array_P(size):
+def init_array_buffer(dim, length):
     """
     Creates a little array for testing
 
     :param size:    (pointer) size of the array
-    :returns:       (arr) dim, (pointer) dim_v, (arr) array, (pointer) arr_v, (arr) rule,
-                        (pointer) rule_v
+    :returns:       (3D pointer) new array buffer
     """
-    dim = array.array('i', size)
-    dim_v = memoryview(dim)
-    arr = np.zeros(dim, np.intc)
-    arr_v = memoryview(arr)
-    return dim_v, arr_v
+    buf = np.zeros([dim[0], dim[1], length], np.intc)
+    buf_v = memoryview(buf)
+    return buf_v
 
 def recenter(com, dim, arr):
     """

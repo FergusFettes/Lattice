@@ -1,33 +1,79 @@
 import array
 import numpy as np
 
-from Cfuncs import *
-from Pfuncs import *
+from src.Cfuncs import *
+from src.Pfuncs import *
 
 
-def resize_array_buffer(dim_old, arr_old, add=0):
-    """
-    Creates a new array, larger than the old one.
+def grow_run():
+    siz = 7
+    size = array.array('i', [siz, siz])
+    size_v = memoryview(size)
 
-    :param dim:
-    :param arr:
-    :param add:     amount of space to add at the edges of the new array
-    :returns:       (3D pointer) buf_v
-    """
-    add = add if add is not 0 else 1
-    size = [dim_old[0] + add * 2, dim_old[1] + add * 2]
-    return init_array_buffer(size, buffer_length)
+    dim_v, arr_v = init_array(size_v)
+    randomize_center(5, dim_v, arr_v)
+    rules = [[2,5,4,6],[3,4,3,6]]
+    com = []; pop = []; rad = []; max_diam = []; pop_den = []; wander=[0,0]; frame = 0
+    while True:
+        frame += 1
+        ising_process(10, 1/8, dim_v, arr_v)
+        conway_process(prepair_rule(rules, frame), dim_v, arr_v)
+        time.sleep(0.1); print(np.asarray(arr_v))
+        com, pop, rad, max_diam, pop_den = time_series(com, pop, rad, max_diam, pop_den, np.asarray(arr_v))
+        if pop[-1] == 0:
+            print('froze'); break
+        if check_rim(dim_v, arr_v):
+            dim_v, arr_v = resize_array(dim_v, arr_v)
+        print('Radius: {}\nPopulation density: {}\nDiameter growth: {}'
+                .format(rad[-1], pop_den[-1], diameter_growth_rate(max_diam)))
+        ver,hor = recenter(com[-1], dim_v, arr_v)
+        wander[0] += ver; wander[1] += hor
 
-def init_array_buffer(dim, length):
-    """
-    Creates a little array for testing
+    print('Center wandered by {}'.format(wander))
 
-    :param size:    (pointer) size of the array
-    :returns:       (3D pointer) new array buffer
-    """
-    buf = np.zeros([dim[0], dim[1], length], np.intc)
-    buf_v = memoryview(buf)
-    return buf_v
+def contain_run():
+    head_pos, buf_siz, print_pos, analysis_pos, rule_v, dim_v, buf_v = start(31)
+
+
+    rules = [[2,5,3,6]]
+    com = []; pop = []; rad = []; max_diam = []; pop_den = []; wander=[0,0]
+    while True:
+        print(np.asarray(buf_v[print_pos % buf_siz]))
+        print_pos += 1
+
+        com, pop, rad, max_diam, pop_den =\
+            time_series(com, pop, rad, max_diam, pop_den,\
+                        np.asarray(buf_v[analysis_pos % buf_siz]))
+        analysis_pos += 1
+
+        if pop[-1] == 0:
+            print('froze'); break
+        print('Radius: {}\nPopulation density: {}\nDiameter growth: {}'
+                .format(rad[-1], pop_den[-1], diameter_growth_rate(max_diam)))
+
+        ising_process(10, 1/8, dim_v, buf_v[head_pos % buf_siz])
+        conway_process(prepair_rule(rules, head_pos), dim_v, buf_v[head_pos % buf_siz])
+        clear_bounds(dim_v, buf_v[head_pos % buf_siz])
+        advance_array(head_pos % buf_siz, buf_siz, buf_v)
+        head_pos += 1
+        time.sleep(0.1)
+
+
+def start(size):
+    dim = array.array('i', [size, size])
+    dim_v = memoryview(dim)
+    buf_siz = 10; head_pos = 0; print_pos = 0; analysis_pos = 0
+    buf_v = init_array_buffer(dim_v, buf_siz)
+    clear_array(dim_v, buf_v[head_pos % buf_siz])
+    randomize_center(5, dim_v, buf_v[head_pos % buf_siz])
+    advance_array(head_pos % buf_siz, buf_siz, buf_v)
+    head_pos += 1
+    rules = [[2,3,3,3]]
+    rule_v = prepair_rule(rules, head_pos)
+    conway_process(rule_v, dim_v, buf_v[head_pos % buf_siz])
+    advance_array(head_pos % buf_siz, buf_siz, buf_v)
+    head_pos += 1
+    return head_pos, buf_siz, print_pos, analysis_pos, rule_v, dim_v, buf_v
 
 def recenter(com, dim, arr):
     """
@@ -36,7 +82,7 @@ def recenter(com, dim, arr):
     :param com:     center_of_mass
     :param dim:     dimensions of array
     :param array:   the array
-    :returns:       ver (vertical movement), hor (horizontal movement)
+    :return:        ver (vertical movement), hor (horizontal movement)
     """
     ver = 0
     hor = 0
@@ -83,57 +129,5 @@ def time_series(com_series, pop_series, rad_series, max_series, pop_den_series, 
     pop_den_series.append(pop_den)
     return com_series, pop_series, rad_series, max_series, pop_den_series
 
-def grow_run():
-    siz = 7
-    size = array.array('i', [siz, siz])
-    size_v = memoryview(size)
-
-    dim_v, arr_v = init_array(size_v)
-    randomize_center(5, dim_v, arr_v)
-    rules = [[2,5,4,6],[3,4,3,6]]
-    com = []; pop = []; rad = []; max_diam = []; pop_den = []; wander=[0,0]; frame = 0
-    while True:
-        frame += 1
-        ising_process(10, 1/8, dim_v, arr_v)
-        conway_process(prepair_rule(rules, frame), dim_v, arr_v)
-        time.sleep(0.1); print(np.asarray(arr_v))
-        com, pop, rad, max_diam, pop_den = time_series(com, pop, rad, max_diam, pop_den, np.asarray(arr_v))
-        if pop[-1] == 0:
-            print('froze'); break
-        if check_rim(dim_v, arr_v):
-            dim_v, arr_v = resize_array(dim_v, arr_v)
-        print('Radius: {}\nPopulation density: {}\nDiameter growth: {}'
-                .format(rad[-1], pop_den[-1], diameter_growth_rate(max_diam)))
-        ver,hor = recenter(com[-1], dim_v, arr_v)
-        wander[0] += ver; wander[1] += hor
-
-    print('Center wandered by {}'.format(wander))
-
-def contain_run():
-    siz = 31
-    size = array.array('i', [siz, siz])
-    size_v = memoryview(size)
-
-    dim_v, arr_v = init_array(size_v)
-    rules = [[2,5,3,6]]
-    randomize_center(5, dim_v, arr_v)
-    com = []; pop = []; rad = []; max_diam = []; pop_den = []; wander=[0,0]; frame = 0
-    while True:
-        frame += 1
-        ising_process(10, 1/8, dim_v, arr_v)
-        fill_columns(0, 2, dim_v, arr_v)
-        conway_process(prepair_rule(rules, frame), dim_v, arr_v)
-        roll_columns_back_pointer(dim_v, arr_v)
-        roll_columns_back_pointer(dim_v, arr_v)
-        fill_columns(0, 2, dim_v, arr_v)
-        clear_columns(dim_v[1]-1, 1, dim_v, arr_v)
-        time.sleep(0.4); print(np.asarray(arr_v))
-        com, pop, rad, max_diam, pop_den = time_series(com, pop, rad, max_diam, pop_den, np.asarray(arr_v))
-        if pop[-1] == 0:
-            print('froze'); break
-        print('Radius: {}\nPopulation density: {}\nDiameter growth: {}'
-                .format(rad[-1], pop_den[-1], diameter_growth_rate(max_diam)))
-
-
 if __name__=='__main__':
-    grow_run()
+    contain_run()

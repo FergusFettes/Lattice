@@ -8,7 +8,7 @@ from libc.stdlib cimport rand, RAND_MAX
 from cpython cimport array
 cimport numpy as np
 
-cdef int[:] prepair_rule(list rules, int frame):
+cpdef int[:] prepair_rule(list rules, int frame):
     """
     Prepairs rule for this frame
 
@@ -80,6 +80,15 @@ cpdef resize_array_buffer(int[:] dim_old, int length, int add=1):
     cdef int[:] dim_v = array.array('i', [dim_old[0] + add * 2, dim_old[1] + add * 2])
     cdef int[:, :, :] buf_v = init_array_buffer(dim_v, length)
     return dim_v, buf_v
+
+cpdef int[:, :] init_array(int[:] dim_v):
+    """
+    Creates a little array.
+
+    :param size:    (pointer) size of the array
+    :return:        (pointer) dim_v, (pointer) arr_v, (arr) rule
+    """
+    return np.zeros(dim_v, np.intc)
 
 #===============FANTASTIC STOCHASTIC===============
 cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, float threshold=0.2):

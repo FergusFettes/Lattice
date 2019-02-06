@@ -1234,10 +1234,10 @@ typedef npy_clongdouble __pyx_t_5numpy_clongdouble_t;
 typedef npy_cdouble __pyx_t_5numpy_complex_t;
 struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_change_buffer;
 struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_resize_array_buffer;
-struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_resize_array;
+struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_randomize_center;
 struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_scroll_bars;
 
-/* "latticeModelMashup/src/Cfuncs.pyx":40
+/* "latticeModelMashup/src/Cfuncs.pyx":33
  * 
  * cpdef change_buffer(
  *     int pos, int length, int[:] dim_old, int[:, :, :] buf_old,             # <<<<<<<<<<<<<<
@@ -1250,9 +1250,9 @@ struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_change_buffer {
   __Pyx_memviewslice cut;
 };
 
-/* "latticeModelMashup/src/Cfuncs.pyx":74
- *     return np.empty([length, dim[0], dim[1]], np.intc)
- * 
+/* "latticeModelMashup/src/Cfuncs.pyx":70
+ * #TODO: replace every cpdef with cdef
+ * #TODO: time the results of these two steps!
  * cpdef resize_array_buffer(int[:] dim_old, int length, int add=1):             # <<<<<<<<<<<<<<
  *     """
  *     Creates a new array buffer, larger than the last
@@ -1262,19 +1262,19 @@ struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_resize_array_buffer {
   int add;
 };
 
-/* "latticeModelMashup/src/Cfuncs.pyx":88
- *     return dim_v, buf_v
+/* "latticeModelMashup/src/Cfuncs.pyx":94
  * 
- * cpdef resize_array(int[:] dim_old, int[:, :] arr_old, int add=0):             # <<<<<<<<<<<<<<
+ * #===============FANTASTIC STOCHASTIC===============
+ * cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, float threshold=0.2):             # <<<<<<<<<<<<<<
  *     """
- *     Creates a new array and places the old array in its center.
+ *     Puts a little random array in the center of the array
  */
-struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_resize_array {
+struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_randomize_center {
   int __pyx_n;
-  int add;
+  float threshold;
 };
 
-/* "latticeModelMashup/src/Cfuncs.pyx":371
+/* "latticeModelMashup/src/Cfuncs.pyx":341
  * #TODO: allow for multiple bars
  * cpdef scroll_bars(
  *     int[:] dim, int[:, :] arr,             # <<<<<<<<<<<<<<
@@ -1486,6 +1486,38 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_GetAttrStr(PyObject* obj, PyObject
 /* GetBuiltinName.proto */
 static PyObject *__Pyx_GetBuiltinName(PyObject *name);
 
+/* None.proto */
+static CYTHON_INLINE Py_ssize_t __Pyx_mod_Py_ssize_t(Py_ssize_t, Py_ssize_t);
+
+/* GetItemInt.proto */
+#define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) :\
+    (is_list ? (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL) :\
+               __Pyx_GetItemInt_Generic(o, to_py_func(i))))
+#define __Pyx_GetItemInt_List(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_List_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
+    (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL))
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
+                                                              int wraparound, int boundscheck);
+#define __Pyx_GetItemInt_Tuple(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_Tuple_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
+    (PyErr_SetString(PyExc_IndexError, "tuple index out of range"), (PyObject*)NULL))
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
+                                                              int wraparound, int boundscheck);
+static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
+                                                     int is_list, int wraparound, int boundscheck);
+
+/* PyObjectCall.proto */
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw);
+#else
+#define __Pyx_PyObject_Call(func, arg, kw) PyObject_Call(func, arg, kw)
+#endif
+
 /* MemviewSliceInit.proto */
 #define __Pyx_BUF_MAX_NDIMS %(BUF_MAX_NDIMS)d
 #define __Pyx_MEMVIEW_DIRECT   1
@@ -1512,24 +1544,6 @@ static CYTHON_INLINE int __pyx_sub_acquisition_count_locked(
 static CYTHON_INLINE void __Pyx_INC_MEMVIEW(__Pyx_memviewslice *, int, int);
 static CYTHON_INLINE void __Pyx_XDEC_MEMVIEW(__Pyx_memviewslice *, int, int);
 
-/* RaiseTooManyValuesToUnpack.proto */
-static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected);
-
-/* RaiseNeedMoreValuesToUnpack.proto */
-static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index);
-
-/* IterFinish.proto */
-static CYTHON_INLINE int __Pyx_IterFinish(void);
-
-/* UnpackItemEndCheck.proto */
-static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected);
-
-/* None.proto */
-static CYTHON_INLINE int __Pyx_mod_int(int, int);
-
-/* None.proto */
-static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname);
-
 /* RaiseArgTupleInvalid.proto */
 static void __Pyx_RaiseArgtupleInvalid(const char* func_name, int exact,
     Py_ssize_t num_min, Py_ssize_t num_max, Py_ssize_t num_found);
@@ -1542,8 +1556,20 @@ static int __Pyx_ParseOptionalKeywords(PyObject *kwds, PyObject **argnames[],\
     PyObject *kwds2, PyObject *values[], Py_ssize_t num_pos_args,\
     const char* function_name);
 
+/* ArgTypeTest.proto */
+#define __Pyx_ArgTypeTest(obj, type, none_allowed, name, exact)\
+    ((likely((Py_TYPE(obj) == type) | (none_allowed && (obj == Py_None)))) ? 1 :\
+        __Pyx__ArgTypeTest(obj, type, name, exact))
+static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact);
+
 /* None.proto */
 static CYTHON_INLINE long __Pyx_mod_long(long, long);
+
+/* None.proto */
+static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname);
+
+/* None.proto */
+static CYTHON_INLINE int __Pyx_mod_int(int, int);
 
 /* BufferIndexError.proto */
 static void __Pyx_RaiseBufferIndexError(int axis);
@@ -1598,44 +1624,6 @@ static CYTHON_INLINE PyObject *__Pyx_PyCFunction_FastCall(PyObject *func, PyObje
 #else
 #define __Pyx_PyCFunction_FastCall(func, args, nargs)  (assert(0), NULL)
 #endif
-
-/* PyObjectCall.proto */
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw);
-#else
-#define __Pyx_PyObject_Call(func, arg, kw) PyObject_Call(func, arg, kw)
-#endif
-
-/* None.proto */
-static CYTHON_INLINE Py_ssize_t __Pyx_mod_Py_ssize_t(Py_ssize_t, Py_ssize_t);
-
-/* GetItemInt.proto */
-#define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) :\
-    (is_list ? (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL) :\
-               __Pyx_GetItemInt_Generic(o, to_py_func(i))))
-#define __Pyx_GetItemInt_List(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_List_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
-    (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL))
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
-                                                              int wraparound, int boundscheck);
-#define __Pyx_GetItemInt_Tuple(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_Tuple_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
-    (PyErr_SetString(PyExc_IndexError, "tuple index out of range"), (PyObject*)NULL))
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
-                                                              int wraparound, int boundscheck);
-static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
-                                                     int is_list, int wraparound, int boundscheck);
-
-/* ArgTypeTest.proto */
-#define __Pyx_ArgTypeTest(obj, type, none_allowed, name, exact)\
-    ((likely((Py_TYPE(obj) == type) | (none_allowed && (obj == Py_None)))) ? 1 :\
-        __Pyx__ArgTypeTest(obj, type, name, exact))
-static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact);
 
 /* None.proto */
 static CYTHON_INLINE long __Pyx_div_long(long, long);
@@ -1707,6 +1695,12 @@ static PyObject *__Pyx_PyDict_GetItem(PyObject *d, PyObject* key);
 #define __Pyx_PyDict_GetItem(d, key) PyObject_GetItem(d, key)
 #define __Pyx_PyObject_Dict_GetItem(obj, name)  PyObject_GetItem(obj, name)
 #endif
+
+/* RaiseTooManyValuesToUnpack.proto */
+static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected);
+
+/* RaiseNeedMoreValuesToUnpack.proto */
+static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index);
 
 /* RaiseNoneIterError.proto */
 static CYTHON_INLINE void __Pyx_RaiseNoneNotIterableError(void);
@@ -2121,10 +2115,10 @@ static int __Pyx_ValidateAndInit_memviewslice(
                 PyObject *original_obj);
 
 /* ObjectToMemviewSlice.proto */
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_int(PyObject *, int writable_flag);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsdsds_int(PyObject *, int writable_flag);
 
 /* ObjectToMemviewSlice.proto */
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsdsds_int(PyObject *, int writable_flag);
+static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_int(PyObject *, int writable_flag);
 
 /* ObjectToMemviewSlice.proto */
 static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsds_int(PyObject *, int writable_flag);
@@ -2132,12 +2126,12 @@ static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsds_i
 /* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
 
-/* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
-
 /* MemviewDtypeToObject.proto */
 static CYTHON_INLINE PyObject *__pyx_memview_get_int(const char *itemp);
 static CYTHON_INLINE int __pyx_memview_set_int(const char *itemp, PyObject *obj);
+
+/* CIntToPy.proto */
+static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
 
 /* RealImag.proto */
 #if CYTHON_CCOMPLEX
@@ -2393,15 +2387,13 @@ static PyObject *contiguous = 0;
 static PyObject *indirect_contiguous = 0;
 static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
-static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_change_zoom_level(int, int, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch); /*proto*/
+static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_prepair_rule(PyObject *, int, int __pyx_skip_dispatch); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_advance_array(int, int, __Pyx_memviewslice, int __pyx_skip_dispatch); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_change_buffer(int, int, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch, struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_change_buffer *__pyx_optional_args); /*proto*/
 static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array_buffer(__Pyx_memviewslice, int, int __pyx_skip_dispatch); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_resize_array_buffer(__Pyx_memviewslice, int, int __pyx_skip_dispatch, struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_resize_array_buffer *__pyx_optional_args); /*proto*/
-static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_resize_array(__Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch, struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_resize_array *__pyx_optional_args); /*proto*/
 static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array(__Pyx_memviewslice, int __pyx_skip_dispatch); /*proto*/
-static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_prepair_rule(PyObject *, int, int __pyx_skip_dispatch); /*proto*/
-static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(int, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(int, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch, struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_randomize_center *__pyx_optional_args); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int, float, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int __pyx_skip_dispatch); /*proto*/
@@ -2554,9 +2546,7 @@ static const char __pyx_k_reduce[] = "__reduce__";
 static const char __pyx_k_struct[] = "struct";
 static const char __pyx_k_unpack[] = "unpack";
 static const char __pyx_k_update[] = "update";
-static const char __pyx_k_arr_old[] = "arr_old";
 static const char __pyx_k_asarray[] = "asarray";
-static const char __pyx_k_buf_len[] = "buf_len";
 static const char __pyx_k_buf_old[] = "buf_old";
 static const char __pyx_k_dim_old[] = "dim_old";
 static const char __pyx_k_float32[] = "float32";
@@ -2565,7 +2555,6 @@ static const char __pyx_k_memview[] = "memview";
 static const char __pyx_k_updates[] = "updates";
 static const char __pyx_k_Ellipsis[] = "Ellipsis";
 static const char __pyx_k_getstate[] = "__getstate__";
-static const char __pyx_k_head_pos[] = "head_pos";
 static const char __pyx_k_itemsize[] = "itemsize";
 static const char __pyx_k_pyx_type[] = "__pyx_type";
 static const char __pyx_k_setstate[] = "__setstate__";
@@ -2659,13 +2648,11 @@ static PyObject *__pyx_n_s_View_MemoryView;
 static PyObject *__pyx_n_s_add;
 static PyObject *__pyx_n_s_allocate_buffer;
 static PyObject *__pyx_n_s_arr;
-static PyObject *__pyx_n_s_arr_old;
 static PyObject *__pyx_n_s_array;
 static PyObject *__pyx_n_s_asarray;
 static PyObject *__pyx_n_s_base;
 static PyObject *__pyx_n_s_beta;
 static PyObject *__pyx_n_s_buf;
-static PyObject *__pyx_n_s_buf_len;
 static PyObject *__pyx_n_s_buf_nu;
 static PyObject *__pyx_n_s_buf_old;
 static PyObject *__pyx_n_s_c;
@@ -2695,7 +2682,6 @@ static PyObject *__pyx_n_u_fortran;
 static PyObject *__pyx_n_s_frame;
 static PyObject *__pyx_n_s_getstate;
 static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
-static PyObject *__pyx_n_s_head_pos;
 static PyObject *__pyx_n_s_hi;
 static PyObject *__pyx_n_s_horizontal;
 static PyObject *__pyx_n_s_i;
@@ -2776,39 +2762,37 @@ static PyObject *__pyx_n_s_vertical;
 static PyObject *__pyx_n_s_wid;
 static PyObject *__pyx_n_s_width;
 static PyObject *__pyx_n_s_zeros;
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_change_zoom_level(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_head_pos, int __pyx_v_buf_len, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_buf); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_prepair_rule(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_rules, int __pyx_v_frame); /* proto */
 static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_2advance_array(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pos, int __pyx_v_length, __Pyx_memviewslice __pyx_v_buf); /* proto */
 static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_4change_buffer(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pos, int __pyx_v_length, __Pyx_memviewslice __pyx_v_dim_old, __Pyx_memviewslice __pyx_v_buf_old, __Pyx_memviewslice __pyx_v_dim_nu, __Pyx_memviewslice __pyx_v_buf_nu, __Pyx_memviewslice __pyx_v_offset, __Pyx_memviewslice __pyx_v_cut); /* proto */
 static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_6init_array_buffer(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, int __pyx_v_length); /* proto */
 static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_8resize_array_buffer(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim_old, int __pyx_v_length, int __pyx_v_add); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_10resize_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim_old, __Pyx_memviewslice __pyx_v_arr_old, int __pyx_v_add); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_12init_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim_v); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_14prepair_rule(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_rules, int __pyx_v_frame); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_16randomize_center(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_siz, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_18add_noise(CYTHON_UNUSED PyObject *__pyx_self, float __pyx_v_threshold, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_20ising_process(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_updates, float __pyx_v_beta, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_22conway_process(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_rule, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_24roll_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_26roll_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_28roll_columns_pointer(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_30roll_rows_pointer(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_32sum_rim(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_34check_rim(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_36scroll_bars(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, __Pyx_memviewslice __pyx_v_horizontal, __Pyx_memviewslice __pyx_v_vertical); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_38set_bounds(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_ub, int __pyx_v_rb, int __pyx_v_db, int __pyx_v_lb, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_40fill_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_42clear_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_44replace_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_offset, __Pyx_memviewslice __pyx_v_dim_nu, __Pyx_memviewslice __pyx_v_nuarr, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_46create_box(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_left, int __pyx_v_wid, int __pyx_v_top, int __pyx_v_hi, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_48set_points(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_points, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_50fill_bounds(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_52clear_bounds(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_54fill_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_56clear_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_58replace_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_nurow, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_60fill_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_62clear_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_64replace_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_nucol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_10init_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim_v); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_12randomize_center(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_siz, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, float __pyx_v_threshold); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_14add_noise(CYTHON_UNUSED PyObject *__pyx_self, float __pyx_v_threshold, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_16ising_process(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_updates, float __pyx_v_beta, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_18conway_process(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_rule, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_20roll_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_22roll_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_24roll_columns_pointer(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_26roll_rows_pointer(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_28sum_rim(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_30check_rim(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_32scroll_bars(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, __Pyx_memviewslice __pyx_v_horizontal, __Pyx_memviewslice __pyx_v_vertical); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_34set_bounds(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_ub, int __pyx_v_rb, int __pyx_v_db, int __pyx_v_lb, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_36fill_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_38clear_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_40replace_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_offset, __Pyx_memviewslice __pyx_v_dim_nu, __Pyx_memviewslice __pyx_v_nuarr, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_42create_box(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_left, int __pyx_v_wid, int __pyx_v_top, int __pyx_v_hi, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_44set_points(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_points, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_46fill_bounds(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_48clear_bounds(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_50fill_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_52clear_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_54replace_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_nurow, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_56fill_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_58clear_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_60replace_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_nucol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr); /* proto */
 static int __pyx_pf_7cpython_5array_5array___getbuffer__(arrayobject *__pyx_v_self, Py_buffer *__pyx_v_info, CYTHON_UNUSED int __pyx_v_flags); /* proto */
 static void __pyx_pf_7cpython_5array_5array_2__releasebuffer__(CYTHON_UNUSED arrayobject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
@@ -2905,234 +2889,105 @@ static PyObject *__pyx_codeobj__36;
 /* "latticeModelMashup/src/Cfuncs.pyx":11
  * cimport numpy as np
  * 
- * cpdef change_zoom_level(int head_pos, int buf_len, int[:] dim, int[:, :, :] buf):             # <<<<<<<<<<<<<<
+ * cpdef int[:] prepair_rule(list rules, int frame):             # <<<<<<<<<<<<<<
  *     """
- *     Checks the array edges, resizes if necessary and updates the pointers.
+ *     Prepairs rule for this frame
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_1change_zoom_level(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_change_zoom_level(int __pyx_v_head_pos, int __pyx_v_buf_len, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_buf, CYTHON_UNUSED int __pyx_skip_dispatch) {
-  PyObject *__pyx_v_dim_v = NULL;
-  PyObject *__pyx_v_buf_v = NULL;
-  PyObject *__pyx_r = NULL;
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_1prepair_rule(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_prepair_rule(PyObject *__pyx_v_rules, int __pyx_v_frame, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  __Pyx_memviewslice __pyx_r = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannyDeclarations
-  __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  PyObject *__pyx_t_2 = NULL;
-  int __pyx_t_3;
-  int __pyx_t_4;
-  PyObject *__pyx_t_5 = NULL;
-  PyObject *__pyx_t_6 = NULL;
-  PyObject *__pyx_t_7 = NULL;
-  PyObject *(*__pyx_t_8)(PyObject *);
-  __Pyx_memviewslice __pyx_t_9 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_10 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_RefNannySetupContext("change_zoom_level", 0);
+  Py_ssize_t __pyx_t_1;
+  Py_ssize_t __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  __Pyx_memviewslice __pyx_t_5 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_RefNannySetupContext("prepair_rule", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":18
- *     :return:        (3D pointer) new buffer
+  /* "latticeModelMashup/src/Cfuncs.pyx":19
+ *     :return:            (pointer) current rule
  *     """
- *     if check_rim(0, dim, buf[head_pos]) is True:             # <<<<<<<<<<<<<<
- *         dim_v, buf_v = resize_array_buffer(dim, buf_len)
- *         change_buffer(head_pos % buf_len, buf_len, dim, buf, dim_v, buf_v)
- */
-  __pyx_t_1.data = __pyx_v_buf.data;
-  __pyx_t_1.memview = __pyx_v_buf.memview;
-  __PYX_INC_MEMVIEW(&__pyx_t_1, 0);
-  {
-    Py_ssize_t __pyx_tmp_idx = __pyx_v_head_pos;
-        Py_ssize_t __pyx_tmp_shape = __pyx_v_buf.shape[0];
-    Py_ssize_t __pyx_tmp_stride = __pyx_v_buf.strides[0];
-        if (__pyx_tmp_idx < 0)
-            __pyx_tmp_idx += __pyx_tmp_shape;
-        if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
-            PyErr_SetString(PyExc_IndexError,
-                            "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 18, __pyx_L1_error)
-        }
-        __pyx_t_1.data += __pyx_tmp_idx * __pyx_tmp_stride;
-}
-
-__pyx_t_1.shape[0] = __pyx_v_buf.shape[1];
-__pyx_t_1.strides[0] = __pyx_v_buf.strides[1];
-    __pyx_t_1.suboffsets[0] = -1;
-
-__pyx_t_1.shape[1] = __pyx_v_buf.shape[2];
-__pyx_t_1.strides[1] = __pyx_v_buf.strides[2];
-    __pyx_t_1.suboffsets[1] = -1;
-
-__pyx_t_2 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(0, __pyx_v_dim, __pyx_t_1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 18, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
-  __pyx_t_1.memview = NULL;
-  __pyx_t_1.data = NULL;
-  __pyx_t_3 = (__pyx_t_2 == Py_True);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = (__pyx_t_3 != 0);
-  if (__pyx_t_4) {
-
-    /* "latticeModelMashup/src/Cfuncs.pyx":19
- *     """
- *     if check_rim(0, dim, buf[head_pos]) is True:
- *         dim_v, buf_v = resize_array_buffer(dim, buf_len)             # <<<<<<<<<<<<<<
- *         change_buffer(head_pos % buf_len, buf_len, dim, buf, dim_v, buf_v)
- * #   else:   # if outer rim has nothing, check next one in
- */
-    __pyx_t_2 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_resize_array_buffer(__pyx_v_dim, __pyx_v_buf_len, 0, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 19, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    if ((likely(PyTuple_CheckExact(__pyx_t_2))) || (PyList_CheckExact(__pyx_t_2))) {
-      PyObject* sequence = __pyx_t_2;
-      Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
-      if (unlikely(size != 2)) {
-        if (size > 2) __Pyx_RaiseTooManyValuesError(2);
-        else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(0, 19, __pyx_L1_error)
-      }
-      #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-      if (likely(PyTuple_CheckExact(sequence))) {
-        __pyx_t_5 = PyTuple_GET_ITEM(sequence, 0); 
-        __pyx_t_6 = PyTuple_GET_ITEM(sequence, 1); 
-      } else {
-        __pyx_t_5 = PyList_GET_ITEM(sequence, 0); 
-        __pyx_t_6 = PyList_GET_ITEM(sequence, 1); 
-      }
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(__pyx_t_6);
-      #else
-      __pyx_t_5 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 19, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_6 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 19, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      #endif
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    } else {
-      Py_ssize_t index = -1;
-      __pyx_t_7 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 19, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_8 = Py_TYPE(__pyx_t_7)->tp_iternext;
-      index = 0; __pyx_t_5 = __pyx_t_8(__pyx_t_7); if (unlikely(!__pyx_t_5)) goto __pyx_L4_unpacking_failed;
-      __Pyx_GOTREF(__pyx_t_5);
-      index = 1; __pyx_t_6 = __pyx_t_8(__pyx_t_7); if (unlikely(!__pyx_t_6)) goto __pyx_L4_unpacking_failed;
-      __Pyx_GOTREF(__pyx_t_6);
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_8(__pyx_t_7), 2) < 0) __PYX_ERR(0, 19, __pyx_L1_error)
-      __pyx_t_8 = NULL;
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      goto __pyx_L5_unpacking_done;
-      __pyx_L4_unpacking_failed:;
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_8 = NULL;
-      if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(0, 19, __pyx_L1_error)
-      __pyx_L5_unpacking_done:;
-    }
-    __pyx_v_dim_v = __pyx_t_5;
-    __pyx_t_5 = 0;
-    __pyx_v_buf_v = __pyx_t_6;
-    __pyx_t_6 = 0;
-
-    /* "latticeModelMashup/src/Cfuncs.pyx":20
- *     if check_rim(0, dim, buf[head_pos]) is True:
- *         dim_v, buf_v = resize_array_buffer(dim, buf_len)
- *         change_buffer(head_pos % buf_len, buf_len, dim, buf, dim_v, buf_v)             # <<<<<<<<<<<<<<
- * #   else:   # if outer rim has nothing, check next one in
- * #       if check_rim(1, dim_v, arr_v) is False and check _rim(2, dim_v, arr_v) is False:
- */
-    if (unlikely(__pyx_v_buf_len == 0)) {
-      PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-      __PYX_ERR(0, 20, __pyx_L1_error)
-    }
-    __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_dim_v, PyBUF_WRITABLE); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 20, __pyx_L1_error)
-    __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_int(__pyx_v_buf_v, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 20, __pyx_L1_error)
-    __pyx_t_2 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_change_buffer(__Pyx_mod_int(__pyx_v_head_pos, __pyx_v_buf_len), __pyx_v_buf_len, __pyx_v_dim, __pyx_v_buf, __pyx_t_9, __pyx_t_10, 0, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 20, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
-    __pyx_t_9.memview = NULL;
-    __pyx_t_9.data = NULL;
-    __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
-    __pyx_t_10.memview = NULL;
-    __pyx_t_10.data = NULL;
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-
-    /* "latticeModelMashup/src/Cfuncs.pyx":18
- *     :return:        (3D pointer) new buffer
- *     """
- *     if check_rim(0, dim, buf[head_pos]) is True:             # <<<<<<<<<<<<<<
- *         dim_v, buf_v = resize_array_buffer(dim, buf_len)
- *         change_buffer(head_pos % buf_len, buf_len, dim, buf, dim_v, buf_v)
- */
-  }
-
-  /* "latticeModelMashup/src/Cfuncs.pyx":26
- * #           change_buffer(head_pos % buf_len, buf_len, dim, buf, dim_v, buf_v,
- * #                         array.array('i', [1,1]), array.array('i', [2, 2]))
- *     return dim_v, buf_v             # <<<<<<<<<<<<<<
+ *     return array.array('i', rules[frame % len(rules)])             # <<<<<<<<<<<<<<
  * 
  * cpdef advance_array(int pos, int length, int[:, :, :] buf):
  */
-  __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim_v)) { __Pyx_RaiseUnboundLocalError("dim_v"); __PYX_ERR(0, 26, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_buf_v)) { __Pyx_RaiseUnboundLocalError("buf_v"); __PYX_ERR(0, 26, __pyx_L1_error) }
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 26, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_INCREF(__pyx_v_dim_v);
-  __Pyx_GIVEREF(__pyx_v_dim_v);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_dim_v);
-  __Pyx_INCREF(__pyx_v_buf_v);
-  __Pyx_GIVEREF(__pyx_v_buf_v);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_v_buf_v);
-  __pyx_r = __pyx_t_2;
-  __pyx_t_2 = 0;
+  if (unlikely(__pyx_v_rules == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
+    __PYX_ERR(0, 19, __pyx_L1_error)
+  }
+  if (unlikely(__pyx_v_rules == Py_None)) {
+    PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
+    __PYX_ERR(0, 19, __pyx_L1_error)
+  }
+  __pyx_t_1 = PyList_GET_SIZE(__pyx_v_rules); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 19, __pyx_L1_error)
+  if (unlikely(__pyx_t_1 == 0)) {
+    PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
+    __PYX_ERR(0, 19, __pyx_L1_error)
+  }
+  __pyx_t_2 = __Pyx_mod_Py_ssize_t(__pyx_v_frame, __pyx_t_1);
+  __pyx_t_3 = __Pyx_GetItemInt_List(__pyx_v_rules, __pyx_t_2, Py_ssize_t, 1, PyInt_FromSsize_t, 1, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 19, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 19, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_INCREF(__pyx_n_s_i);
+  __Pyx_GIVEREF(__pyx_n_s_i);
+  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_n_s_i);
+  __Pyx_GIVEREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3);
+  __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 19, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 19, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_r = __pyx_t_5;
+  __pyx_t_5.memview = NULL;
+  __pyx_t_5.data = NULL;
   goto __pyx_L0;
 
   /* "latticeModelMashup/src/Cfuncs.pyx":11
  * cimport numpy as np
  * 
- * cpdef change_zoom_level(int head_pos, int buf_len, int[:] dim, int[:, :, :] buf):             # <<<<<<<<<<<<<<
+ * cpdef int[:] prepair_rule(list rules, int frame):             # <<<<<<<<<<<<<<
  *     """
- *     Checks the array edges, resizes if necessary and updates the pointers.
+ *     Prepairs rule for this frame
  */
 
   /* function exit code */
   __pyx_L1_error:;
-  __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_XDECREF(__pyx_t_7);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
-  __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.change_zoom_level", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = 0;
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_5, 1);
+  __pyx_r.data = NULL;
+  __pyx_r.memview = NULL;
+  __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.prepair_rule", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  goto __pyx_L2;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_dim_v);
-  __Pyx_XDECREF(__pyx_v_buf_v);
-  __Pyx_XGIVEREF(__pyx_r);
+  if (unlikely(!__pyx_r.memview)) {
+    PyErr_SetString(PyExc_TypeError, "Memoryview return value is not initialized");
+  }
+  __pyx_L2:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_1change_zoom_level(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_change_zoom_level[] = "\n    Checks the array edges, resizes if necessary and updates the pointers.\n\n    :param arr:\n    :return:        (3D pointer) new buffer\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_1change_zoom_level(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  int __pyx_v_head_pos;
-  int __pyx_v_buf_len;
-  __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_buf = { 0, 0, { 0 }, { 0 }, { 0 } };
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_1prepair_rule(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_prepair_rule[] = "\n    Prepairs rule for this frame\n\n    :param rules:       (list) full rule list\n    :param frame:       (int) framnumber\n    :return:            (pointer) current rule\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_1prepair_rule(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_rules = 0;
+  int __pyx_v_frame;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("change_zoom_level (wrapper)", 0);
+  __Pyx_RefNannySetupContext("prepair_rule (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_head_pos,&__pyx_n_s_buf_len,&__pyx_n_s_dim,&__pyx_n_s_buf,0};
-    PyObject* values[4] = {0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_rules,&__pyx_n_s_frame,0};
+    PyObject* values[2] = {0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
-        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
-        CYTHON_FALLTHROUGH;
-        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
-        CYTHON_FALLTHROUGH;
         case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
         CYTHON_FALLTHROUGH;
         case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
@@ -3143,87 +2998,78 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_1change_zoom_level(P
       kw_args = PyDict_Size(__pyx_kwds);
       switch (pos_args) {
         case  0:
-        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_head_pos)) != 0)) kw_args--;
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_rules)) != 0)) kw_args--;
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
-        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_buf_len)) != 0)) kw_args--;
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_frame)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("change_zoom_level", 1, 4, 4, 1); __PYX_ERR(0, 11, __pyx_L3_error)
-        }
-        CYTHON_FALLTHROUGH;
-        case  2:
-        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("change_zoom_level", 1, 4, 4, 2); __PYX_ERR(0, 11, __pyx_L3_error)
-        }
-        CYTHON_FALLTHROUGH;
-        case  3:
-        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_buf)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("change_zoom_level", 1, 4, 4, 3); __PYX_ERR(0, 11, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("prepair_rule", 1, 2, 2, 1); __PYX_ERR(0, 11, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "change_zoom_level") < 0)) __PYX_ERR(0, 11, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "prepair_rule") < 0)) __PYX_ERR(0, 11, __pyx_L3_error)
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
-      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_head_pos = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_head_pos == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 11, __pyx_L3_error)
-    __pyx_v_buf_len = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_buf_len == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 11, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 11, __pyx_L3_error)
-    __pyx_v_buf = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_buf.memview)) __PYX_ERR(0, 11, __pyx_L3_error)
+    __pyx_v_rules = ((PyObject*)values[0]);
+    __pyx_v_frame = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_frame == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 11, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("change_zoom_level", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 11, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("prepair_rule", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 11, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.change_zoom_level", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.prepair_rule", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_change_zoom_level(__pyx_self, __pyx_v_head_pos, __pyx_v_buf_len, __pyx_v_dim, __pyx_v_buf);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_rules), (&PyList_Type), 1, "rules", 1))) __PYX_ERR(0, 11, __pyx_L1_error)
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_prepair_rule(__pyx_self, __pyx_v_rules, __pyx_v_frame);
 
   /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_change_zoom_level(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_head_pos, int __pyx_v_buf_len, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_buf) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_prepair_rule(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_rules, int __pyx_v_frame) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  __Pyx_RefNannySetupContext("change_zoom_level", 0);
+  __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  PyObject *__pyx_t_2 = NULL;
+  __Pyx_RefNannySetupContext("prepair_rule", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 11, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_buf.memview)) { __Pyx_RaiseUnboundLocalError("buf"); __PYX_ERR(0, 11, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_change_zoom_level(__pyx_v_head_pos, __pyx_v_buf_len, __pyx_v_dim, __pyx_v_buf, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 11, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_prepair_rule(__pyx_v_rules, __pyx_v_frame, 0); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 11, __pyx_L1_error)
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 11, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
+  __pyx_t_1.memview = NULL;
+  __pyx_t_1.data = NULL;
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
   goto __pyx_L0;
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.change_zoom_level", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.prepair_rule", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __PYX_XDEC_MEMVIEW(&__pyx_v_dim, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_buf, 1);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":28
- *     return dim_v, buf_v
+/* "latticeModelMashup/src/Cfuncs.pyx":21
+ *     return array.array('i', rules[frame % len(rules)])
  * 
  * cpdef advance_array(int pos, int length, int[:, :, :] buf):             # <<<<<<<<<<<<<<
  *     """
@@ -3239,7 +3085,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_advance_array(int __p
   __Pyx_memviewslice __pyx_t_3 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("advance_array", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":37
+  /* "latticeModelMashup/src/Cfuncs.pyx":30
  *     :return:            None
  *     """
  *     buf[(pos + 1) % length] = buf[pos]             # <<<<<<<<<<<<<<
@@ -3258,7 +3104,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_advance_array(int __p
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 37, __pyx_L1_error)
+            __PYX_ERR(0, 30, __pyx_L1_error)
         }
         __pyx_t_1.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -3274,7 +3120,7 @@ __pyx_t_1.strides[1] = __pyx_v_buf.strides[2];
 __pyx_t_2 = (__pyx_v_pos + 1);
   if (unlikely(__pyx_v_length == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-    __PYX_ERR(0, 37, __pyx_L1_error)
+    __PYX_ERR(0, 30, __pyx_L1_error)
   }
   __pyx_t_3.data = __pyx_v_buf.data;
   __pyx_t_3.memview = __pyx_v_buf.memview;
@@ -3288,7 +3134,7 @@ __pyx_t_2 = (__pyx_v_pos + 1);
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 37, __pyx_L1_error)
+            __PYX_ERR(0, 30, __pyx_L1_error)
         }
         __pyx_t_3.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -3301,7 +3147,7 @@ __pyx_t_3.shape[1] = __pyx_v_buf.shape[2];
 __pyx_t_3.strides[1] = __pyx_v_buf.strides[2];
     __pyx_t_3.suboffsets[1] = -1;
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_1, __pyx_t_3, 2, 2, 0) < 0)) __PYX_ERR(0, 37, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_1, __pyx_t_3, 2, 2, 0) < 0)) __PYX_ERR(0, 30, __pyx_L1_error)
   __PYX_XDEC_MEMVIEW(&__pyx_t_3, 1);
   __pyx_t_3.memview = NULL;
   __pyx_t_3.data = NULL;
@@ -3309,8 +3155,8 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_1, __pyx_t_3, 2, 2, 0) < 0))
   __pyx_t_1.memview = NULL;
   __pyx_t_1.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":28
- *     return dim_v, buf_v
+  /* "latticeModelMashup/src/Cfuncs.pyx":21
+ *     return array.array('i', rules[frame % len(rules)])
  * 
  * cpdef advance_array(int pos, int length, int[:, :, :] buf):             # <<<<<<<<<<<<<<
  *     """
@@ -3366,17 +3212,17 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_3advance_array(PyObj
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_length)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("advance_array", 1, 3, 3, 1); __PYX_ERR(0, 28, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("advance_array", 1, 3, 3, 1); __PYX_ERR(0, 21, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_buf)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("advance_array", 1, 3, 3, 2); __PYX_ERR(0, 28, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("advance_array", 1, 3, 3, 2); __PYX_ERR(0, 21, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "advance_array") < 0)) __PYX_ERR(0, 28, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "advance_array") < 0)) __PYX_ERR(0, 21, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -3385,13 +3231,13 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_3advance_array(PyObj
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_pos = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_pos == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 28, __pyx_L3_error)
-    __pyx_v_length = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_length == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 28, __pyx_L3_error)
-    __pyx_v_buf = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_buf.memview)) __PYX_ERR(0, 28, __pyx_L3_error)
+    __pyx_v_pos = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_pos == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 21, __pyx_L3_error)
+    __pyx_v_length = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_length == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 21, __pyx_L3_error)
+    __pyx_v_buf = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_buf.memview)) __PYX_ERR(0, 21, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("advance_array", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 28, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("advance_array", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 21, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.advance_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3410,8 +3256,8 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_2advance_array(CYTHO
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("advance_array", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_buf.memview)) { __Pyx_RaiseUnboundLocalError("buf"); __PYX_ERR(0, 28, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_advance_array(__pyx_v_pos, __pyx_v_length, __pyx_v_buf, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 28, __pyx_L1_error)
+  if (unlikely(!__pyx_v_buf.memview)) { __Pyx_RaiseUnboundLocalError("buf"); __PYX_ERR(0, 21, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_advance_array(__pyx_v_pos, __pyx_v_length, __pyx_v_buf, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -3429,7 +3275,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_2advance_array(CYTHO
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":39
+/* "latticeModelMashup/src/Cfuncs.pyx":32
  *     buf[(pos + 1) % length] = buf[pos]
  * 
  * cpdef change_buffer(             # <<<<<<<<<<<<<<
@@ -3438,7 +3284,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_2advance_array(CYTHO
  */
 
 static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_5change_buffer(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_change_buffer(int __pyx_v_pos, CYTHON_UNUSED int __pyx_v_length, __Pyx_memviewslice __pyx_v_dim_old, __Pyx_memviewslice __pyx_v_buf_old, __Pyx_memviewslice __pyx_v_dim_nu, __Pyx_memviewslice __pyx_v_buf_nu, CYTHON_UNUSED int __pyx_skip_dispatch, struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_change_buffer *__pyx_optional_args) {
+static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_change_buffer(int __pyx_v_pos, int __pyx_v_length, __Pyx_memviewslice __pyx_v_dim_old, __Pyx_memviewslice __pyx_v_buf_old, __Pyx_memviewslice __pyx_v_dim_nu, __Pyx_memviewslice __pyx_v_buf_nu, CYTHON_UNUSED int __pyx_skip_dispatch, struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_change_buffer *__pyx_optional_args) {
   __Pyx_memviewslice __pyx_v_offset = __pyx_k_;
   __Pyx_memviewslice __pyx_v_cut = __pyx_k__2;
   PyObject *__pyx_r = NULL;
@@ -3471,18 +3317,22 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_change_buffer(int __p
     }
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":57
+  /* "latticeModelMashup/src/Cfuncs.pyx":50
  *     :return:            None
  *     """
- *     clear_array(dim_nu, buf_nu[pos])             # <<<<<<<<<<<<<<
+ *     clear_array(dim_nu, buf_nu[pos % length])             # <<<<<<<<<<<<<<
  *     buf_nu[pos, offset[0]: offset[0] + dim_old[0] - cut[0] * 2,\
  *                 offset[1]: offset[1] + dim_old[1] - cut[1] * 2] =\
  */
+  if (unlikely(__pyx_v_length == 0)) {
+    PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
+    __PYX_ERR(0, 50, __pyx_L1_error)
+  }
   __pyx_t_1.data = __pyx_v_buf_nu.data;
   __pyx_t_1.memview = __pyx_v_buf_nu.memview;
   __PYX_INC_MEMVIEW(&__pyx_t_1, 0);
   {
-    Py_ssize_t __pyx_tmp_idx = __pyx_v_pos;
+    Py_ssize_t __pyx_tmp_idx = __Pyx_mod_int(__pyx_v_pos, __pyx_v_length);
         Py_ssize_t __pyx_tmp_shape = __pyx_v_buf_nu.shape[0];
     Py_ssize_t __pyx_tmp_stride = __pyx_v_buf_nu.strides[0];
         if (__pyx_tmp_idx < 0)
@@ -3490,7 +3340,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_change_buffer(int __p
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 57, __pyx_L1_error)
+            __PYX_ERR(0, 50, __pyx_L1_error)
         }
         __pyx_t_1.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -3503,14 +3353,14 @@ __pyx_t_1.shape[1] = __pyx_v_buf_nu.shape[2];
 __pyx_t_1.strides[1] = __pyx_v_buf_nu.strides[2];
     __pyx_t_1.suboffsets[1] = -1;
 
-__pyx_t_2 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_array(__pyx_v_dim_nu, __pyx_t_1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 57, __pyx_L1_error)
+__pyx_t_2 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_array(__pyx_v_dim_nu, __pyx_t_1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
   __pyx_t_1.memview = NULL;
   __pyx_t_1.data = NULL;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":60
+  /* "latticeModelMashup/src/Cfuncs.pyx":53
  *     buf_nu[pos, offset[0]: offset[0] + dim_old[0] - cut[0] * 2,\
  *                 offset[1]: offset[1] + dim_old[1] - cut[1] * 2] =\
  *         buf_old[pos, cut[0]: dim_old[0] - cut[0],\             # <<<<<<<<<<<<<<
@@ -3525,7 +3375,7 @@ __pyx_t_2 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_array(__pyx_v_dim_nu
   } else if (unlikely(__pyx_t_3 >= __pyx_v_cut.shape[0])) __pyx_t_4 = 0;
   if (unlikely(__pyx_t_4 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_4);
-    __PYX_ERR(0, 60, __pyx_L1_error)
+    __PYX_ERR(0, 53, __pyx_L1_error)
   }
   __pyx_t_5 = 0;
   __pyx_t_4 = -1;
@@ -3535,7 +3385,7 @@ __pyx_t_2 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_array(__pyx_v_dim_nu
   } else if (unlikely(__pyx_t_5 >= __pyx_v_dim_old.shape[0])) __pyx_t_4 = 0;
   if (unlikely(__pyx_t_4 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_4);
-    __PYX_ERR(0, 60, __pyx_L1_error)
+    __PYX_ERR(0, 53, __pyx_L1_error)
   }
   __pyx_t_6 = 0;
   __pyx_t_4 = -1;
@@ -3545,10 +3395,10 @@ __pyx_t_2 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_array(__pyx_v_dim_nu
   } else if (unlikely(__pyx_t_6 >= __pyx_v_cut.shape[0])) __pyx_t_4 = 0;
   if (unlikely(__pyx_t_4 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_4);
-    __PYX_ERR(0, 60, __pyx_L1_error)
+    __PYX_ERR(0, 53, __pyx_L1_error)
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":61
+  /* "latticeModelMashup/src/Cfuncs.pyx":54
  *                 offset[1]: offset[1] + dim_old[1] - cut[1] * 2] =\
  *         buf_old[pos, cut[0]: dim_old[0] - cut[0],\
  *                      cut[1]: dim_old[1] - cut[1]]             # <<<<<<<<<<<<<<
@@ -3563,7 +3413,7 @@ __pyx_t_2 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_array(__pyx_v_dim_nu
   } else if (unlikely(__pyx_t_7 >= __pyx_v_cut.shape[0])) __pyx_t_4 = 0;
   if (unlikely(__pyx_t_4 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_4);
-    __PYX_ERR(0, 61, __pyx_L1_error)
+    __PYX_ERR(0, 54, __pyx_L1_error)
   }
   __pyx_t_8 = 1;
   __pyx_t_4 = -1;
@@ -3573,7 +3423,7 @@ __pyx_t_2 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_array(__pyx_v_dim_nu
   } else if (unlikely(__pyx_t_8 >= __pyx_v_dim_old.shape[0])) __pyx_t_4 = 0;
   if (unlikely(__pyx_t_4 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_4);
-    __PYX_ERR(0, 61, __pyx_L1_error)
+    __PYX_ERR(0, 54, __pyx_L1_error)
   }
   __pyx_t_9 = 1;
   __pyx_t_4 = -1;
@@ -3583,10 +3433,10 @@ __pyx_t_2 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_array(__pyx_v_dim_nu
   } else if (unlikely(__pyx_t_9 >= __pyx_v_cut.shape[0])) __pyx_t_4 = 0;
   if (unlikely(__pyx_t_4 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_4);
-    __PYX_ERR(0, 61, __pyx_L1_error)
+    __PYX_ERR(0, 54, __pyx_L1_error)
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":60
+  /* "latticeModelMashup/src/Cfuncs.pyx":53
  *     buf_nu[pos, offset[0]: offset[0] + dim_old[0] - cut[0] * 2,\
  *                 offset[1]: offset[1] + dim_old[1] - cut[1] * 2] =\
  *         buf_old[pos, cut[0]: dim_old[0] - cut[0],\             # <<<<<<<<<<<<<<
@@ -3605,7 +3455,7 @@ __pyx_t_2 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_array(__pyx_v_dim_nu
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 60, __pyx_L1_error)
+            __PYX_ERR(0, 53, __pyx_L1_error)
         }
         __pyx_t_1.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -3625,7 +3475,7 @@ __pyx_t_4 = -1;
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 60, __pyx_L1_error)
+    __PYX_ERR(0, 53, __pyx_L1_error)
 }
 
 if (unlikely(__pyx_memoryview_slice_memviewslice(
@@ -3642,14 +3492,14 @@ if (unlikely(__pyx_memoryview_slice_memviewslice(
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 60, __pyx_L1_error)
+    __PYX_ERR(0, 53, __pyx_L1_error)
 }
 
 __pyx_t_10 = 0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":58
+  /* "latticeModelMashup/src/Cfuncs.pyx":51
  *     """
- *     clear_array(dim_nu, buf_nu[pos])
+ *     clear_array(dim_nu, buf_nu[pos % length])
  *     buf_nu[pos, offset[0]: offset[0] + dim_old[0] - cut[0] * 2,\             # <<<<<<<<<<<<<<
  *                 offset[1]: offset[1] + dim_old[1] - cut[1] * 2] =\
  *         buf_old[pos, cut[0]: dim_old[0] - cut[0],\
@@ -3661,7 +3511,7 @@ __pyx_t_10 = 0;
   } else if (unlikely(__pyx_t_10 >= __pyx_v_offset.shape[0])) __pyx_t_4 = 0;
   if (unlikely(__pyx_t_4 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_4);
-    __PYX_ERR(0, 58, __pyx_L1_error)
+    __PYX_ERR(0, 51, __pyx_L1_error)
   }
   __pyx_t_11 = 0;
   __pyx_t_4 = -1;
@@ -3671,7 +3521,7 @@ __pyx_t_10 = 0;
   } else if (unlikely(__pyx_t_11 >= __pyx_v_offset.shape[0])) __pyx_t_4 = 0;
   if (unlikely(__pyx_t_4 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_4);
-    __PYX_ERR(0, 58, __pyx_L1_error)
+    __PYX_ERR(0, 51, __pyx_L1_error)
   }
   __pyx_t_12 = 0;
   __pyx_t_4 = -1;
@@ -3681,7 +3531,7 @@ __pyx_t_10 = 0;
   } else if (unlikely(__pyx_t_12 >= __pyx_v_dim_old.shape[0])) __pyx_t_4 = 0;
   if (unlikely(__pyx_t_4 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_4);
-    __PYX_ERR(0, 58, __pyx_L1_error)
+    __PYX_ERR(0, 51, __pyx_L1_error)
   }
   __pyx_t_13 = 0;
   __pyx_t_4 = -1;
@@ -3691,11 +3541,11 @@ __pyx_t_10 = 0;
   } else if (unlikely(__pyx_t_13 >= __pyx_v_cut.shape[0])) __pyx_t_4 = 0;
   if (unlikely(__pyx_t_4 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_4);
-    __PYX_ERR(0, 58, __pyx_L1_error)
+    __PYX_ERR(0, 51, __pyx_L1_error)
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":59
- *     clear_array(dim_nu, buf_nu[pos])
+  /* "latticeModelMashup/src/Cfuncs.pyx":52
+ *     clear_array(dim_nu, buf_nu[pos % length])
  *     buf_nu[pos, offset[0]: offset[0] + dim_old[0] - cut[0] * 2,\
  *                 offset[1]: offset[1] + dim_old[1] - cut[1] * 2] =\             # <<<<<<<<<<<<<<
  *         buf_old[pos, cut[0]: dim_old[0] - cut[0],\
@@ -3709,7 +3559,7 @@ __pyx_t_10 = 0;
   } else if (unlikely(__pyx_t_14 >= __pyx_v_offset.shape[0])) __pyx_t_4 = 0;
   if (unlikely(__pyx_t_4 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_4);
-    __PYX_ERR(0, 59, __pyx_L1_error)
+    __PYX_ERR(0, 52, __pyx_L1_error)
   }
   __pyx_t_15 = 1;
   __pyx_t_4 = -1;
@@ -3719,7 +3569,7 @@ __pyx_t_10 = 0;
   } else if (unlikely(__pyx_t_15 >= __pyx_v_offset.shape[0])) __pyx_t_4 = 0;
   if (unlikely(__pyx_t_4 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_4);
-    __PYX_ERR(0, 59, __pyx_L1_error)
+    __PYX_ERR(0, 52, __pyx_L1_error)
   }
   __pyx_t_16 = 1;
   __pyx_t_4 = -1;
@@ -3729,7 +3579,7 @@ __pyx_t_10 = 0;
   } else if (unlikely(__pyx_t_16 >= __pyx_v_dim_old.shape[0])) __pyx_t_4 = 0;
   if (unlikely(__pyx_t_4 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_4);
-    __PYX_ERR(0, 59, __pyx_L1_error)
+    __PYX_ERR(0, 52, __pyx_L1_error)
   }
   __pyx_t_17 = 1;
   __pyx_t_4 = -1;
@@ -3739,12 +3589,12 @@ __pyx_t_10 = 0;
   } else if (unlikely(__pyx_t_17 >= __pyx_v_cut.shape[0])) __pyx_t_4 = 0;
   if (unlikely(__pyx_t_4 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_4);
-    __PYX_ERR(0, 59, __pyx_L1_error)
+    __PYX_ERR(0, 52, __pyx_L1_error)
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":58
+  /* "latticeModelMashup/src/Cfuncs.pyx":51
  *     """
- *     clear_array(dim_nu, buf_nu[pos])
+ *     clear_array(dim_nu, buf_nu[pos % length])
  *     buf_nu[pos, offset[0]: offset[0] + dim_old[0] - cut[0] * 2,\             # <<<<<<<<<<<<<<
  *                 offset[1]: offset[1] + dim_old[1] - cut[1] * 2] =\
  *         buf_old[pos, cut[0]: dim_old[0] - cut[0],\
@@ -3761,7 +3611,7 @@ __pyx_t_10 = 0;
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 58, __pyx_L1_error)
+            __PYX_ERR(0, 51, __pyx_L1_error)
         }
         __pyx_t_18.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -3781,7 +3631,7 @@ __pyx_t_4 = -1;
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 58, __pyx_L1_error)
+    __PYX_ERR(0, 51, __pyx_L1_error)
 }
 
 if (unlikely(__pyx_memoryview_slice_memviewslice(
@@ -3798,10 +3648,10 @@ if (unlikely(__pyx_memoryview_slice_memviewslice(
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 58, __pyx_L1_error)
+    __PYX_ERR(0, 51, __pyx_L1_error)
 }
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_1, __pyx_t_18, 2, 2, 0) < 0)) __PYX_ERR(0, 58, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_1, __pyx_t_18, 2, 2, 0) < 0)) __PYX_ERR(0, 51, __pyx_L1_error)
   __PYX_XDEC_MEMVIEW(&__pyx_t_18, 1);
   __pyx_t_18.memview = NULL;
   __pyx_t_18.data = NULL;
@@ -3809,7 +3659,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_1, __pyx_t_18, 2, 2, 0) < 0)
   __pyx_t_1.memview = NULL;
   __pyx_t_1.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":39
+  /* "latticeModelMashup/src/Cfuncs.pyx":32
  *     buf[(pos + 1) % length] = buf[pos]
  * 
  * cpdef change_buffer(             # <<<<<<<<<<<<<<
@@ -3882,31 +3732,31 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_5change_buffer(PyObj
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_length)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("change_buffer", 0, 6, 8, 1); __PYX_ERR(0, 39, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("change_buffer", 0, 6, 8, 1); __PYX_ERR(0, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim_old)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("change_buffer", 0, 6, 8, 2); __PYX_ERR(0, 39, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("change_buffer", 0, 6, 8, 2); __PYX_ERR(0, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_buf_old)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("change_buffer", 0, 6, 8, 3); __PYX_ERR(0, 39, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("change_buffer", 0, 6, 8, 3); __PYX_ERR(0, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim_nu)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("change_buffer", 0, 6, 8, 4); __PYX_ERR(0, 39, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("change_buffer", 0, 6, 8, 4); __PYX_ERR(0, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_buf_nu)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("change_buffer", 0, 6, 8, 5); __PYX_ERR(0, 39, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("change_buffer", 0, 6, 8, 5); __PYX_ERR(0, 32, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  6:
@@ -3922,7 +3772,7 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_5change_buffer(PyObj
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "change_buffer") < 0)) __PYX_ERR(0, 39, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "change_buffer") < 0)) __PYX_ERR(0, 32, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -3940,20 +3790,20 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_5change_buffer(PyObj
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_pos = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_pos == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 40, __pyx_L3_error)
-    __pyx_v_length = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_length == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 40, __pyx_L3_error)
-    __pyx_v_dim_old = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim_old.memview)) __PYX_ERR(0, 40, __pyx_L3_error)
-    __pyx_v_buf_old = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_buf_old.memview)) __PYX_ERR(0, 40, __pyx_L3_error)
-    __pyx_v_dim_nu = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim_nu.memview)) __PYX_ERR(0, 41, __pyx_L3_error)
-    __pyx_v_buf_nu = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_int(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_buf_nu.memview)) __PYX_ERR(0, 41, __pyx_L3_error)
+    __pyx_v_pos = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_pos == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 33, __pyx_L3_error)
+    __pyx_v_length = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_length == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 33, __pyx_L3_error)
+    __pyx_v_dim_old = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim_old.memview)) __PYX_ERR(0, 33, __pyx_L3_error)
+    __pyx_v_buf_old = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_buf_old.memview)) __PYX_ERR(0, 33, __pyx_L3_error)
+    __pyx_v_dim_nu = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim_nu.memview)) __PYX_ERR(0, 34, __pyx_L3_error)
+    __pyx_v_buf_nu = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_int(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_buf_nu.memview)) __PYX_ERR(0, 34, __pyx_L3_error)
     if (values[6]) {
-      __pyx_v_offset = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[6], PyBUF_WRITABLE); if (unlikely(!__pyx_v_offset.memview)) __PYX_ERR(0, 42, __pyx_L3_error)
+      __pyx_v_offset = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[6], PyBUF_WRITABLE); if (unlikely(!__pyx_v_offset.memview)) __PYX_ERR(0, 35, __pyx_L3_error)
     } else {
       __pyx_v_offset = __pyx_k_;
       __PYX_INC_MEMVIEW(&__pyx_v_offset, 1);
     }
     if (values[7]) {
-      __pyx_v_cut = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[7], PyBUF_WRITABLE); if (unlikely(!__pyx_v_cut.memview)) __PYX_ERR(0, 42, __pyx_L3_error)
+      __pyx_v_cut = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[7], PyBUF_WRITABLE); if (unlikely(!__pyx_v_cut.memview)) __PYX_ERR(0, 35, __pyx_L3_error)
     } else {
       __pyx_v_cut = __pyx_k__2;
       __PYX_INC_MEMVIEW(&__pyx_v_cut, 1);
@@ -3961,7 +3811,7 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_5change_buffer(PyObj
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("change_buffer", 0, 6, 8, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 39, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("change_buffer", 0, 6, 8, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 32, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.change_buffer", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3981,16 +3831,16 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_4change_buffer(CYTHO
   struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_change_buffer __pyx_t_2;
   __Pyx_RefNannySetupContext("change_buffer", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim_old.memview)) { __Pyx_RaiseUnboundLocalError("dim_old"); __PYX_ERR(0, 39, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_buf_old.memview)) { __Pyx_RaiseUnboundLocalError("buf_old"); __PYX_ERR(0, 39, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_dim_nu.memview)) { __Pyx_RaiseUnboundLocalError("dim_nu"); __PYX_ERR(0, 39, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_buf_nu.memview)) { __Pyx_RaiseUnboundLocalError("buf_nu"); __PYX_ERR(0, 39, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_offset.memview)) { __Pyx_RaiseUnboundLocalError("offset"); __PYX_ERR(0, 39, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_cut.memview)) { __Pyx_RaiseUnboundLocalError("cut"); __PYX_ERR(0, 39, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_dim_old.memview)) { __Pyx_RaiseUnboundLocalError("dim_old"); __PYX_ERR(0, 32, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_buf_old.memview)) { __Pyx_RaiseUnboundLocalError("buf_old"); __PYX_ERR(0, 32, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_dim_nu.memview)) { __Pyx_RaiseUnboundLocalError("dim_nu"); __PYX_ERR(0, 32, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_buf_nu.memview)) { __Pyx_RaiseUnboundLocalError("buf_nu"); __PYX_ERR(0, 32, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_offset.memview)) { __Pyx_RaiseUnboundLocalError("offset"); __PYX_ERR(0, 32, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_cut.memview)) { __Pyx_RaiseUnboundLocalError("cut"); __PYX_ERR(0, 32, __pyx_L1_error) }
   __pyx_t_2.__pyx_n = 2;
   __pyx_t_2.offset = __pyx_v_offset;
   __pyx_t_2.cut = __pyx_v_cut;
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_change_buffer(__pyx_v_pos, __pyx_v_length, __pyx_v_dim_old, __pyx_v_buf_old, __pyx_v_dim_nu, __pyx_v_buf_nu, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_change_buffer(__pyx_v_pos, __pyx_v_length, __pyx_v_dim_old, __pyx_v_buf_old, __pyx_v_dim_nu, __pyx_v_buf_nu, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4013,7 +3863,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_4change_buffer(CYTHO
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":63
+/* "latticeModelMashup/src/Cfuncs.pyx":56
  *                      cut[1]: dim_old[1] - cut[1]]
  * 
  * cpdef int[:, :, :] init_array_buffer(int[:] dim, int length):             # <<<<<<<<<<<<<<
@@ -4037,19 +3887,19 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array_b
   __Pyx_memviewslice __pyx_t_10 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("init_array_buffer", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":72
+  /* "latticeModelMashup/src/Cfuncs.pyx":65
  *     :return:        (3D pointer) new array buffer
  *     """
  *     return np.empty([length, dim[0], dim[1]], np.intc)             # <<<<<<<<<<<<<<
  * 
- * cpdef resize_array_buffer(int[:] dim_old, int length, int add=1):
+ * #TODO: s/rep every spare cpdef adding 'tuple' declaration
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 72, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 72, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_length); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 72, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_length); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = 0;
   __pyx_t_5 = -1;
@@ -4059,9 +3909,9 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array_b
   } else if (unlikely(__pyx_t_4 >= __pyx_v_dim.shape[0])) __pyx_t_5 = 0;
   if (unlikely(__pyx_t_5 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_5);
-    __PYX_ERR(0, 72, __pyx_L1_error)
+    __PYX_ERR(0, 65, __pyx_L1_error)
   }
-  __pyx_t_6 = __Pyx_PyInt_From_int((*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_4 * __pyx_v_dim.strides[0]) )))); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 72, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_int((*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_4 * __pyx_v_dim.strides[0]) )))); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_7 = 1;
   __pyx_t_5 = -1;
@@ -4071,11 +3921,11 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array_b
   } else if (unlikely(__pyx_t_7 >= __pyx_v_dim.shape[0])) __pyx_t_5 = 0;
   if (unlikely(__pyx_t_5 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_5);
-    __PYX_ERR(0, 72, __pyx_L1_error)
+    __PYX_ERR(0, 65, __pyx_L1_error)
   }
-  __pyx_t_8 = __Pyx_PyInt_From_int((*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_7 * __pyx_v_dim.strides[0]) )))); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 72, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyInt_From_int((*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_7 * __pyx_v_dim.strides[0]) )))); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_9 = PyList_New(3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 72, __pyx_L1_error)
+  __pyx_t_9 = PyList_New(3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_GIVEREF(__pyx_t_2);
   PyList_SET_ITEM(__pyx_t_9, 0, __pyx_t_2);
@@ -4086,9 +3936,9 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array_b
   __pyx_t_2 = 0;
   __pyx_t_6 = 0;
   __pyx_t_8 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_8, __pyx_n_s_np); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 72, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_8, __pyx_n_s_np); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_intc); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 72, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_intc); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __pyx_t_8 = NULL;
@@ -4106,7 +3956,7 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array_b
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_8, __pyx_t_9, __pyx_t_6};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 72, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
@@ -4116,7 +3966,7 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array_b
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_8, __pyx_t_9, __pyx_t_6};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 72, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
@@ -4124,7 +3974,7 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array_b
   } else
   #endif
   {
-    __pyx_t_2 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 72, __pyx_L1_error)
+    __pyx_t_2 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     if (__pyx_t_8) {
       __Pyx_GIVEREF(__pyx_t_8); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_8); __pyx_t_8 = NULL;
@@ -4135,19 +3985,19 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array_b
     PyTuple_SET_ITEM(__pyx_t_2, 1+__pyx_t_5, __pyx_t_6);
     __pyx_t_9 = 0;
     __pyx_t_6 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 72, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 72, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 65, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_10;
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
   goto __pyx_L0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":63
+  /* "latticeModelMashup/src/Cfuncs.pyx":56
  *                      cut[1]: dim_old[1] - cut[1]]
  * 
  * cpdef int[:, :, :] init_array_buffer(int[:] dim, int length):             # <<<<<<<<<<<<<<
@@ -4209,11 +4059,11 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_7init_array_buffer(P
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_length)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("init_array_buffer", 1, 2, 2, 1); __PYX_ERR(0, 63, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("init_array_buffer", 1, 2, 2, 1); __PYX_ERR(0, 56, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "init_array_buffer") < 0)) __PYX_ERR(0, 63, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "init_array_buffer") < 0)) __PYX_ERR(0, 56, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -4221,12 +4071,12 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_7init_array_buffer(P
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 63, __pyx_L3_error)
-    __pyx_v_length = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_length == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 63, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 56, __pyx_L3_error)
+    __pyx_v_length = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_length == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 56, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("init_array_buffer", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 63, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("init_array_buffer", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 56, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.init_array_buffer", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4246,9 +4096,9 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_6init_array_buffer(C
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("init_array_buffer", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 63, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array_buffer(__pyx_v_dim, __pyx_v_length, 0); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 63, __pyx_L1_error)
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 3, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 63, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 56, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array_buffer(__pyx_v_dim, __pyx_v_length, 0); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 56, __pyx_L1_error)
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 3, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 56, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
   __pyx_t_1.memview = NULL;
@@ -4270,9 +4120,9 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_6init_array_buffer(C
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":74
- *     return np.empty([length, dim[0], dim[1]], np.intc)
- * 
+/* "latticeModelMashup/src/Cfuncs.pyx":70
+ * #TODO: replace every cpdef with cdef
+ * #TODO: time the results of these two steps!
  * cpdef resize_array_buffer(int[:] dim_old, int length, int add=1):             # <<<<<<<<<<<<<<
  *     """
  *     Creates a new array buffer, larger than the last
@@ -4300,7 +4150,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_resize_array_buffer(_
     }
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":84
+  /* "latticeModelMashup/src/Cfuncs.pyx":80
  *     :return:            dim_v, buf_v
  *     """
  *     cdef int[:] dim_v = array.array('i', [dim_old[0] + add * 2, dim_old[1] + add * 2])             # <<<<<<<<<<<<<<
@@ -4315,9 +4165,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_resize_array_buffer(_
   } else if (unlikely(__pyx_t_1 >= __pyx_v_dim_old.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 84, __pyx_L1_error)
+    __PYX_ERR(0, 80, __pyx_L1_error)
   }
-  __pyx_t_3 = __Pyx_PyInt_From_long(((*((int *) ( /* dim=0 */ (__pyx_v_dim_old.data + __pyx_t_1 * __pyx_v_dim_old.strides[0]) ))) + (__pyx_v_add * 2))); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 84, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_long(((*((int *) ( /* dim=0 */ (__pyx_v_dim_old.data + __pyx_t_1 * __pyx_v_dim_old.strides[0]) ))) + (__pyx_v_add * 2))); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = 1;
   __pyx_t_2 = -1;
@@ -4327,11 +4177,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_resize_array_buffer(_
   } else if (unlikely(__pyx_t_4 >= __pyx_v_dim_old.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 84, __pyx_L1_error)
+    __PYX_ERR(0, 80, __pyx_L1_error)
   }
-  __pyx_t_5 = __Pyx_PyInt_From_long(((*((int *) ( /* dim=0 */ (__pyx_v_dim_old.data + __pyx_t_4 * __pyx_v_dim_old.strides[0]) ))) + (__pyx_v_add * 2))); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 84, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_long(((*((int *) ( /* dim=0 */ (__pyx_v_dim_old.data + __pyx_t_4 * __pyx_v_dim_old.strides[0]) ))) + (__pyx_v_add * 2))); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyList_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 84, __pyx_L1_error)
+  __pyx_t_6 = PyList_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_3);
   PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_3);
@@ -4339,7 +4189,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_resize_array_buffer(_
   PyList_SET_ITEM(__pyx_t_6, 1, __pyx_t_5);
   __pyx_t_3 = 0;
   __pyx_t_5 = 0;
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 84, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_INCREF(__pyx_n_s_i);
   __Pyx_GIVEREF(__pyx_n_s_i);
@@ -4347,40 +4197,40 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_resize_array_buffer(_
   __Pyx_GIVEREF(__pyx_t_6);
   PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_6);
   __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 84, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_6, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 84, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_6, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __pyx_v_dim_v = __pyx_t_7;
   __pyx_t_7.memview = NULL;
   __pyx_t_7.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":85
+  /* "latticeModelMashup/src/Cfuncs.pyx":81
  *     """
  *     cdef int[:] dim_v = array.array('i', [dim_old[0] + add * 2, dim_old[1] + add * 2])
  *     cdef int[:, :, :] buf_v = init_array_buffer(dim_v, length)             # <<<<<<<<<<<<<<
  *     return dim_v, buf_v
  * 
  */
-  __pyx_t_8 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array_buffer(__pyx_v_dim_v, __pyx_v_length, 0); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 85, __pyx_L1_error)
+  __pyx_t_8 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array_buffer(__pyx_v_dim_v, __pyx_v_length, 0); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 81, __pyx_L1_error)
   __pyx_v_buf_v = __pyx_t_8;
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":86
+  /* "latticeModelMashup/src/Cfuncs.pyx":82
  *     cdef int[:] dim_v = array.array('i', [dim_old[0] + add * 2, dim_old[1] + add * 2])
  *     cdef int[:, :, :] buf_v = init_array_buffer(dim_v, length)
  *     return dim_v, buf_v             # <<<<<<<<<<<<<<
  * 
- * cpdef resize_array(int[:] dim_old, int[:, :] arr_old, int add=0):
+ * cpdef int[:, :] init_array(int[:] dim_v):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_6 = __pyx_memoryview_fromslice(__pyx_v_dim_v, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_6 = __pyx_memoryview_fromslice(__pyx_v_dim_v, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_buf_v, 3, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_buf_v, 3, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_6);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_6);
@@ -4392,9 +4242,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_resize_array_buffer(_
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":74
- *     return np.empty([length, dim[0], dim[1]], np.intc)
- * 
+  /* "latticeModelMashup/src/Cfuncs.pyx":70
+ * #TODO: replace every cpdef with cdef
+ * #TODO: time the results of these two steps!
  * cpdef resize_array_buffer(int[:] dim_old, int length, int add=1):             # <<<<<<<<<<<<<<
  *     """
  *     Creates a new array buffer, larger than the last
@@ -4452,7 +4302,7 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_9resize_array_buffer
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_length)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("resize_array_buffer", 0, 2, 3, 1); __PYX_ERR(0, 74, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("resize_array_buffer", 0, 2, 3, 1); __PYX_ERR(0, 70, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -4462,7 +4312,7 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_9resize_array_buffer
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "resize_array_buffer") < 0)) __PYX_ERR(0, 74, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "resize_array_buffer") < 0)) __PYX_ERR(0, 70, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -4474,17 +4324,17 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_9resize_array_buffer
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_dim_old = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim_old.memview)) __PYX_ERR(0, 74, __pyx_L3_error)
-    __pyx_v_length = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_length == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 74, __pyx_L3_error)
+    __pyx_v_dim_old = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim_old.memview)) __PYX_ERR(0, 70, __pyx_L3_error)
+    __pyx_v_length = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_length == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 70, __pyx_L3_error)
     if (values[2]) {
-      __pyx_v_add = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_add == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 74, __pyx_L3_error)
+      __pyx_v_add = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_add == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 70, __pyx_L3_error)
     } else {
       __pyx_v_add = ((int)1);
     }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("resize_array_buffer", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 74, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("resize_array_buffer", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 70, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.resize_array_buffer", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4504,10 +4354,10 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_8resize_array_buffer
   struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_resize_array_buffer __pyx_t_2;
   __Pyx_RefNannySetupContext("resize_array_buffer", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim_old.memview)) { __Pyx_RaiseUnboundLocalError("dim_old"); __PYX_ERR(0, 74, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_dim_old.memview)) { __Pyx_RaiseUnboundLocalError("dim_old"); __PYX_ERR(0, 70, __pyx_L1_error) }
   __pyx_t_2.__pyx_n = 1;
   __pyx_t_2.add = __pyx_v_add;
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_resize_array_buffer(__pyx_v_dim_old, __pyx_v_length, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_resize_array_buffer(__pyx_v_dim_old, __pyx_v_length, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -4525,335 +4375,15 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_8resize_array_buffer
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":88
+/* "latticeModelMashup/src/Cfuncs.pyx":84
  *     return dim_v, buf_v
- * 
- * cpdef resize_array(int[:] dim_old, int[:, :] arr_old, int add=0):             # <<<<<<<<<<<<<<
- *     """
- *     Creates a new array and places the old array in its center.
- */
-
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_11resize_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_resize_array(__Pyx_memviewslice __pyx_v_dim_old, __Pyx_memviewslice __pyx_v_arr_old, CYTHON_UNUSED int __pyx_skip_dispatch, struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_resize_array *__pyx_optional_args) {
-  int __pyx_v_add = ((int)0);
-  __Pyx_memviewslice __pyx_v_dim_v = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_offset_v = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_arr_v = { 0, 0, { 0 }, { 0 }, { 0 } };
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  int __pyx_t_1;
-  PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  __Pyx_memviewslice __pyx_t_5 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  Py_ssize_t __pyx_t_6;
-  Py_ssize_t __pyx_t_7;
-  __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_RefNannySetupContext("resize_array", 0);
-  if (__pyx_optional_args) {
-    if (__pyx_optional_args->__pyx_n > 0) {
-      __pyx_v_add = __pyx_optional_args->add;
-    }
-  }
-
-  /* "latticeModelMashup/src/Cfuncs.pyx":99
- *     cdef int[:] dim_v, offset_v
- *     cdef int[:, :] arr_v
- *     add = add if add is not 0 else 1             # <<<<<<<<<<<<<<
- *     offset_v = array.array('i', [add, add])
- *     dim_v = array.array('i', [dim_old[0] + add * 2, dim_old[1] + add * 2])
- */
-  if (((__pyx_v_add != 0) != 0)) {
-    __pyx_t_1 = __pyx_v_add;
-  } else {
-    __pyx_t_1 = 1;
-  }
-  __pyx_v_add = __pyx_t_1;
-
-  /* "latticeModelMashup/src/Cfuncs.pyx":100
- *     cdef int[:, :] arr_v
- *     add = add if add is not 0 else 1
- *     offset_v = array.array('i', [add, add])             # <<<<<<<<<<<<<<
- *     dim_v = array.array('i', [dim_old[0] + add * 2, dim_old[1] + add * 2])
- *     arr_v = init_array(dim_v)
- */
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_add); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 100, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_add); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 100, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyList_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 100, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyList_SET_ITEM(__pyx_t_4, 1, __pyx_t_3);
-  __pyx_t_2 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 100, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_INCREF(__pyx_n_s_i);
-  __Pyx_GIVEREF(__pyx_n_s_i);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_n_s_i);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_4);
-  __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_3, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 100, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_4, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 100, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_v_offset_v = __pyx_t_5;
-  __pyx_t_5.memview = NULL;
-  __pyx_t_5.data = NULL;
-
-  /* "latticeModelMashup/src/Cfuncs.pyx":101
- *     add = add if add is not 0 else 1
- *     offset_v = array.array('i', [add, add])
- *     dim_v = array.array('i', [dim_old[0] + add * 2, dim_old[1] + add * 2])             # <<<<<<<<<<<<<<
- *     arr_v = init_array(dim_v)
- *     replace_array(offset_v, dim_old, arr_old, dim_v, arr_v)
- */
-  __pyx_t_6 = 0;
-  __pyx_t_1 = -1;
-  if (__pyx_t_6 < 0) {
-    __pyx_t_6 += __pyx_v_dim_old.shape[0];
-    if (unlikely(__pyx_t_6 < 0)) __pyx_t_1 = 0;
-  } else if (unlikely(__pyx_t_6 >= __pyx_v_dim_old.shape[0])) __pyx_t_1 = 0;
-  if (unlikely(__pyx_t_1 != -1)) {
-    __Pyx_RaiseBufferIndexError(__pyx_t_1);
-    __PYX_ERR(0, 101, __pyx_L1_error)
-  }
-  __pyx_t_4 = __Pyx_PyInt_From_long(((*((int *) ( /* dim=0 */ (__pyx_v_dim_old.data + __pyx_t_6 * __pyx_v_dim_old.strides[0]) ))) + (__pyx_v_add * 2))); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 101, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_7 = 1;
-  __pyx_t_1 = -1;
-  if (__pyx_t_7 < 0) {
-    __pyx_t_7 += __pyx_v_dim_old.shape[0];
-    if (unlikely(__pyx_t_7 < 0)) __pyx_t_1 = 0;
-  } else if (unlikely(__pyx_t_7 >= __pyx_v_dim_old.shape[0])) __pyx_t_1 = 0;
-  if (unlikely(__pyx_t_1 != -1)) {
-    __Pyx_RaiseBufferIndexError(__pyx_t_1);
-    __PYX_ERR(0, 101, __pyx_L1_error)
-  }
-  __pyx_t_3 = __Pyx_PyInt_From_long(((*((int *) ( /* dim=0 */ (__pyx_v_dim_old.data + __pyx_t_7 * __pyx_v_dim_old.strides[0]) ))) + (__pyx_v_add * 2))); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 101, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = PyList_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 101, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyList_SET_ITEM(__pyx_t_2, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyList_SET_ITEM(__pyx_t_2, 1, __pyx_t_3);
-  __pyx_t_4 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 101, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_INCREF(__pyx_n_s_i);
-  __Pyx_GIVEREF(__pyx_n_s_i);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_n_s_i);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_2);
-  __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 101, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 101, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_v_dim_v = __pyx_t_5;
-  __pyx_t_5.memview = NULL;
-  __pyx_t_5.data = NULL;
-
-  /* "latticeModelMashup/src/Cfuncs.pyx":102
- *     offset_v = array.array('i', [add, add])
- *     dim_v = array.array('i', [dim_old[0] + add * 2, dim_old[1] + add * 2])
- *     arr_v = init_array(dim_v)             # <<<<<<<<<<<<<<
- *     replace_array(offset_v, dim_old, arr_old, dim_v, arr_v)
- *     return dim_v, arr_v
- */
-  __pyx_t_8 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array(__pyx_v_dim_v, 0); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 102, __pyx_L1_error)
-  __pyx_v_arr_v = __pyx_t_8;
-  __pyx_t_8.memview = NULL;
-  __pyx_t_8.data = NULL;
-
-  /* "latticeModelMashup/src/Cfuncs.pyx":103
- *     dim_v = array.array('i', [dim_old[0] + add * 2, dim_old[1] + add * 2])
- *     arr_v = init_array(dim_v)
- *     replace_array(offset_v, dim_old, arr_old, dim_v, arr_v)             # <<<<<<<<<<<<<<
- *     return dim_v, arr_v
- * 
- */
-  __pyx_t_2 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_array(__pyx_v_offset_v, __pyx_v_dim_old, __pyx_v_arr_old, __pyx_v_dim_v, __pyx_v_arr_v, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 103, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-
-  /* "latticeModelMashup/src/Cfuncs.pyx":104
- *     arr_v = init_array(dim_v)
- *     replace_array(offset_v, dim_old, arr_old, dim_v, arr_v)
- *     return dim_v, arr_v             # <<<<<<<<<<<<<<
- * 
- * cpdef int[:, :] init_array(int[:] dim_v):
- */
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_dim_v, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 104, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_arr_v, 2, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 104, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 104, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3);
-  __pyx_t_2 = 0;
-  __pyx_t_3 = 0;
-  __pyx_r = __pyx_t_4;
-  __pyx_t_4 = 0;
-  goto __pyx_L0;
-
-  /* "latticeModelMashup/src/Cfuncs.pyx":88
- *     return dim_v, buf_v
- * 
- * cpdef resize_array(int[:] dim_old, int[:, :] arr_old, int add=0):             # <<<<<<<<<<<<<<
- *     """
- *     Creates a new array and places the old array in its center.
- */
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_5, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.resize_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = 0;
-  __pyx_L0:;
-  __PYX_XDEC_MEMVIEW(&__pyx_v_dim_v, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_offset_v, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_arr_v, 1);
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_11resize_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_10resize_array[] = "\n    Creates a new array and places the old array in its center.\n\n    :param dim:         (pointer) dimensions\n    :param arr:         (2D pointer) array\n    :param add:         (int) amount of space to add at the edges of the new array\n    :return:            dim_v, arr_v\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_11resize_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  __Pyx_memviewslice __pyx_v_dim_old = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_arr_old = { 0, 0, { 0 }, { 0 }, { 0 } };
-  int __pyx_v_add;
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("resize_array (wrapper)", 0);
-  {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_dim_old,&__pyx_n_s_arr_old,&__pyx_n_s_add,0};
-    PyObject* values[3] = {0,0,0};
-    if (unlikely(__pyx_kwds)) {
-      Py_ssize_t kw_args;
-      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
-      switch (pos_args) {
-        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
-        CYTHON_FALLTHROUGH;
-        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-        CYTHON_FALLTHROUGH;
-        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-        CYTHON_FALLTHROUGH;
-        case  0: break;
-        default: goto __pyx_L5_argtuple_error;
-      }
-      kw_args = PyDict_Size(__pyx_kwds);
-      switch (pos_args) {
-        case  0:
-        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim_old)) != 0)) kw_args--;
-        else goto __pyx_L5_argtuple_error;
-        CYTHON_FALLTHROUGH;
-        case  1:
-        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr_old)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("resize_array", 0, 2, 3, 1); __PYX_ERR(0, 88, __pyx_L3_error)
-        }
-        CYTHON_FALLTHROUGH;
-        case  2:
-        if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_add);
-          if (value) { values[2] = value; kw_args--; }
-        }
-      }
-      if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "resize_array") < 0)) __PYX_ERR(0, 88, __pyx_L3_error)
-      }
-    } else {
-      switch (PyTuple_GET_SIZE(__pyx_args)) {
-        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
-        CYTHON_FALLTHROUGH;
-        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-        values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-        break;
-        default: goto __pyx_L5_argtuple_error;
-      }
-    }
-    __pyx_v_dim_old = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim_old.memview)) __PYX_ERR(0, 88, __pyx_L3_error)
-    __pyx_v_arr_old = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr_old.memview)) __PYX_ERR(0, 88, __pyx_L3_error)
-    if (values[2]) {
-      __pyx_v_add = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_add == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 88, __pyx_L3_error)
-    } else {
-      __pyx_v_add = ((int)0);
-    }
-  }
-  goto __pyx_L4_argument_unpacking_done;
-  __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("resize_array", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 88, __pyx_L3_error)
-  __pyx_L3_error:;
-  __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.resize_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __Pyx_RefNannyFinishContext();
-  return NULL;
-  __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_10resize_array(__pyx_self, __pyx_v_dim_old, __pyx_v_arr_old, __pyx_v_add);
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_10resize_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim_old, __Pyx_memviewslice __pyx_v_arr_old, int __pyx_v_add) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_resize_array __pyx_t_2;
-  __Pyx_RefNannySetupContext("resize_array", 0);
-  __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim_old.memview)) { __Pyx_RaiseUnboundLocalError("dim_old"); __PYX_ERR(0, 88, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr_old.memview)) { __Pyx_RaiseUnboundLocalError("arr_old"); __PYX_ERR(0, 88, __pyx_L1_error) }
-  __pyx_t_2.__pyx_n = 1;
-  __pyx_t_2.add = __pyx_v_add;
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_resize_array(__pyx_v_dim_old, __pyx_v_arr_old, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 88, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
-  goto __pyx_L0;
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.resize_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __PYX_XDEC_MEMVIEW(&__pyx_v_dim_old, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_arr_old, 1);
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "latticeModelMashup/src/Cfuncs.pyx":106
- *     return dim_v, arr_v
  * 
  * cpdef int[:, :] init_array(int[:] dim_v):             # <<<<<<<<<<<<<<
  *     """
- *     Creates a little array for testing
+ *     Creates a little array.
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_13init_array(PyObject *__pyx_self, PyObject *__pyx_arg_dim_v); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_11init_array(PyObject *__pyx_self, PyObject *__pyx_arg_dim_v); /*proto*/
 static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array(__Pyx_memviewslice __pyx_v_dim_v, CYTHON_UNUSED int __pyx_skip_dispatch) {
   __Pyx_memviewslice __pyx_r = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannyDeclarations
@@ -4867,23 +4397,23 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array(_
   __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("init_array", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":113
- *     :return:        (pointer) arr_v
+  /* "latticeModelMashup/src/Cfuncs.pyx":91
+ *     :return:        (pointer) dim_v, (pointer) arr_v, (arr) rule
  *     """
  *     return np.zeros(dim_v, np.intc)             # <<<<<<<<<<<<<<
  * 
- * cpdef int[:] prepair_rule(list rules, int frame):
+ * #===============FANTASTIC STOCHASTIC===============
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 91, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_dim_v, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_dim_v, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 91, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_intc); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_intc); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 91, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_4 = NULL;
@@ -4901,7 +4431,7 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array(_
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_2, __pyx_t_5};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 113, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -4911,7 +4441,7 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array(_
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_2, __pyx_t_5};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 113, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -4919,7 +4449,7 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array(_
   } else
   #endif
   {
-    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 113, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 91, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -4930,24 +4460,24 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array(_
     PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_6, __pyx_t_5);
     __pyx_t_2 = 0;
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 113, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 91, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_8;
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
   goto __pyx_L0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":106
- *     return dim_v, arr_v
+  /* "latticeModelMashup/src/Cfuncs.pyx":84
+ *     return dim_v, buf_v
  * 
  * cpdef int[:, :] init_array(int[:] dim_v):             # <<<<<<<<<<<<<<
  *     """
- *     Creates a little array for testing
+ *     Creates a little array.
  */
 
   /* function exit code */
@@ -4973,15 +4503,15 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array(_
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_13init_array(PyObject *__pyx_self, PyObject *__pyx_arg_dim_v); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_12init_array[] = "\n    Creates a little array for testing\n\n    :param size:    (pointer) size of the array\n    :return:        (pointer) arr_v\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_13init_array(PyObject *__pyx_self, PyObject *__pyx_arg_dim_v) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_11init_array(PyObject *__pyx_self, PyObject *__pyx_arg_dim_v); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_10init_array[] = "\n    Creates a little array.\n\n    :param size:    (pointer) size of the array\n    :return:        (pointer) dim_v, (pointer) arr_v, (arr) rule\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_11init_array(PyObject *__pyx_self, PyObject *__pyx_arg_dim_v) {
   __Pyx_memviewslice __pyx_v_dim_v = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("init_array (wrapper)", 0);
   assert(__pyx_arg_dim_v); {
-    __pyx_v_dim_v = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_arg_dim_v, PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim_v.memview)) __PYX_ERR(0, 106, __pyx_L3_error)
+    __pyx_v_dim_v = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_arg_dim_v, PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim_v.memview)) __PYX_ERR(0, 84, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -4989,23 +4519,23 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_13init_array(PyObjec
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_12init_array(__pyx_self, __pyx_v_dim_v);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_10init_array(__pyx_self, __pyx_v_dim_v);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_12init_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim_v) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_10init_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim_v) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("init_array", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim_v.memview)) { __Pyx_RaiseUnboundLocalError("dim_v"); __PYX_ERR(0, 106, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array(__pyx_v_dim_v, 0); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 106, __pyx_L1_error)
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 2, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 106, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim_v.memview)) { __Pyx_RaiseUnboundLocalError("dim_v"); __PYX_ERR(0, 84, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array(__pyx_v_dim_v, 0); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 84, __pyx_L1_error)
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 2, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 84, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
   __pyx_t_1.memview = NULL;
@@ -5027,198 +4557,17 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_12init_array(CYTHON_
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":115
- *     return np.zeros(dim_v, np.intc)
- * 
- * cpdef int[:] prepair_rule(list rules, int frame):             # <<<<<<<<<<<<<<
- *     """
- *     Prepairs rule for this frame
- */
-
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_15prepair_rule(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_prepair_rule(PyObject *__pyx_v_rules, int __pyx_v_frame, CYTHON_UNUSED int __pyx_skip_dispatch) {
-  __Pyx_memviewslice __pyx_r = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_RefNannyDeclarations
-  Py_ssize_t __pyx_t_1;
-  Py_ssize_t __pyx_t_2;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  __Pyx_memviewslice __pyx_t_5 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_RefNannySetupContext("prepair_rule", 0);
-
-  /* "latticeModelMashup/src/Cfuncs.pyx":123
- *     :return:            (pointer) current rule
- *     """
- *     return array.array('i', rules[frame % len(rules)])             # <<<<<<<<<<<<<<
+/* "latticeModelMashup/src/Cfuncs.pyx":94
  * 
  * #===============FANTASTIC STOCHASTIC===============
- */
-  if (unlikely(__pyx_v_rules == Py_None)) {
-    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not subscriptable");
-    __PYX_ERR(0, 123, __pyx_L1_error)
-  }
-  if (unlikely(__pyx_v_rules == Py_None)) {
-    PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    __PYX_ERR(0, 123, __pyx_L1_error)
-  }
-  __pyx_t_1 = PyList_GET_SIZE(__pyx_v_rules); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 123, __pyx_L1_error)
-  if (unlikely(__pyx_t_1 == 0)) {
-    PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-    __PYX_ERR(0, 123, __pyx_L1_error)
-  }
-  __pyx_t_2 = __Pyx_mod_Py_ssize_t(__pyx_v_frame, __pyx_t_1);
-  __pyx_t_3 = __Pyx_GetItemInt_List(__pyx_v_rules, __pyx_t_2, Py_ssize_t, 1, PyInt_FromSsize_t, 1, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 123, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 123, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_INCREF(__pyx_n_s_i);
-  __Pyx_GIVEREF(__pyx_n_s_i);
-  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_n_s_i);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3);
-  __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 123, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 123, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_r = __pyx_t_5;
-  __pyx_t_5.memview = NULL;
-  __pyx_t_5.data = NULL;
-  goto __pyx_L0;
-
-  /* "latticeModelMashup/src/Cfuncs.pyx":115
- *     return np.zeros(dim_v, np.intc)
- * 
- * cpdef int[:] prepair_rule(list rules, int frame):             # <<<<<<<<<<<<<<
- *     """
- *     Prepairs rule for this frame
- */
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_5, 1);
-  __pyx_r.data = NULL;
-  __pyx_r.memview = NULL;
-  __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.prepair_rule", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  goto __pyx_L2;
-  __pyx_L0:;
-  if (unlikely(!__pyx_r.memview)) {
-    PyErr_SetString(PyExc_TypeError, "Memoryview return value is not initialized");
-  }
-  __pyx_L2:;
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_15prepair_rule(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_14prepair_rule[] = "\n    Prepairs rule for this frame\n\n    :param rules:       (list) full rule list\n    :param frame:       (int) framnumber\n    :return:            (pointer) current rule\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_15prepair_rule(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  PyObject *__pyx_v_rules = 0;
-  int __pyx_v_frame;
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("prepair_rule (wrapper)", 0);
-  {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_rules,&__pyx_n_s_frame,0};
-    PyObject* values[2] = {0,0};
-    if (unlikely(__pyx_kwds)) {
-      Py_ssize_t kw_args;
-      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
-      switch (pos_args) {
-        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-        CYTHON_FALLTHROUGH;
-        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-        CYTHON_FALLTHROUGH;
-        case  0: break;
-        default: goto __pyx_L5_argtuple_error;
-      }
-      kw_args = PyDict_Size(__pyx_kwds);
-      switch (pos_args) {
-        case  0:
-        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_rules)) != 0)) kw_args--;
-        else goto __pyx_L5_argtuple_error;
-        CYTHON_FALLTHROUGH;
-        case  1:
-        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_frame)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("prepair_rule", 1, 2, 2, 1); __PYX_ERR(0, 115, __pyx_L3_error)
-        }
-      }
-      if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "prepair_rule") < 0)) __PYX_ERR(0, 115, __pyx_L3_error)
-      }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
-      goto __pyx_L5_argtuple_error;
-    } else {
-      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-    }
-    __pyx_v_rules = ((PyObject*)values[0]);
-    __pyx_v_frame = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_frame == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 115, __pyx_L3_error)
-  }
-  goto __pyx_L4_argument_unpacking_done;
-  __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("prepair_rule", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 115, __pyx_L3_error)
-  __pyx_L3_error:;
-  __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.prepair_rule", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __Pyx_RefNannyFinishContext();
-  return NULL;
-  __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_rules), (&PyList_Type), 1, "rules", 1))) __PYX_ERR(0, 115, __pyx_L1_error)
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_14prepair_rule(__pyx_self, __pyx_v_rules, __pyx_v_frame);
-
-  /* function exit code */
-  goto __pyx_L0;
-  __pyx_L1_error:;
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_14prepair_rule(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_rules, int __pyx_v_frame) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  PyObject *__pyx_t_2 = NULL;
-  __Pyx_RefNannySetupContext("prepair_rule", 0);
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_prepair_rule(__pyx_v_rules, __pyx_v_frame, 0); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 115, __pyx_L1_error)
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 115, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
-  __pyx_t_1.memview = NULL;
-  __pyx_t_1.data = NULL;
-  __pyx_r = __pyx_t_2;
-  __pyx_t_2 = 0;
-  goto __pyx_L0;
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.prepair_rule", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "latticeModelMashup/src/Cfuncs.pyx":126
- * 
- * #===============FANTASTIC STOCHASTIC===============
- * cpdef randomize_center(int siz, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
+ * cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, float threshold=0.2):             # <<<<<<<<<<<<<<
  *     """
  *     Puts a little random array in the center of the array
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_17randomize_center(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(int __pyx_v_siz, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_13randomize_center(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(int __pyx_v_siz, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch, struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_randomize_center *__pyx_optional_args) {
+  float __pyx_v_threshold = ((float)0.2);
   __Pyx_memviewslice __pyx_v_dim_v = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_offset_v = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr_v = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -5235,19 +4584,24 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(int 
   Py_ssize_t __pyx_t_9;
   Py_ssize_t __pyx_t_10;
   __Pyx_RefNannySetupContext("randomize_center", 0);
+  if (__pyx_optional_args) {
+    if (__pyx_optional_args->__pyx_n > 0) {
+      __pyx_v_threshold = __pyx_optional_args->threshold;
+    }
+  }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":137
+  /* "latticeModelMashup/src/Cfuncs.pyx":105
  *     cdef int[:] dim_v, offset_v
  *     cdef int[:, :] arr_v
  *     dim_v = array.array('i', [siz, siz])             # <<<<<<<<<<<<<<
  *     arr_v = init_array(dim_v)
- *     add_noise(0.2, dim_v, arr_v)
+ * 
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_siz); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 137, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_siz); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 105, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_siz); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 137, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_siz); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 105, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyList_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 137, __pyx_L1_error)
+  __pyx_t_3 = PyList_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 105, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyList_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -5255,7 +4609,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(int 
   PyList_SET_ITEM(__pyx_t_3, 1, __pyx_t_2);
   __pyx_t_1 = 0;
   __pyx_t_2 = 0;
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 137, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 105, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_s_i);
   __Pyx_GIVEREF(__pyx_n_s_i);
@@ -5263,41 +4617,41 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(int 
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 137, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 105, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 137, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 105, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_dim_v = __pyx_t_4;
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":138
+  /* "latticeModelMashup/src/Cfuncs.pyx":106
  *     cdef int[:, :] arr_v
  *     dim_v = array.array('i', [siz, siz])
  *     arr_v = init_array(dim_v)             # <<<<<<<<<<<<<<
- *     add_noise(0.2, dim_v, arr_v)
- *     offset_v = array.array('i', [int((dim[0] - dim_v[0])/2), int((dim[1] - dim_v[1])/2)])
+ * 
+ *     add_noise(threshold, dim_v, arr_v)
  */
-  __pyx_t_5 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array(__pyx_v_dim_v, 0); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 138, __pyx_L1_error)
+  __pyx_t_5 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_init_array(__pyx_v_dim_v, 0); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 106, __pyx_L1_error)
   __pyx_v_arr_v = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":139
- *     dim_v = array.array('i', [siz, siz])
+  /* "latticeModelMashup/src/Cfuncs.pyx":108
  *     arr_v = init_array(dim_v)
- *     add_noise(0.2, dim_v, arr_v)             # <<<<<<<<<<<<<<
+ * 
+ *     add_noise(threshold, dim_v, arr_v)             # <<<<<<<<<<<<<<
+ * 
  *     offset_v = array.array('i', [int((dim[0] - dim_v[0])/2), int((dim[1] - dim_v[1])/2)])
- *     replace_array(offset_v, dim_v, arr_v, dim, arr)
  */
-  __pyx_t_3 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(0.2, __pyx_v_dim_v, __pyx_v_arr_v, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 139, __pyx_L1_error)
+  __pyx_t_3 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(__pyx_v_threshold, __pyx_v_dim_v, __pyx_v_arr_v, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 108, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":140
- *     arr_v = init_array(dim_v)
- *     add_noise(0.2, dim_v, arr_v)
+  /* "latticeModelMashup/src/Cfuncs.pyx":110
+ *     add_noise(threshold, dim_v, arr_v)
+ * 
  *     offset_v = array.array('i', [int((dim[0] - dim_v[0])/2), int((dim[1] - dim_v[1])/2)])             # <<<<<<<<<<<<<<
  *     replace_array(offset_v, dim_v, arr_v, dim, arr)
  * 
@@ -5310,7 +4664,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(int 
   } else if (unlikely(__pyx_t_6 >= __pyx_v_dim.shape[0])) __pyx_t_7 = 0;
   if (unlikely(__pyx_t_7 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_7);
-    __PYX_ERR(0, 140, __pyx_L1_error)
+    __PYX_ERR(0, 110, __pyx_L1_error)
   }
   __pyx_t_8 = 0;
   __pyx_t_7 = -1;
@@ -5320,11 +4674,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(int 
   } else if (unlikely(__pyx_t_8 >= __pyx_v_dim_v.shape[0])) __pyx_t_7 = 0;
   if (unlikely(__pyx_t_7 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_7);
-    __PYX_ERR(0, 140, __pyx_L1_error)
+    __PYX_ERR(0, 110, __pyx_L1_error)
   }
-  __pyx_t_3 = __Pyx_PyInt_From_long(__Pyx_div_long(((*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_6 * __pyx_v_dim.strides[0]) ))) - (*((int *) ( /* dim=0 */ (__pyx_v_dim_v.data + __pyx_t_8 * __pyx_v_dim_v.strides[0]) )))), 2)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_long(__Pyx_div_long(((*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_6 * __pyx_v_dim.strides[0]) ))) - (*((int *) ( /* dim=0 */ (__pyx_v_dim_v.data + __pyx_t_8 * __pyx_v_dim_v.strides[0]) )))), 2)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyInt_Type)), __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyInt_Type)), __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_9 = 1;
@@ -5335,7 +4689,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(int 
   } else if (unlikely(__pyx_t_9 >= __pyx_v_dim.shape[0])) __pyx_t_7 = 0;
   if (unlikely(__pyx_t_7 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_7);
-    __PYX_ERR(0, 140, __pyx_L1_error)
+    __PYX_ERR(0, 110, __pyx_L1_error)
   }
   __pyx_t_10 = 1;
   __pyx_t_7 = -1;
@@ -5345,14 +4699,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(int 
   } else if (unlikely(__pyx_t_10 >= __pyx_v_dim_v.shape[0])) __pyx_t_7 = 0;
   if (unlikely(__pyx_t_7 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_7);
-    __PYX_ERR(0, 140, __pyx_L1_error)
+    __PYX_ERR(0, 110, __pyx_L1_error)
   }
-  __pyx_t_3 = __Pyx_PyInt_From_long(__Pyx_div_long(((*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_9 * __pyx_v_dim.strides[0]) ))) - (*((int *) ( /* dim=0 */ (__pyx_v_dim_v.data + __pyx_t_10 * __pyx_v_dim_v.strides[0]) )))), 2)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_long(__Pyx_div_long(((*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_9 * __pyx_v_dim.strides[0]) ))) - (*((int *) ( /* dim=0 */ (__pyx_v_dim_v.data + __pyx_t_10 * __pyx_v_dim_v.strides[0]) )))), 2)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyInt_Type)), __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyInt_Type)), __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyList_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_3 = PyList_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
   PyList_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
@@ -5360,7 +4714,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(int 
   PyList_SET_ITEM(__pyx_t_3, 1, __pyx_t_1);
   __pyx_t_2 = 0;
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_s_i);
   __Pyx_GIVEREF(__pyx_n_s_i);
@@ -5368,30 +4722,30 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(int 
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_offset_v = __pyx_t_4;
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":141
- *     add_noise(0.2, dim_v, arr_v)
+  /* "latticeModelMashup/src/Cfuncs.pyx":111
+ * 
  *     offset_v = array.array('i', [int((dim[0] - dim_v[0])/2), int((dim[1] - dim_v[1])/2)])
  *     replace_array(offset_v, dim_v, arr_v, dim, arr)             # <<<<<<<<<<<<<<
  * 
  * #TODO: add function capabilities (also make more performant if you are going to do that..)
  */
-  __pyx_t_3 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_array(__pyx_v_offset_v, __pyx_v_dim_v, __pyx_v_arr_v, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 141, __pyx_L1_error)
+  __pyx_t_3 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_array(__pyx_v_offset_v, __pyx_v_dim_v, __pyx_v_arr_v, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 111, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":126
+  /* "latticeModelMashup/src/Cfuncs.pyx":94
  * 
  * #===============FANTASTIC STOCHASTIC===============
- * cpdef randomize_center(int siz, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
+ * cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, float threshold=0.2):             # <<<<<<<<<<<<<<
  *     """
  *     Puts a little random array in the center of the array
  */
@@ -5417,22 +4771,25 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(int 
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_17randomize_center(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_16randomize_center[] = "\n    Puts a little random array in the center of the array\n\n    :param size:        (pointer) size of small array\n    :param dim:         (pointer) dimensions\n    :param arr:         (2D pointer) array\n    :return:            None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_17randomize_center(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_13randomize_center(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_12randomize_center[] = "\n    Puts a little random array in the center of the array\n\n    :param size:        (pointer) size of small array\n    :param dim:         (pointer) dimensions\n    :param arr:         (2D pointer) array\n    :return:            None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_13randomize_center(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_siz;
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
+  float __pyx_v_threshold;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("randomize_center (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_siz,&__pyx_n_s_dim,&__pyx_n_s_arr,0};
-    PyObject* values[3] = {0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_siz,&__pyx_n_s_dim,&__pyx_n_s_arr,&__pyx_n_s_threshold,0};
+    PyObject* values[4] = {0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
         case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
         CYTHON_FALLTHROUGH;
         case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
@@ -5451,53 +4808,71 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_17randomize_center(P
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("randomize_center", 1, 3, 3, 1); __PYX_ERR(0, 126, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("randomize_center", 0, 3, 4, 1); __PYX_ERR(0, 94, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("randomize_center", 1, 3, 3, 2); __PYX_ERR(0, 126, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("randomize_center", 0, 3, 4, 2); __PYX_ERR(0, 94, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  3:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_threshold);
+          if (value) { values[3] = value; kw_args--; }
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "randomize_center") < 0)) __PYX_ERR(0, 126, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "randomize_center") < 0)) __PYX_ERR(0, 94, __pyx_L3_error)
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
-      goto __pyx_L5_argtuple_error;
     } else {
-      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        break;
+        default: goto __pyx_L5_argtuple_error;
+      }
     }
-    __pyx_v_siz = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_siz == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 126, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 126, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 126, __pyx_L3_error)
+    __pyx_v_siz = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_siz == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 94, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 94, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 94, __pyx_L3_error)
+    if (values[3]) {
+      __pyx_v_threshold = __pyx_PyFloat_AsFloat(values[3]); if (unlikely((__pyx_v_threshold == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 94, __pyx_L3_error)
+    } else {
+      __pyx_v_threshold = ((float)0.2);
+    }
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("randomize_center", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 126, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("randomize_center", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 94, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.randomize_center", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_16randomize_center(__pyx_self, __pyx_v_siz, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_12randomize_center(__pyx_self, __pyx_v_siz, __pyx_v_dim, __pyx_v_arr, __pyx_v_threshold);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_16randomize_center(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_siz, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_12randomize_center(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_siz, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, float __pyx_v_threshold) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
+  struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_randomize_center __pyx_t_2;
   __Pyx_RefNannySetupContext("randomize_center", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 126, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 126, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(__pyx_v_siz, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 126, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 94, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 94, __pyx_L1_error) }
+  __pyx_t_2.__pyx_n = 1;
+  __pyx_t_2.threshold = __pyx_v_threshold;
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_randomize_center(__pyx_v_siz, __pyx_v_dim, __pyx_v_arr, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 94, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -5516,7 +4891,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_16randomize_center(C
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":144
+/* "latticeModelMashup/src/Cfuncs.pyx":114
  * 
  * #TODO: add function capabilities (also make more performant if you are going to do that..)
  * cpdef add_noise(float threshold, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -5524,7 +4899,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_16randomize_center(C
  *     Adds simple noise to an array.
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_19add_noise(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_15add_noise(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx_v_threshold, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   __Pyx_memviewslice __pyx_v_narr = { 0, 0, { 0 }, { 0 }, { 0 } };
   Py_ssize_t __pyx_v_i;
@@ -5556,7 +4931,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
   Py_ssize_t __pyx_t_23;
   __Pyx_RefNannySetupContext("add_noise", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":153
+  /* "latticeModelMashup/src/Cfuncs.pyx":123
  *     :return: None
  *     """
  *     if threshold == 1.0:             # <<<<<<<<<<<<<<
@@ -5566,7 +4941,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
   __pyx_t_1 = ((__pyx_v_threshold == 1.0) != 0);
   if (__pyx_t_1) {
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":154
+    /* "latticeModelMashup/src/Cfuncs.pyx":124
  *     """
  *     if threshold == 1.0:
  *         return             # <<<<<<<<<<<<<<
@@ -5577,7 +4952,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":153
+    /* "latticeModelMashup/src/Cfuncs.pyx":123
  *     :return: None
  *     """
  *     if threshold == 1.0:             # <<<<<<<<<<<<<<
@@ -5586,27 +4961,27 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
  */
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":155
+  /* "latticeModelMashup/src/Cfuncs.pyx":125
  *     if threshold == 1.0:
  *         return
  *     cdef int[:, :] narr = np.asarray(np.random.random(dim) > threshold, np.intc)             # <<<<<<<<<<<<<<
  *     cdef Py_ssize_t i, j
  *     for i in range(dim[0]):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_random); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_random); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_random); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_random); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __pyx_memoryview_fromslice(__pyx_v_dim, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_6 = __pyx_memoryview_fromslice(__pyx_v_dim, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_7 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
@@ -5621,17 +4996,17 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
   __pyx_t_3 = (__pyx_t_7) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_7, __pyx_t_6) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_threshold); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_threshold); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyObject_RichCompare(__pyx_t_3, __pyx_t_5, Py_GT); __Pyx_XGOTREF(__pyx_t_6); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_6 = PyObject_RichCompare(__pyx_t_3, __pyx_t_5, Py_GT); __Pyx_XGOTREF(__pyx_t_6); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_intc); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_intc); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_5 = NULL;
@@ -5649,7 +5024,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_6, __pyx_t_3};
-    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 125, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -5659,7 +5034,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_6, __pyx_t_3};
-    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 125, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -5667,7 +5042,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
   } else
   #endif
   {
-    __pyx_t_7 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 155, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 125, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_5) {
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -5678,18 +5053,18 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
     PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_8, __pyx_t_3);
     __pyx_t_6 = 0;
     __pyx_t_3 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 125, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_narr = __pyx_t_9;
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":157
+  /* "latticeModelMashup/src/Cfuncs.pyx":127
  *     cdef int[:, :] narr = np.asarray(np.random.random(dim) > threshold, np.intc)
  *     cdef Py_ssize_t i, j
  *     for i in range(dim[0]):             # <<<<<<<<<<<<<<
@@ -5704,14 +5079,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
   } else if (unlikely(__pyx_t_10 >= __pyx_v_dim.shape[0])) __pyx_t_8 = 0;
   if (unlikely(__pyx_t_8 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_8);
-    __PYX_ERR(0, 157, __pyx_L1_error)
+    __PYX_ERR(0, 127, __pyx_L1_error)
   }
   __pyx_t_8 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_10 * __pyx_v_dim.strides[0]) )));
   __pyx_t_11 = __pyx_t_8;
   for (__pyx_t_12 = 0; __pyx_t_12 < __pyx_t_11; __pyx_t_12+=1) {
     __pyx_v_i = __pyx_t_12;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":158
+    /* "latticeModelMashup/src/Cfuncs.pyx":128
  *     cdef Py_ssize_t i, j
  *     for i in range(dim[0]):
  *         for j in range(dim[1]):             # <<<<<<<<<<<<<<
@@ -5726,14 +5101,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
     } else if (unlikely(__pyx_t_13 >= __pyx_v_dim.shape[0])) __pyx_t_14 = 0;
     if (unlikely(__pyx_t_14 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_14);
-      __PYX_ERR(0, 158, __pyx_L1_error)
+      __PYX_ERR(0, 128, __pyx_L1_error)
     }
     __pyx_t_14 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_13 * __pyx_v_dim.strides[0]) )));
     __pyx_t_15 = __pyx_t_14;
     for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
       __pyx_v_j = __pyx_t_16;
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":159
+      /* "latticeModelMashup/src/Cfuncs.pyx":129
  *     for i in range(dim[0]):
  *         for j in range(dim[1]):
  *             arr[i][j] = arr[i][j] ^ narr[i][j]             # <<<<<<<<<<<<<<
@@ -5753,7 +5128,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
       } else if (unlikely(__pyx_t_18 >= __pyx_v_arr.shape[1])) __pyx_t_19 = 1;
       if (unlikely(__pyx_t_19 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_19);
-        __PYX_ERR(0, 159, __pyx_L1_error)
+        __PYX_ERR(0, 129, __pyx_L1_error)
       }
       __pyx_t_20 = __pyx_v_i;
       __pyx_t_21 = __pyx_v_j;
@@ -5768,7 +5143,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
       } else if (unlikely(__pyx_t_21 >= __pyx_v_narr.shape[1])) __pyx_t_19 = 1;
       if (unlikely(__pyx_t_19 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_19);
-        __PYX_ERR(0, 159, __pyx_L1_error)
+        __PYX_ERR(0, 129, __pyx_L1_error)
       }
       __pyx_t_22 = __pyx_v_i;
       __pyx_t_23 = __pyx_v_j;
@@ -5783,13 +5158,13 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
       } else if (unlikely(__pyx_t_23 >= __pyx_v_arr.shape[1])) __pyx_t_19 = 1;
       if (unlikely(__pyx_t_19 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_19);
-        __PYX_ERR(0, 159, __pyx_L1_error)
+        __PYX_ERR(0, 129, __pyx_L1_error)
       }
       *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_22 * __pyx_v_arr.strides[0]) ) + __pyx_t_23 * __pyx_v_arr.strides[1]) )) = ((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_17 * __pyx_v_arr.strides[0]) ) + __pyx_t_18 * __pyx_v_arr.strides[1]) ))) ^ (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_narr.data + __pyx_t_20 * __pyx_v_narr.strides[0]) ) + __pyx_t_21 * __pyx_v_narr.strides[1]) ))));
     }
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":144
+  /* "latticeModelMashup/src/Cfuncs.pyx":114
  * 
  * #TODO: add function capabilities (also make more performant if you are going to do that..)
  * cpdef add_noise(float threshold, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -5818,9 +5193,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(float __pyx
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_19add_noise(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_18add_noise[] = "\n    Adds simple noise to an array.\n\n    :param threshold: (float) Noise threshold (0-1)\n    :param dim:     (pointer) dimensions of array\n    :param array:   (2D pointer) array\n    :return: None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_19add_noise(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_15add_noise(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_14add_noise[] = "\n    Adds simple noise to an array.\n\n    :param threshold: (float) Noise threshold (0-1)\n    :param dim:     (pointer) dimensions of array\n    :param array:   (2D pointer) array\n    :return: None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_15add_noise(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   float __pyx_v_threshold;
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -5852,17 +5227,17 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_19add_noise(PyObject
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_noise", 1, 3, 3, 1); __PYX_ERR(0, 144, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_noise", 1, 3, 3, 1); __PYX_ERR(0, 114, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_noise", 1, 3, 3, 2); __PYX_ERR(0, 144, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_noise", 1, 3, 3, 2); __PYX_ERR(0, 114, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_noise") < 0)) __PYX_ERR(0, 144, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_noise") < 0)) __PYX_ERR(0, 114, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -5871,34 +5246,34 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_19add_noise(PyObject
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_threshold = __pyx_PyFloat_AsFloat(values[0]); if (unlikely((__pyx_v_threshold == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 144, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 144, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 144, __pyx_L3_error)
+    __pyx_v_threshold = __pyx_PyFloat_AsFloat(values[0]); if (unlikely((__pyx_v_threshold == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 114, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 114, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 114, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_noise", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 144, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("add_noise", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 114, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.add_noise", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_18add_noise(__pyx_self, __pyx_v_threshold, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_14add_noise(__pyx_self, __pyx_v_threshold, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_18add_noise(CYTHON_UNUSED PyObject *__pyx_self, float __pyx_v_threshold, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_14add_noise(CYTHON_UNUSED PyObject *__pyx_self, float __pyx_v_threshold, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("add_noise", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 144, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 144, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(__pyx_v_threshold, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 114, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 114, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_add_noise(__pyx_v_threshold, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 114, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -5917,7 +5292,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_18add_noise(CYTHON_U
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":164
+/* "latticeModelMashup/src/Cfuncs.pyx":134
  *             # array[x][y] = array[x][y] ^ (rand() % 2)
  * 
  * cpdef ising_process(int updates, float beta, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -5925,7 +5300,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_18add_noise(CYTHON_U
  *     Performs ising updates on the array.
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_21ising_process(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_17ising_process(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __pyx_v_updates, float __pyx_v_beta, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   __Pyx_memviewslice __pyx_v_cost = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_v_N;
@@ -6001,7 +5376,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
   Py_ssize_t __pyx_t_59;
   __Pyx_RefNannySetupContext("ising_process", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":174
+  /* "latticeModelMashup/src/Cfuncs.pyx":144
  *     :return:        None
  *     """
  *     if updates == 0:             # <<<<<<<<<<<<<<
@@ -6011,7 +5386,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
   __pyx_t_1 = ((__pyx_v_updates == 0) != 0);
   if (__pyx_t_1) {
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":175
+    /* "latticeModelMashup/src/Cfuncs.pyx":145
  *     """
  *     if updates == 0:
  *         return             # <<<<<<<<<<<<<<
@@ -6022,7 +5397,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":174
+    /* "latticeModelMashup/src/Cfuncs.pyx":144
  *     :return:        None
  *     """
  *     if updates == 0:             # <<<<<<<<<<<<<<
@@ -6031,21 +5406,21 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
  */
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":176
+  /* "latticeModelMashup/src/Cfuncs.pyx":146
  *     if updates == 0:
  *         return
  *     cdef float[:] cost = np.zeros(3, np.float32)             # <<<<<<<<<<<<<<
  *     cost[1] = np.exp(-4 * beta)
  *     cost[2] = cost[1] ** 2
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -6063,7 +5438,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_int_3, __pyx_t_5};
-    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 176, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 146, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -6072,14 +5447,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_int_3, __pyx_t_5};
-    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 176, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 146, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   } else
   #endif
   {
-    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 176, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 146, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_3) {
       __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_3); __pyx_t_3 = NULL;
@@ -6090,30 +5465,30 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
     __Pyx_GIVEREF(__pyx_t_5);
     PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_6, __pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 176, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 146, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 146, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_cost = __pyx_t_8;
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":177
+  /* "latticeModelMashup/src/Cfuncs.pyx":147
  *         return
  *     cdef float[:] cost = np.zeros(3, np.float32)
  *     cost[1] = np.exp(-4 * beta)             # <<<<<<<<<<<<<<
  *     cost[2] = cost[1] ** 2
  *     cdef int N = dim[0]
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 177, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_exp); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 177, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_exp); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyFloat_FromDouble((-4.0 * __pyx_v_beta)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 177, __pyx_L1_error)
+  __pyx_t_4 = PyFloat_FromDouble((-4.0 * __pyx_v_beta)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_7))) {
@@ -6128,10 +5503,10 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
   __pyx_t_2 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_5, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 177, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_9 = __pyx_PyFloat_AsFloat(__pyx_t_2); if (unlikely((__pyx_t_9 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 177, __pyx_L1_error)
+  __pyx_t_9 = __pyx_PyFloat_AsFloat(__pyx_t_2); if (unlikely((__pyx_t_9 == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 147, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_10 = 1;
   __pyx_t_6 = -1;
@@ -6141,11 +5516,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
   } else if (unlikely(__pyx_t_10 >= __pyx_v_cost.shape[0])) __pyx_t_6 = 0;
   if (unlikely(__pyx_t_6 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_6);
-    __PYX_ERR(0, 177, __pyx_L1_error)
+    __PYX_ERR(0, 147, __pyx_L1_error)
   }
   *((float *) ( /* dim=0 */ (__pyx_v_cost.data + __pyx_t_10 * __pyx_v_cost.strides[0]) )) = __pyx_t_9;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":178
+  /* "latticeModelMashup/src/Cfuncs.pyx":148
  *     cdef float[:] cost = np.zeros(3, np.float32)
  *     cost[1] = np.exp(-4 * beta)
  *     cost[2] = cost[1] ** 2             # <<<<<<<<<<<<<<
@@ -6160,7 +5535,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
   } else if (unlikely(__pyx_t_11 >= __pyx_v_cost.shape[0])) __pyx_t_6 = 0;
   if (unlikely(__pyx_t_6 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_6);
-    __PYX_ERR(0, 178, __pyx_L1_error)
+    __PYX_ERR(0, 148, __pyx_L1_error)
   }
   __pyx_t_12 = 2;
   __pyx_t_6 = -1;
@@ -6170,11 +5545,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
   } else if (unlikely(__pyx_t_12 >= __pyx_v_cost.shape[0])) __pyx_t_6 = 0;
   if (unlikely(__pyx_t_6 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_6);
-    __PYX_ERR(0, 178, __pyx_L1_error)
+    __PYX_ERR(0, 148, __pyx_L1_error)
   }
   *((float *) ( /* dim=0 */ (__pyx_v_cost.data + __pyx_t_12 * __pyx_v_cost.strides[0]) )) = powf((*((float *) ( /* dim=0 */ (__pyx_v_cost.data + __pyx_t_11 * __pyx_v_cost.strides[0]) ))), 2.0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":179
+  /* "latticeModelMashup/src/Cfuncs.pyx":149
  *     cost[1] = np.exp(-4 * beta)
  *     cost[2] = cost[1] ** 2
  *     cdef int N = dim[0]             # <<<<<<<<<<<<<<
@@ -6189,11 +5564,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
   } else if (unlikely(__pyx_t_13 >= __pyx_v_dim.shape[0])) __pyx_t_6 = 0;
   if (unlikely(__pyx_t_6 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_6);
-    __PYX_ERR(0, 179, __pyx_L1_error)
+    __PYX_ERR(0, 149, __pyx_L1_error)
   }
   __pyx_v_N = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_13 * __pyx_v_dim.strides[0]) )));
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":180
+  /* "latticeModelMashup/src/Cfuncs.pyx":150
  *     cost[2] = cost[1] ** 2
  *     cdef int N = dim[0]
  *     cdef int D = dim[1]             # <<<<<<<<<<<<<<
@@ -6208,11 +5583,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
   } else if (unlikely(__pyx_t_14 >= __pyx_v_dim.shape[0])) __pyx_t_6 = 0;
   if (unlikely(__pyx_t_6 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_6);
-    __PYX_ERR(0, 180, __pyx_L1_error)
+    __PYX_ERR(0, 150, __pyx_L1_error)
   }
   __pyx_v_D = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_14 * __pyx_v_dim.strides[0]) )));
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":183
+  /* "latticeModelMashup/src/Cfuncs.pyx":153
  *     cdef Py_ssize_t _
  *     cdef int a, b, l, r, u, d, nb
  *     for _ in range(updates):             # <<<<<<<<<<<<<<
@@ -6224,7 +5599,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
   for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_15; __pyx_t_16+=1) {
     __pyx_v__ = __pyx_t_16;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":184
+    /* "latticeModelMashup/src/Cfuncs.pyx":154
  *     cdef int a, b, l, r, u, d, nb
  *     for _ in range(updates):
  *         a = rand() % N             # <<<<<<<<<<<<<<
@@ -6234,11 +5609,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
     __pyx_t_17 = rand();
     if (unlikely(__pyx_v_N == 0)) {
       PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-      __PYX_ERR(0, 184, __pyx_L1_error)
+      __PYX_ERR(0, 154, __pyx_L1_error)
     }
     __pyx_v_a = __Pyx_mod_int(__pyx_t_17, __pyx_v_N);
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":185
+    /* "latticeModelMashup/src/Cfuncs.pyx":155
  *     for _ in range(updates):
  *         a = rand() % N
  *         b = rand() % D             # <<<<<<<<<<<<<<
@@ -6248,11 +5623,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
     __pyx_t_17 = rand();
     if (unlikely(__pyx_v_D == 0)) {
       PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-      __PYX_ERR(0, 185, __pyx_L1_error)
+      __PYX_ERR(0, 155, __pyx_L1_error)
     }
     __pyx_v_b = __Pyx_mod_int(__pyx_t_17, __pyx_v_D);
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":186
+    /* "latticeModelMashup/src/Cfuncs.pyx":156
  *         a = rand() % N
  *         b = rand() % D
  *         if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:             # <<<<<<<<<<<<<<
@@ -6279,7 +5654,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
     } else if (unlikely(__pyx_t_19 >= __pyx_v_dim.shape[0])) __pyx_t_17 = 0;
     if (unlikely(__pyx_t_17 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_17);
-      __PYX_ERR(0, 186, __pyx_L1_error)
+      __PYX_ERR(0, 156, __pyx_L1_error)
     }
     __pyx_t_18 = ((__pyx_v_a == ((*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_19 * __pyx_v_dim.strides[0]) ))) - 1)) != 0);
     if (!__pyx_t_18) {
@@ -6295,14 +5670,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
     } else if (unlikely(__pyx_t_20 >= __pyx_v_dim.shape[0])) __pyx_t_17 = 0;
     if (unlikely(__pyx_t_17 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_17);
-      __PYX_ERR(0, 186, __pyx_L1_error)
+      __PYX_ERR(0, 156, __pyx_L1_error)
     }
     __pyx_t_18 = ((__pyx_v_b == ((*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_20 * __pyx_v_dim.strides[0]) ))) - 1)) != 0);
     __pyx_t_1 = __pyx_t_18;
     __pyx_L7_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":187
+      /* "latticeModelMashup/src/Cfuncs.pyx":157
  *         b = rand() % D
  *         if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
  *             l = int(arr[a][b] == arr[(a + 1) % N][b])             # <<<<<<<<<<<<<<
@@ -6322,7 +5697,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_22 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 187, __pyx_L1_error)
+        __PYX_ERR(0, 157, __pyx_L1_error)
       }
       __pyx_t_23 = (__pyx_v_a + 1);
       __pyx_t_24 = __Pyx_mod_long(__pyx_t_23, __pyx_v_N);
@@ -6338,11 +5713,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_25 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 187, __pyx_L1_error)
+        __PYX_ERR(0, 157, __pyx_L1_error)
       }
       __pyx_v_l = ((int)((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_21 * __pyx_v_arr.strides[0]) ) + __pyx_t_22 * __pyx_v_arr.strides[1]) ))) == (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_24 * __pyx_v_arr.strides[0]) ) + __pyx_t_25 * __pyx_v_arr.strides[1]) )))));
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":188
+      /* "latticeModelMashup/src/Cfuncs.pyx":158
  *         if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
  *             l = int(arr[a][b] == arr[(a + 1) % N][b])
  *             r = int(arr[a][b] == arr[(a - 1) % N][b])             # <<<<<<<<<<<<<<
@@ -6362,7 +5737,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_27 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 188, __pyx_L1_error)
+        __PYX_ERR(0, 158, __pyx_L1_error)
       }
       __pyx_t_23 = (__pyx_v_a - 1);
       __pyx_t_28 = __Pyx_mod_long(__pyx_t_23, __pyx_v_N);
@@ -6378,11 +5753,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_29 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 188, __pyx_L1_error)
+        __PYX_ERR(0, 158, __pyx_L1_error)
       }
       __pyx_v_r = ((int)((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_26 * __pyx_v_arr.strides[0]) ) + __pyx_t_27 * __pyx_v_arr.strides[1]) ))) == (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_28 * __pyx_v_arr.strides[0]) ) + __pyx_t_29 * __pyx_v_arr.strides[1]) )))));
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":189
+      /* "latticeModelMashup/src/Cfuncs.pyx":159
  *             l = int(arr[a][b] == arr[(a + 1) % N][b])
  *             r = int(arr[a][b] == arr[(a - 1) % N][b])
  *             u = int(arr[a][b] == arr[a][(b + 1) % D])             # <<<<<<<<<<<<<<
@@ -6402,12 +5777,12 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_31 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 189, __pyx_L1_error)
+        __PYX_ERR(0, 159, __pyx_L1_error)
       }
       __pyx_t_23 = (__pyx_v_b + 1);
       if (unlikely(__pyx_v_D == 0)) {
         PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-        __PYX_ERR(0, 189, __pyx_L1_error)
+        __PYX_ERR(0, 159, __pyx_L1_error)
       }
       __pyx_t_32 = __pyx_v_a;
       __pyx_t_33 = __Pyx_mod_long(__pyx_t_23, __pyx_v_D);
@@ -6422,11 +5797,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_33 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 189, __pyx_L1_error)
+        __PYX_ERR(0, 159, __pyx_L1_error)
       }
       __pyx_v_u = ((int)((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_30 * __pyx_v_arr.strides[0]) ) + __pyx_t_31 * __pyx_v_arr.strides[1]) ))) == (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_32 * __pyx_v_arr.strides[0]) ) + __pyx_t_33 * __pyx_v_arr.strides[1]) )))));
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":190
+      /* "latticeModelMashup/src/Cfuncs.pyx":160
  *             r = int(arr[a][b] == arr[(a - 1) % N][b])
  *             u = int(arr[a][b] == arr[a][(b + 1) % D])
  *             d = int(arr[a][b] == arr[a][(b - 1) % D])             # <<<<<<<<<<<<<<
@@ -6446,12 +5821,12 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_35 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 190, __pyx_L1_error)
+        __PYX_ERR(0, 160, __pyx_L1_error)
       }
       __pyx_t_23 = (__pyx_v_b - 1);
       if (unlikely(__pyx_v_D == 0)) {
         PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-        __PYX_ERR(0, 190, __pyx_L1_error)
+        __PYX_ERR(0, 160, __pyx_L1_error)
       }
       __pyx_t_36 = __pyx_v_a;
       __pyx_t_37 = __Pyx_mod_long(__pyx_t_23, __pyx_v_D);
@@ -6466,11 +5841,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_37 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 190, __pyx_L1_error)
+        __PYX_ERR(0, 160, __pyx_L1_error)
       }
       __pyx_v_d = ((int)((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_34 * __pyx_v_arr.strides[0]) ) + __pyx_t_35 * __pyx_v_arr.strides[1]) ))) == (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_36 * __pyx_v_arr.strides[0]) ) + __pyx_t_37 * __pyx_v_arr.strides[1]) )))));
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":191
+      /* "latticeModelMashup/src/Cfuncs.pyx":161
  *             u = int(arr[a][b] == arr[a][(b + 1) % D])
  *             d = int(arr[a][b] == arr[a][(b - 1) % D])
  *             nb = l + u + d + r - 2             # <<<<<<<<<<<<<<
@@ -6479,7 +5854,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
  */
       __pyx_v_nb = ((((__pyx_v_l + __pyx_v_u) + __pyx_v_d) + __pyx_v_r) - 2);
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":186
+      /* "latticeModelMashup/src/Cfuncs.pyx":156
  *         a = rand() % N
  *         b = rand() % D
  *         if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:             # <<<<<<<<<<<<<<
@@ -6489,7 +5864,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       goto __pyx_L6;
     }
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":193
+    /* "latticeModelMashup/src/Cfuncs.pyx":163
  *             nb = l + u + d + r - 2
  *         else:
  *             l = int(arr[a][b] == arr[(a + 1)][b])             # <<<<<<<<<<<<<<
@@ -6510,7 +5885,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_39 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 193, __pyx_L1_error)
+        __PYX_ERR(0, 163, __pyx_L1_error)
       }
       __pyx_t_40 = (__pyx_v_a + 1);
       __pyx_t_41 = __pyx_v_b;
@@ -6525,11 +5900,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_41 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 193, __pyx_L1_error)
+        __PYX_ERR(0, 163, __pyx_L1_error)
       }
       __pyx_v_l = ((int)((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_38 * __pyx_v_arr.strides[0]) ) + __pyx_t_39 * __pyx_v_arr.strides[1]) ))) == (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_40 * __pyx_v_arr.strides[0]) ) + __pyx_t_41 * __pyx_v_arr.strides[1]) )))));
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":194
+      /* "latticeModelMashup/src/Cfuncs.pyx":164
  *         else:
  *             l = int(arr[a][b] == arr[(a + 1)][b])
  *             r = int(arr[a][b] == arr[(a - 1)][b])             # <<<<<<<<<<<<<<
@@ -6549,7 +5924,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_43 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 194, __pyx_L1_error)
+        __PYX_ERR(0, 164, __pyx_L1_error)
       }
       __pyx_t_44 = (__pyx_v_a - 1);
       __pyx_t_45 = __pyx_v_b;
@@ -6564,11 +5939,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_45 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 194, __pyx_L1_error)
+        __PYX_ERR(0, 164, __pyx_L1_error)
       }
       __pyx_v_r = ((int)((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_42 * __pyx_v_arr.strides[0]) ) + __pyx_t_43 * __pyx_v_arr.strides[1]) ))) == (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_44 * __pyx_v_arr.strides[0]) ) + __pyx_t_45 * __pyx_v_arr.strides[1]) )))));
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":195
+      /* "latticeModelMashup/src/Cfuncs.pyx":165
  *             l = int(arr[a][b] == arr[(a + 1)][b])
  *             r = int(arr[a][b] == arr[(a - 1)][b])
  *             u = int(arr[a][b] == arr[a][(b + 1)])             # <<<<<<<<<<<<<<
@@ -6588,7 +5963,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_47 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 195, __pyx_L1_error)
+        __PYX_ERR(0, 165, __pyx_L1_error)
       }
       __pyx_t_48 = __pyx_v_a;
       __pyx_t_49 = (__pyx_v_b + 1);
@@ -6603,11 +5978,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_49 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 195, __pyx_L1_error)
+        __PYX_ERR(0, 165, __pyx_L1_error)
       }
       __pyx_v_u = ((int)((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_46 * __pyx_v_arr.strides[0]) ) + __pyx_t_47 * __pyx_v_arr.strides[1]) ))) == (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_48 * __pyx_v_arr.strides[0]) ) + __pyx_t_49 * __pyx_v_arr.strides[1]) )))));
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":196
+      /* "latticeModelMashup/src/Cfuncs.pyx":166
  *             r = int(arr[a][b] == arr[(a - 1)][b])
  *             u = int(arr[a][b] == arr[a][(b + 1)])
  *             d = int(arr[a][b] == arr[a][(b - 1)])             # <<<<<<<<<<<<<<
@@ -6627,7 +6002,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_51 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 196, __pyx_L1_error)
+        __PYX_ERR(0, 166, __pyx_L1_error)
       }
       __pyx_t_52 = __pyx_v_a;
       __pyx_t_53 = (__pyx_v_b - 1);
@@ -6642,11 +6017,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_53 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 196, __pyx_L1_error)
+        __PYX_ERR(0, 166, __pyx_L1_error)
       }
       __pyx_v_d = ((int)((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_50 * __pyx_v_arr.strides[0]) ) + __pyx_t_51 * __pyx_v_arr.strides[1]) ))) == (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_52 * __pyx_v_arr.strides[0]) ) + __pyx_t_53 * __pyx_v_arr.strides[1]) )))));
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":197
+      /* "latticeModelMashup/src/Cfuncs.pyx":167
  *             u = int(arr[a][b] == arr[a][(b + 1)])
  *             d = int(arr[a][b] == arr[a][(b - 1)])
  *             nb = l + u + d + r - 2             # <<<<<<<<<<<<<<
@@ -6657,7 +6032,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
     }
     __pyx_L6:;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":198
+    /* "latticeModelMashup/src/Cfuncs.pyx":168
  *             d = int(arr[a][b] == arr[a][(b - 1)])
  *             nb = l + u + d + r - 2
  *         if nb <= 0 or (rand() / RAND_MAX) < cost[nb]:             # <<<<<<<<<<<<<<
@@ -6673,11 +6048,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
     __pyx_t_17 = rand();
     if (unlikely(RAND_MAX == 0)) {
       PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-      __PYX_ERR(0, 198, __pyx_L1_error)
+      __PYX_ERR(0, 168, __pyx_L1_error)
     }
     else if (sizeof(int) == sizeof(long) && (!(((int)-1) > 0)) && unlikely(RAND_MAX == (int)-1)  && unlikely(UNARY_NEG_WOULD_OVERFLOW(__pyx_t_17))) {
       PyErr_SetString(PyExc_OverflowError, "value too large to perform division");
-      __PYX_ERR(0, 198, __pyx_L1_error)
+      __PYX_ERR(0, 168, __pyx_L1_error)
     }
     __pyx_t_54 = __pyx_v_nb;
     __pyx_t_55 = -1;
@@ -6687,14 +6062,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
     } else if (unlikely(__pyx_t_54 >= __pyx_v_cost.shape[0])) __pyx_t_55 = 0;
     if (unlikely(__pyx_t_55 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_55);
-      __PYX_ERR(0, 198, __pyx_L1_error)
+      __PYX_ERR(0, 168, __pyx_L1_error)
     }
     __pyx_t_18 = ((__Pyx_div_int(__pyx_t_17, RAND_MAX) < (*((float *) ( /* dim=0 */ (__pyx_v_cost.data + __pyx_t_54 * __pyx_v_cost.strides[0]) )))) != 0);
     __pyx_t_1 = __pyx_t_18;
     __pyx_L12_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":199
+      /* "latticeModelMashup/src/Cfuncs.pyx":169
  *             nb = l + u + d + r - 2
  *         if nb <= 0 or (rand() / RAND_MAX) < cost[nb]:
  *             arr[a][b] = not arr[a][b]             # <<<<<<<<<<<<<<
@@ -6714,7 +6089,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_57 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 199, __pyx_L1_error)
+        __PYX_ERR(0, 169, __pyx_L1_error)
       }
       __pyx_t_58 = __pyx_v_a;
       __pyx_t_59 = __pyx_v_b;
@@ -6729,11 +6104,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
       } else if (unlikely(__pyx_t_59 >= __pyx_v_arr.shape[1])) __pyx_t_17 = 1;
       if (unlikely(__pyx_t_17 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_17);
-        __PYX_ERR(0, 199, __pyx_L1_error)
+        __PYX_ERR(0, 169, __pyx_L1_error)
       }
       *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_58 * __pyx_v_arr.strides[0]) ) + __pyx_t_59 * __pyx_v_arr.strides[1]) )) = (!((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_56 * __pyx_v_arr.strides[0]) ) + __pyx_t_57 * __pyx_v_arr.strides[1]) ))) != 0));
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":198
+      /* "latticeModelMashup/src/Cfuncs.pyx":168
  *             d = int(arr[a][b] == arr[a][(b - 1)])
  *             nb = l + u + d + r - 2
  *         if nb <= 0 or (rand() / RAND_MAX) < cost[nb]:             # <<<<<<<<<<<<<<
@@ -6743,7 +6118,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
     }
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":164
+  /* "latticeModelMashup/src/Cfuncs.pyx":134
  *             # array[x][y] = array[x][y] ^ (rand() % 2)
  * 
  * cpdef ising_process(int updates, float beta, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -6771,9 +6146,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(int __p
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_21ising_process(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_20ising_process[] = "\n    Performs ising updates on the array.\n\n    :param updates: (int) Number of updates to perform\n    :param beta:    (float) Inverse temperature (>1/8 --> pure noise)\n    :param dim:     (pointer) dimensions of array\n    :param array:   (2D pointer) array\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_21ising_process(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_17ising_process(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_16ising_process[] = "\n    Performs ising updates on the array.\n\n    :param updates: (int) Number of updates to perform\n    :param beta:    (float) Inverse temperature (>1/8 --> pure noise)\n    :param dim:     (pointer) dimensions of array\n    :param array:   (2D pointer) array\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_17ising_process(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_updates;
   float __pyx_v_beta;
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -6808,23 +6183,23 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_21ising_process(PyOb
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_beta)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("ising_process", 1, 4, 4, 1); __PYX_ERR(0, 164, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("ising_process", 1, 4, 4, 1); __PYX_ERR(0, 134, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("ising_process", 1, 4, 4, 2); __PYX_ERR(0, 164, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("ising_process", 1, 4, 4, 2); __PYX_ERR(0, 134, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("ising_process", 1, 4, 4, 3); __PYX_ERR(0, 164, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("ising_process", 1, 4, 4, 3); __PYX_ERR(0, 134, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "ising_process") < 0)) __PYX_ERR(0, 164, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "ising_process") < 0)) __PYX_ERR(0, 134, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -6834,35 +6209,35 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_21ising_process(PyOb
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_updates = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_updates == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 164, __pyx_L3_error)
-    __pyx_v_beta = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_beta == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 164, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 164, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 164, __pyx_L3_error)
+    __pyx_v_updates = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_updates == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 134, __pyx_L3_error)
+    __pyx_v_beta = __pyx_PyFloat_AsFloat(values[1]); if (unlikely((__pyx_v_beta == (float)-1) && PyErr_Occurred())) __PYX_ERR(0, 134, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 134, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 134, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("ising_process", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 164, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("ising_process", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 134, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.ising_process", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_20ising_process(__pyx_self, __pyx_v_updates, __pyx_v_beta, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_16ising_process(__pyx_self, __pyx_v_updates, __pyx_v_beta, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_20ising_process(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_updates, float __pyx_v_beta, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_16ising_process(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_updates, float __pyx_v_beta, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("ising_process", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 164, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 164, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(__pyx_v_updates, __pyx_v_beta, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 164, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 134, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 134, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_ising_process(__pyx_v_updates, __pyx_v_beta, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 134, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -6881,7 +6256,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_20ising_process(CYTH
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":203
+/* "latticeModelMashup/src/Cfuncs.pyx":173
  * #===================CONWAY=================
  * #TODO: make more atomic, so you can do more testing. Also add different version, likewise.
  * cpdef conway_process(int[:] rule, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -6889,7 +6264,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_20ising_process(CYTH
  *     Performs conway update on the array.
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_23conway_process(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_19conway_process(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_memviewslice __pyx_v_rule, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   __Pyx_memviewslice __pyx_v_l = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_r = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -6945,7 +6320,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
   Py_ssize_t __pyx_t_39;
   __Pyx_RefNannySetupContext("conway_process", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":212
+  /* "latticeModelMashup/src/Cfuncs.pyx":182
  *     :return:        None
  *     """
  *     if rule[0] == -1:             # <<<<<<<<<<<<<<
@@ -6960,12 +6335,12 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
   } else if (unlikely(__pyx_t_1 >= __pyx_v_rule.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 212, __pyx_L1_error)
+    __PYX_ERR(0, 182, __pyx_L1_error)
   }
   __pyx_t_3 = (((*((int *) ( /* dim=0 */ (__pyx_v_rule.data + __pyx_t_1 * __pyx_v_rule.strides[0]) ))) == -1L) != 0);
   if (__pyx_t_3) {
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":213
+    /* "latticeModelMashup/src/Cfuncs.pyx":183
  *     """
  *     if rule[0] == -1:
  *         return             # <<<<<<<<<<<<<<
@@ -6976,7 +6351,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":212
+    /* "latticeModelMashup/src/Cfuncs.pyx":182
  *     :return:        None
  *     """
  *     if rule[0] == -1:             # <<<<<<<<<<<<<<
@@ -6985,103 +6360,103 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
  */
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":215
+  /* "latticeModelMashup/src/Cfuncs.pyx":185
  *         return
  *     cdef int[:, :] l, r, u, d, ul, dl, ur, dr
  *     l = roll_columns(1, dim, arr)             # <<<<<<<<<<<<<<
  *     r = roll_columns(-1, dim, arr)
  *     u = roll_rows(1, dim, arr)
  */
-  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns(1, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns(1, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 185, __pyx_L1_error)
   __pyx_v_l = __pyx_t_4;
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":216
+  /* "latticeModelMashup/src/Cfuncs.pyx":186
  *     cdef int[:, :] l, r, u, d, ul, dl, ur, dr
  *     l = roll_columns(1, dim, arr)
  *     r = roll_columns(-1, dim, arr)             # <<<<<<<<<<<<<<
  *     u = roll_rows(1, dim, arr)
  *     d = roll_rows(-1, dim, arr)
  */
-  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns(-1, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 216, __pyx_L1_error)
+  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns(-1, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 186, __pyx_L1_error)
   __pyx_v_r = __pyx_t_4;
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":217
+  /* "latticeModelMashup/src/Cfuncs.pyx":187
  *     l = roll_columns(1, dim, arr)
  *     r = roll_columns(-1, dim, arr)
  *     u = roll_rows(1, dim, arr)             # <<<<<<<<<<<<<<
  *     d = roll_rows(-1, dim, arr)
  *     ul = roll_rows(1, dim, l)
  */
-  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(1, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 217, __pyx_L1_error)
+  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(1, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 187, __pyx_L1_error)
   __pyx_v_u = __pyx_t_4;
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":218
+  /* "latticeModelMashup/src/Cfuncs.pyx":188
  *     r = roll_columns(-1, dim, arr)
  *     u = roll_rows(1, dim, arr)
  *     d = roll_rows(-1, dim, arr)             # <<<<<<<<<<<<<<
  *     ul = roll_rows(1, dim, l)
  *     dl = roll_rows(-1, dim, l)
  */
-  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(-1, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 218, __pyx_L1_error)
+  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(-1, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 188, __pyx_L1_error)
   __pyx_v_d = __pyx_t_4;
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":219
+  /* "latticeModelMashup/src/Cfuncs.pyx":189
  *     u = roll_rows(1, dim, arr)
  *     d = roll_rows(-1, dim, arr)
  *     ul = roll_rows(1, dim, l)             # <<<<<<<<<<<<<<
  *     dl = roll_rows(-1, dim, l)
  *     ur = roll_rows(1, dim, r)
  */
-  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(1, __pyx_v_dim, __pyx_v_l, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(1, __pyx_v_dim, __pyx_v_l, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 189, __pyx_L1_error)
   __pyx_v_ul = __pyx_t_4;
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":220
+  /* "latticeModelMashup/src/Cfuncs.pyx":190
  *     d = roll_rows(-1, dim, arr)
  *     ul = roll_rows(1, dim, l)
  *     dl = roll_rows(-1, dim, l)             # <<<<<<<<<<<<<<
  *     ur = roll_rows(1, dim, r)
  *     dr = roll_rows(-1, dim, r)
  */
-  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(-1, __pyx_v_dim, __pyx_v_l, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 220, __pyx_L1_error)
+  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(-1, __pyx_v_dim, __pyx_v_l, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 190, __pyx_L1_error)
   __pyx_v_dl = __pyx_t_4;
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":221
+  /* "latticeModelMashup/src/Cfuncs.pyx":191
  *     ul = roll_rows(1, dim, l)
  *     dl = roll_rows(-1, dim, l)
  *     ur = roll_rows(1, dim, r)             # <<<<<<<<<<<<<<
  *     dr = roll_rows(-1, dim, r)
  *     cdef int NB
  */
-  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(1, __pyx_v_dim, __pyx_v_r, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 221, __pyx_L1_error)
+  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(1, __pyx_v_dim, __pyx_v_r, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 191, __pyx_L1_error)
   __pyx_v_ur = __pyx_t_4;
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":222
+  /* "latticeModelMashup/src/Cfuncs.pyx":192
  *     dl = roll_rows(-1, dim, l)
  *     ur = roll_rows(1, dim, r)
  *     dr = roll_rows(-1, dim, r)             # <<<<<<<<<<<<<<
  *     cdef int NB
  *     cdef Py_ssize_t i, j
  */
-  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(-1, __pyx_v_dim, __pyx_v_r, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 222, __pyx_L1_error)
+  __pyx_t_4 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(-1, __pyx_v_dim, __pyx_v_r, 0); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 192, __pyx_L1_error)
   __pyx_v_dr = __pyx_t_4;
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":225
+  /* "latticeModelMashup/src/Cfuncs.pyx":195
  *     cdef int NB
  *     cdef Py_ssize_t i, j
  *     for i in range(dim[0]):             # <<<<<<<<<<<<<<
@@ -7096,14 +6471,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
   } else if (unlikely(__pyx_t_5 >= __pyx_v_dim.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 225, __pyx_L1_error)
+    __PYX_ERR(0, 195, __pyx_L1_error)
   }
   __pyx_t_2 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_5 * __pyx_v_dim.strides[0]) )));
   __pyx_t_6 = __pyx_t_2;
   for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_6; __pyx_t_7+=1) {
     __pyx_v_i = __pyx_t_7;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":226
+    /* "latticeModelMashup/src/Cfuncs.pyx":196
  *     cdef Py_ssize_t i, j
  *     for i in range(dim[0]):
  *         for j in range(dim[1]):             # <<<<<<<<<<<<<<
@@ -7118,14 +6493,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
     } else if (unlikely(__pyx_t_8 >= __pyx_v_dim.shape[0])) __pyx_t_9 = 0;
     if (unlikely(__pyx_t_9 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_9);
-      __PYX_ERR(0, 226, __pyx_L1_error)
+      __PYX_ERR(0, 196, __pyx_L1_error)
     }
     __pyx_t_9 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_8 * __pyx_v_dim.strides[0]) )));
     __pyx_t_10 = __pyx_t_9;
     for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
       __pyx_v_j = __pyx_t_11;
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":227
+      /* "latticeModelMashup/src/Cfuncs.pyx":197
  *     for i in range(dim[0]):
  *         for j in range(dim[1]):
  *             NB = 0             # <<<<<<<<<<<<<<
@@ -7134,7 +6509,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
  */
       __pyx_v_NB = 0;
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":228
+      /* "latticeModelMashup/src/Cfuncs.pyx":198
  *         for j in range(dim[1]):
  *             NB = 0
  *             NB = l[i][j] + r[i][j] + u[i][j] + d[i][j] + ul[i][j] + ur[i][j]\             # <<<<<<<<<<<<<<
@@ -7154,7 +6529,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
       } else if (unlikely(__pyx_t_13 >= __pyx_v_l.shape[1])) __pyx_t_14 = 1;
       if (unlikely(__pyx_t_14 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_14);
-        __PYX_ERR(0, 228, __pyx_L1_error)
+        __PYX_ERR(0, 198, __pyx_L1_error)
       }
       __pyx_t_15 = __pyx_v_i;
       __pyx_t_16 = __pyx_v_j;
@@ -7169,7 +6544,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
       } else if (unlikely(__pyx_t_16 >= __pyx_v_r.shape[1])) __pyx_t_14 = 1;
       if (unlikely(__pyx_t_14 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_14);
-        __PYX_ERR(0, 228, __pyx_L1_error)
+        __PYX_ERR(0, 198, __pyx_L1_error)
       }
       __pyx_t_17 = __pyx_v_i;
       __pyx_t_18 = __pyx_v_j;
@@ -7184,7 +6559,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
       } else if (unlikely(__pyx_t_18 >= __pyx_v_u.shape[1])) __pyx_t_14 = 1;
       if (unlikely(__pyx_t_14 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_14);
-        __PYX_ERR(0, 228, __pyx_L1_error)
+        __PYX_ERR(0, 198, __pyx_L1_error)
       }
       __pyx_t_19 = __pyx_v_i;
       __pyx_t_20 = __pyx_v_j;
@@ -7199,7 +6574,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
       } else if (unlikely(__pyx_t_20 >= __pyx_v_d.shape[1])) __pyx_t_14 = 1;
       if (unlikely(__pyx_t_14 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_14);
-        __PYX_ERR(0, 228, __pyx_L1_error)
+        __PYX_ERR(0, 198, __pyx_L1_error)
       }
       __pyx_t_21 = __pyx_v_i;
       __pyx_t_22 = __pyx_v_j;
@@ -7214,7 +6589,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
       } else if (unlikely(__pyx_t_22 >= __pyx_v_ul.shape[1])) __pyx_t_14 = 1;
       if (unlikely(__pyx_t_14 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_14);
-        __PYX_ERR(0, 228, __pyx_L1_error)
+        __PYX_ERR(0, 198, __pyx_L1_error)
       }
       __pyx_t_23 = __pyx_v_i;
       __pyx_t_24 = __pyx_v_j;
@@ -7229,10 +6604,10 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
       } else if (unlikely(__pyx_t_24 >= __pyx_v_ur.shape[1])) __pyx_t_14 = 1;
       if (unlikely(__pyx_t_14 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_14);
-        __PYX_ERR(0, 228, __pyx_L1_error)
+        __PYX_ERR(0, 198, __pyx_L1_error)
       }
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":229
+      /* "latticeModelMashup/src/Cfuncs.pyx":199
  *             NB = 0
  *             NB = l[i][j] + r[i][j] + u[i][j] + d[i][j] + ul[i][j] + ur[i][j]\
  *                 + dl[i][j] + dr[i][j]             # <<<<<<<<<<<<<<
@@ -7252,7 +6627,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
       } else if (unlikely(__pyx_t_26 >= __pyx_v_dl.shape[1])) __pyx_t_14 = 1;
       if (unlikely(__pyx_t_14 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_14);
-        __PYX_ERR(0, 229, __pyx_L1_error)
+        __PYX_ERR(0, 199, __pyx_L1_error)
       }
       __pyx_t_27 = __pyx_v_i;
       __pyx_t_28 = __pyx_v_j;
@@ -7267,11 +6642,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
       } else if (unlikely(__pyx_t_28 >= __pyx_v_dr.shape[1])) __pyx_t_14 = 1;
       if (unlikely(__pyx_t_14 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_14);
-        __PYX_ERR(0, 229, __pyx_L1_error)
+        __PYX_ERR(0, 199, __pyx_L1_error)
       }
       __pyx_v_NB = ((((((((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_l.data + __pyx_t_12 * __pyx_v_l.strides[0]) ) + __pyx_t_13 * __pyx_v_l.strides[1]) ))) + (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_r.data + __pyx_t_15 * __pyx_v_r.strides[0]) ) + __pyx_t_16 * __pyx_v_r.strides[1]) )))) + (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_u.data + __pyx_t_17 * __pyx_v_u.strides[0]) ) + __pyx_t_18 * __pyx_v_u.strides[1]) )))) + (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_d.data + __pyx_t_19 * __pyx_v_d.strides[0]) ) + __pyx_t_20 * __pyx_v_d.strides[1]) )))) + (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_ul.data + __pyx_t_21 * __pyx_v_ul.strides[0]) ) + __pyx_t_22 * __pyx_v_ul.strides[1]) )))) + (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_ur.data + __pyx_t_23 * __pyx_v_ur.strides[0]) ) + __pyx_t_24 * __pyx_v_ur.strides[1]) )))) + (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_dl.data + __pyx_t_25 * __pyx_v_dl.strides[0]) ) + __pyx_t_26 * __pyx_v_dl.strides[1]) )))) + (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_dr.data + __pyx_t_27 * __pyx_v_dr.strides[0]) ) + __pyx_t_28 * __pyx_v_dr.strides[1]) ))));
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":230
+      /* "latticeModelMashup/src/Cfuncs.pyx":200
  *             NB = l[i][j] + r[i][j] + u[i][j] + d[i][j] + ul[i][j] + ur[i][j]\
  *                 + dl[i][j] + dr[i][j]
  *             if arr[i][j] is 1:             # <<<<<<<<<<<<<<
@@ -7291,12 +6666,12 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
       } else if (unlikely(__pyx_t_30 >= __pyx_v_arr.shape[1])) __pyx_t_14 = 1;
       if (unlikely(__pyx_t_14 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_14);
-        __PYX_ERR(0, 230, __pyx_L1_error)
+        __PYX_ERR(0, 200, __pyx_L1_error)
       }
       __pyx_t_3 = (((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_29 * __pyx_v_arr.strides[0]) ) + __pyx_t_30 * __pyx_v_arr.strides[1]) ))) == 1) != 0);
       if (__pyx_t_3) {
 
-        /* "latticeModelMashup/src/Cfuncs.pyx":231
+        /* "latticeModelMashup/src/Cfuncs.pyx":201
  *                 + dl[i][j] + dr[i][j]
  *             if arr[i][j] is 1:
  *                 if not rule[0] <= NB <= rule[1]:             # <<<<<<<<<<<<<<
@@ -7311,7 +6686,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
         } else if (unlikely(__pyx_t_31 >= __pyx_v_rule.shape[0])) __pyx_t_14 = 0;
         if (unlikely(__pyx_t_14 != -1)) {
           __Pyx_RaiseBufferIndexError(__pyx_t_14);
-          __PYX_ERR(0, 231, __pyx_L1_error)
+          __PYX_ERR(0, 201, __pyx_L1_error)
         }
         __pyx_t_3 = ((*((int *) ( /* dim=0 */ (__pyx_v_rule.data + __pyx_t_31 * __pyx_v_rule.strides[0]) ))) <= __pyx_v_NB);
         if (__pyx_t_3) {
@@ -7323,14 +6698,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
           } else if (unlikely(__pyx_t_32 >= __pyx_v_rule.shape[0])) __pyx_t_14 = 0;
           if (unlikely(__pyx_t_14 != -1)) {
             __Pyx_RaiseBufferIndexError(__pyx_t_14);
-            __PYX_ERR(0, 231, __pyx_L1_error)
+            __PYX_ERR(0, 201, __pyx_L1_error)
           }
           __pyx_t_3 = (__pyx_v_NB <= (*((int *) ( /* dim=0 */ (__pyx_v_rule.data + __pyx_t_32 * __pyx_v_rule.strides[0]) ))));
         }
         __pyx_t_33 = ((!(__pyx_t_3 != 0)) != 0);
         if (__pyx_t_33) {
 
-          /* "latticeModelMashup/src/Cfuncs.pyx":232
+          /* "latticeModelMashup/src/Cfuncs.pyx":202
  *             if arr[i][j] is 1:
  *                 if not rule[0] <= NB <= rule[1]:
  *                     arr[i][j] = 0             # <<<<<<<<<<<<<<
@@ -7350,11 +6725,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
           } else if (unlikely(__pyx_t_35 >= __pyx_v_arr.shape[1])) __pyx_t_14 = 1;
           if (unlikely(__pyx_t_14 != -1)) {
             __Pyx_RaiseBufferIndexError(__pyx_t_14);
-            __PYX_ERR(0, 232, __pyx_L1_error)
+            __PYX_ERR(0, 202, __pyx_L1_error)
           }
           *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_34 * __pyx_v_arr.strides[0]) ) + __pyx_t_35 * __pyx_v_arr.strides[1]) )) = 0;
 
-          /* "latticeModelMashup/src/Cfuncs.pyx":231
+          /* "latticeModelMashup/src/Cfuncs.pyx":201
  *                 + dl[i][j] + dr[i][j]
  *             if arr[i][j] is 1:
  *                 if not rule[0] <= NB <= rule[1]:             # <<<<<<<<<<<<<<
@@ -7363,7 +6738,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
  */
         }
 
-        /* "latticeModelMashup/src/Cfuncs.pyx":230
+        /* "latticeModelMashup/src/Cfuncs.pyx":200
  *             NB = l[i][j] + r[i][j] + u[i][j] + d[i][j] + ul[i][j] + ur[i][j]\
  *                 + dl[i][j] + dr[i][j]
  *             if arr[i][j] is 1:             # <<<<<<<<<<<<<<
@@ -7373,7 +6748,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
         goto __pyx_L8;
       }
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":234
+      /* "latticeModelMashup/src/Cfuncs.pyx":204
  *                     arr[i][j] = 0
  *             else:
  *                 if rule[2] <= NB <= rule[3]:             # <<<<<<<<<<<<<<
@@ -7389,7 +6764,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
         } else if (unlikely(__pyx_t_36 >= __pyx_v_rule.shape[0])) __pyx_t_14 = 0;
         if (unlikely(__pyx_t_14 != -1)) {
           __Pyx_RaiseBufferIndexError(__pyx_t_14);
-          __PYX_ERR(0, 234, __pyx_L1_error)
+          __PYX_ERR(0, 204, __pyx_L1_error)
         }
         __pyx_t_33 = ((*((int *) ( /* dim=0 */ (__pyx_v_rule.data + __pyx_t_36 * __pyx_v_rule.strides[0]) ))) <= __pyx_v_NB);
         if (__pyx_t_33) {
@@ -7401,14 +6776,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
           } else if (unlikely(__pyx_t_37 >= __pyx_v_rule.shape[0])) __pyx_t_14 = 0;
           if (unlikely(__pyx_t_14 != -1)) {
             __Pyx_RaiseBufferIndexError(__pyx_t_14);
-            __PYX_ERR(0, 234, __pyx_L1_error)
+            __PYX_ERR(0, 204, __pyx_L1_error)
           }
           __pyx_t_33 = (__pyx_v_NB <= (*((int *) ( /* dim=0 */ (__pyx_v_rule.data + __pyx_t_37 * __pyx_v_rule.strides[0]) ))));
         }
         __pyx_t_3 = (__pyx_t_33 != 0);
         if (__pyx_t_3) {
 
-          /* "latticeModelMashup/src/Cfuncs.pyx":235
+          /* "latticeModelMashup/src/Cfuncs.pyx":205
  *             else:
  *                 if rule[2] <= NB <= rule[3]:
  *                     arr[i][j] = 1             # <<<<<<<<<<<<<<
@@ -7428,11 +6803,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
           } else if (unlikely(__pyx_t_39 >= __pyx_v_arr.shape[1])) __pyx_t_14 = 1;
           if (unlikely(__pyx_t_14 != -1)) {
             __Pyx_RaiseBufferIndexError(__pyx_t_14);
-            __PYX_ERR(0, 235, __pyx_L1_error)
+            __PYX_ERR(0, 205, __pyx_L1_error)
           }
           *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_38 * __pyx_v_arr.strides[0]) ) + __pyx_t_39 * __pyx_v_arr.strides[1]) )) = 1;
 
-          /* "latticeModelMashup/src/Cfuncs.pyx":234
+          /* "latticeModelMashup/src/Cfuncs.pyx":204
  *                     arr[i][j] = 0
  *             else:
  *                 if rule[2] <= NB <= rule[3]:             # <<<<<<<<<<<<<<
@@ -7445,7 +6820,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
     }
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":203
+  /* "latticeModelMashup/src/Cfuncs.pyx":173
  * #===================CONWAY=================
  * #TODO: make more atomic, so you can do more testing. Also add different version, likewise.
  * cpdef conway_process(int[:] rule, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -7475,9 +6850,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__Pyx_
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_23conway_process(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_22conway_process[] = "\n    Performs conway update on the array.\n\n    :param rule:    (pointer) update rule for this frame\n    :param dim:     (pointer) dimensions of array\n    :param array:   (2D pointer) array\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_23conway_process(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_19conway_process(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_18conway_process[] = "\n    Performs conway update on the array.\n\n    :param rule:    (pointer) update rule for this frame\n    :param dim:     (pointer) dimensions of array\n    :param array:   (2D pointer) array\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_19conway_process(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_rule = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -7509,17 +6884,17 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_23conway_process(PyO
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("conway_process", 1, 3, 3, 1); __PYX_ERR(0, 203, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("conway_process", 1, 3, 3, 1); __PYX_ERR(0, 173, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("conway_process", 1, 3, 3, 2); __PYX_ERR(0, 203, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("conway_process", 1, 3, 3, 2); __PYX_ERR(0, 173, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "conway_process") < 0)) __PYX_ERR(0, 203, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "conway_process") < 0)) __PYX_ERR(0, 173, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -7528,35 +6903,35 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_23conway_process(PyO
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_rule = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_rule.memview)) __PYX_ERR(0, 203, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 203, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 203, __pyx_L3_error)
+    __pyx_v_rule = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_rule.memview)) __PYX_ERR(0, 173, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 173, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 173, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("conway_process", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 203, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("conway_process", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 173, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.conway_process", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_22conway_process(__pyx_self, __pyx_v_rule, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_18conway_process(__pyx_self, __pyx_v_rule, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_22conway_process(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_rule, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_18conway_process(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_rule, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("conway_process", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_rule.memview)) { __Pyx_RaiseUnboundLocalError("rule"); __PYX_ERR(0, 203, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 203, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 203, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__pyx_v_rule, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 203, __pyx_L1_error)
+  if (unlikely(!__pyx_v_rule.memview)) { __Pyx_RaiseUnboundLocalError("rule"); __PYX_ERR(0, 173, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 173, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 173, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_conway_process(__pyx_v_rule, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 173, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -7576,7 +6951,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_22conway_process(CYT
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":244
+/* "latticeModelMashup/src/Cfuncs.pyx":214
  * #can automaticaly apply this decorator in unit tests????
  * #@cython.boundscheck(False) saves you something like 3%
  * cpdef int[:, :] roll_columns(int pol, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -7584,7 +6959,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_22conway_process(CYT
  *     Rolls along the columns axis (1)
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_25roll_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_21roll_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns(int __pyx_v_pol, CYTHON_UNUSED __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   __Pyx_memviewslice __pyx_v_arrout = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_r = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -7602,19 +6977,19 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns
   __Pyx_memviewslice __pyx_t_11 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("roll_columns", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":253
+  /* "latticeModelMashup/src/Cfuncs.pyx":223
  *     :return:            (2D pointer) new arr
  *     """
  *     cdef int[:, :] arrout = np.empty_like(arr)             # <<<<<<<<<<<<<<
  *     if pol == -1:
  *         arrout[:, -1] = arr[:, 0]
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 253, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 223, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty_like); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 253, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty_like); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 223, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_arr, 2, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 253, __pyx_L1_error)
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_arr, 2, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 223, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -7629,16 +7004,16 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_4, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 253, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 223, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 253, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 223, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_arrout = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":254
+  /* "latticeModelMashup/src/Cfuncs.pyx":224
  *     """
  *     cdef int[:, :] arrout = np.empty_like(arr)
  *     if pol == -1:             # <<<<<<<<<<<<<<
@@ -7648,7 +7023,7 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns
   switch (__pyx_v_pol) {
     case -1L:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":255
+    /* "latticeModelMashup/src/Cfuncs.pyx":225
  *     cdef int[:, :] arrout = np.empty_like(arr)
  *     if pol == -1:
  *         arrout[:, -1] = arr[:, 0]             # <<<<<<<<<<<<<<
@@ -7671,7 +7046,7 @@ __pyx_t_6.strides[0] = __pyx_v_arr.strides[0];
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 1)");
-            __PYX_ERR(0, 255, __pyx_L1_error)
+            __PYX_ERR(0, 225, __pyx_L1_error)
         }
         __pyx_t_6.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -7692,12 +7067,12 @@ __pyx_t_7.strides[0] = __pyx_v_arrout.strides[0];
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 1)");
-            __PYX_ERR(0, 255, __pyx_L1_error)
+            __PYX_ERR(0, 225, __pyx_L1_error)
         }
         __pyx_t_7.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_6, __pyx_t_7, 1, 1, 0) < 0)) __PYX_ERR(0, 255, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_6, __pyx_t_7, 1, 1, 0) < 0)) __PYX_ERR(0, 225, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
     __pyx_t_7.memview = NULL;
     __pyx_t_7.data = NULL;
@@ -7705,7 +7080,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_6, __pyx_t_7, 1, 1, 0) < 0))
     __pyx_t_6.memview = NULL;
     __pyx_t_6.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":256
+    /* "latticeModelMashup/src/Cfuncs.pyx":226
  *     if pol == -1:
  *         arrout[:, -1] = arr[:, 0]
  *         arrout[:, :-1] = arr[:, 1:]             # <<<<<<<<<<<<<<
@@ -7734,7 +7109,7 @@ __pyx_t_8 = -1;
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 256, __pyx_L1_error)
+    __PYX_ERR(0, 226, __pyx_L1_error)
 }
 
 __pyx_t_9.data = __pyx_v_arrout.data;
@@ -7759,10 +7134,10 @@ __pyx_t_8 = -1;
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 256, __pyx_L1_error)
+    __PYX_ERR(0, 226, __pyx_L1_error)
 }
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_9, 2, 2, 0) < 0)) __PYX_ERR(0, 256, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_9, 2, 2, 0) < 0)) __PYX_ERR(0, 226, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
     __pyx_t_9.memview = NULL;
     __pyx_t_9.data = NULL;
@@ -7770,7 +7145,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_9, 2, 2, 0) < 0))
     __pyx_t_5.memview = NULL;
     __pyx_t_5.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":254
+    /* "latticeModelMashup/src/Cfuncs.pyx":224
  *     """
  *     cdef int[:, :] arrout = np.empty_like(arr)
  *     if pol == -1:             # <<<<<<<<<<<<<<
@@ -7780,7 +7155,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_9, 2, 2, 0) < 0))
     break;
     case 1:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":258
+    /* "latticeModelMashup/src/Cfuncs.pyx":228
  *         arrout[:, :-1] = arr[:, 1:]
  *     elif pol == 1:
  *         arrout[:, 0] = arr[:, -1]             # <<<<<<<<<<<<<<
@@ -7803,7 +7178,7 @@ __pyx_t_6.strides[0] = __pyx_v_arr.strides[0];
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 1)");
-            __PYX_ERR(0, 258, __pyx_L1_error)
+            __PYX_ERR(0, 228, __pyx_L1_error)
         }
         __pyx_t_6.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -7824,12 +7199,12 @@ __pyx_t_10.strides[0] = __pyx_v_arrout.strides[0];
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 1)");
-            __PYX_ERR(0, 258, __pyx_L1_error)
+            __PYX_ERR(0, 228, __pyx_L1_error)
         }
         __pyx_t_10.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_6, __pyx_t_10, 1, 1, 0) < 0)) __PYX_ERR(0, 258, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_6, __pyx_t_10, 1, 1, 0) < 0)) __PYX_ERR(0, 228, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
     __pyx_t_10.memview = NULL;
     __pyx_t_10.data = NULL;
@@ -7837,7 +7212,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_6, __pyx_t_10, 1, 1, 0) < 0)
     __pyx_t_6.memview = NULL;
     __pyx_t_6.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":259
+    /* "latticeModelMashup/src/Cfuncs.pyx":229
  *     elif pol == 1:
  *         arrout[:, 0] = arr[:, -1]
  *         arrout[:, 1:] = arr[:, :-1]             # <<<<<<<<<<<<<<
@@ -7866,7 +7241,7 @@ __pyx_t_8 = -1;
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 259, __pyx_L1_error)
+    __PYX_ERR(0, 229, __pyx_L1_error)
 }
 
 __pyx_t_11.data = __pyx_v_arrout.data;
@@ -7891,10 +7266,10 @@ __pyx_t_8 = -1;
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 259, __pyx_L1_error)
+    __PYX_ERR(0, 229, __pyx_L1_error)
 }
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_11, 2, 2, 0) < 0)) __PYX_ERR(0, 259, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_11, 2, 2, 0) < 0)) __PYX_ERR(0, 229, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_11, 1);
     __pyx_t_11.memview = NULL;
     __pyx_t_11.data = NULL;
@@ -7902,7 +7277,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_11, 2, 2, 0) < 0)
     __pyx_t_5.memview = NULL;
     __pyx_t_5.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":257
+    /* "latticeModelMashup/src/Cfuncs.pyx":227
  *         arrout[:, -1] = arr[:, 0]
  *         arrout[:, :-1] = arr[:, 1:]
  *     elif pol == 1:             # <<<<<<<<<<<<<<
@@ -7913,7 +7288,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_11, 2, 2, 0) < 0)
     default: break;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":260
+  /* "latticeModelMashup/src/Cfuncs.pyx":230
  *         arrout[:, 0] = arr[:, -1]
  *         arrout[:, 1:] = arr[:, :-1]
  *     return arrout             # <<<<<<<<<<<<<<
@@ -7924,7 +7299,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_11, 2, 2, 0) < 0)
   __pyx_r = __pyx_v_arrout;
   goto __pyx_L0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":244
+  /* "latticeModelMashup/src/Cfuncs.pyx":214
  * #can automaticaly apply this decorator in unit tests????
  * #@cython.boundscheck(False) saves you something like 3%
  * cpdef int[:, :] roll_columns(int pol, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -7959,9 +7334,9 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_11, 2, 2, 0) < 0)
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_25roll_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_24roll_columns[] = "\n    Rolls along the columns axis (1)\n\n    :param pol:         (int) polarity of roll\n    :param dim:         (pointer) dimensions of arr\n    :param arr:       (2D pointer) arr\n    :return:            (2D pointer) new arr\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_25roll_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_21roll_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_20roll_columns[] = "\n    Rolls along the columns axis (1)\n\n    :param pol:         (int) polarity of roll\n    :param dim:         (pointer) dimensions of arr\n    :param arr:       (2D pointer) arr\n    :return:            (2D pointer) new arr\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_21roll_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_pol;
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -7993,17 +7368,17 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_25roll_columns(PyObj
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("roll_columns", 1, 3, 3, 1); __PYX_ERR(0, 244, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("roll_columns", 1, 3, 3, 1); __PYX_ERR(0, 214, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("roll_columns", 1, 3, 3, 2); __PYX_ERR(0, 244, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("roll_columns", 1, 3, 3, 2); __PYX_ERR(0, 214, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "roll_columns") < 0)) __PYX_ERR(0, 244, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "roll_columns") < 0)) __PYX_ERR(0, 214, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -8012,36 +7387,36 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_25roll_columns(PyObj
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_pol = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_pol == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 244, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 244, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 244, __pyx_L3_error)
+    __pyx_v_pol = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_pol == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 214, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 214, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 214, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("roll_columns", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 244, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("roll_columns", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 214, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.roll_columns", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_24roll_columns(__pyx_self, __pyx_v_pol, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_20roll_columns(__pyx_self, __pyx_v_pol, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_24roll_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_20roll_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("roll_columns", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 244, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 244, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns(__pyx_v_pol, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 244, __pyx_L1_error)
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 2, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 244, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 214, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 214, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns(__pyx_v_pol, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 2, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 214, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
   __pyx_t_1.memview = NULL;
@@ -8064,7 +7439,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_24roll_columns(CYTHO
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":262
+/* "latticeModelMashup/src/Cfuncs.pyx":232
  *     return arrout
  * 
  * cpdef int[:, :] roll_rows(int pol, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -8072,7 +7447,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_24roll_columns(CYTHO
  *     Rolls along the rows axis (0)
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_27roll_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_23roll_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(int __pyx_v_pol, CYTHON_UNUSED __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   __Pyx_memviewslice __pyx_v_arrout = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_r = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -8090,19 +7465,19 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(in
   __Pyx_memviewslice __pyx_t_11 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("roll_rows", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":271
+  /* "latticeModelMashup/src/Cfuncs.pyx":241
  *     :return:            (2D pointer) new arr
  *     """
  *     cdef int[:, :] arrout = np.empty_like(arr)             # <<<<<<<<<<<<<<
  *     if pol == -1:
  *         arrout[-1, :] = arr[0, :]
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty_like); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty_like); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_arr, 2, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_arr, 2, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -8117,16 +7492,16 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(in
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_4, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 271, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 241, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_arrout = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":272
+  /* "latticeModelMashup/src/Cfuncs.pyx":242
  *     """
  *     cdef int[:, :] arrout = np.empty_like(arr)
  *     if pol == -1:             # <<<<<<<<<<<<<<
@@ -8136,7 +7511,7 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(in
   switch (__pyx_v_pol) {
     case -1L:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":273
+    /* "latticeModelMashup/src/Cfuncs.pyx":243
  *     cdef int[:, :] arrout = np.empty_like(arr)
  *     if pol == -1:
  *         arrout[-1, :] = arr[0, :]             # <<<<<<<<<<<<<<
@@ -8155,7 +7530,7 @@ static __Pyx_memviewslice __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(in
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 273, __pyx_L1_error)
+            __PYX_ERR(0, 243, __pyx_L1_error)
         }
         __pyx_t_6.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -8176,7 +7551,7 @@ __pyx_t_7.data = __pyx_v_arrout.data;
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 273, __pyx_L1_error)
+            __PYX_ERR(0, 243, __pyx_L1_error)
         }
         __pyx_t_7.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -8185,7 +7560,7 @@ __pyx_t_7.shape[0] = __pyx_v_arrout.shape[1];
 __pyx_t_7.strides[0] = __pyx_v_arrout.strides[1];
     __pyx_t_7.suboffsets[0] = -1;
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_6, __pyx_t_7, 1, 1, 0) < 0)) __PYX_ERR(0, 273, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_6, __pyx_t_7, 1, 1, 0) < 0)) __PYX_ERR(0, 243, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
     __pyx_t_7.memview = NULL;
     __pyx_t_7.data = NULL;
@@ -8193,7 +7568,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_6, __pyx_t_7, 1, 1, 0) < 0))
     __pyx_t_6.memview = NULL;
     __pyx_t_6.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":274
+    /* "latticeModelMashup/src/Cfuncs.pyx":244
  *     if pol == -1:
  *         arrout[-1, :] = arr[0, :]
  *         arrout[:-1, :] = arr[1:, :]             # <<<<<<<<<<<<<<
@@ -8218,7 +7593,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_6, __pyx_t_7, 1, 1, 0) < 0))
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 274, __pyx_L1_error)
+    __PYX_ERR(0, 244, __pyx_L1_error)
 }
 
 __pyx_t_5.shape[1] = __pyx_v_arr.shape[1];
@@ -8243,14 +7618,14 @@ __pyx_t_9.data = __pyx_v_arrout.data;
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 274, __pyx_L1_error)
+    __PYX_ERR(0, 244, __pyx_L1_error)
 }
 
 __pyx_t_9.shape[1] = __pyx_v_arrout.shape[1];
 __pyx_t_9.strides[1] = __pyx_v_arrout.strides[1];
     __pyx_t_9.suboffsets[1] = -1;
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_9, 2, 2, 0) < 0)) __PYX_ERR(0, 274, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_9, 2, 2, 0) < 0)) __PYX_ERR(0, 244, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
     __pyx_t_9.memview = NULL;
     __pyx_t_9.data = NULL;
@@ -8258,7 +7633,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_9, 2, 2, 0) < 0))
     __pyx_t_5.memview = NULL;
     __pyx_t_5.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":272
+    /* "latticeModelMashup/src/Cfuncs.pyx":242
  *     """
  *     cdef int[:, :] arrout = np.empty_like(arr)
  *     if pol == -1:             # <<<<<<<<<<<<<<
@@ -8268,7 +7643,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_9, 2, 2, 0) < 0))
     break;
     case 1:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":276
+    /* "latticeModelMashup/src/Cfuncs.pyx":246
  *         arrout[:-1, :] = arr[1:, :]
  *     elif pol == 1:
  *         arrout[0, :] = arr[-1, :]             # <<<<<<<<<<<<<<
@@ -8287,7 +7662,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_9, 2, 2, 0) < 0))
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 276, __pyx_L1_error)
+            __PYX_ERR(0, 246, __pyx_L1_error)
         }
         __pyx_t_6.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -8308,7 +7683,7 @@ __pyx_t_10.data = __pyx_v_arrout.data;
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 276, __pyx_L1_error)
+            __PYX_ERR(0, 246, __pyx_L1_error)
         }
         __pyx_t_10.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -8317,7 +7692,7 @@ __pyx_t_10.shape[0] = __pyx_v_arrout.shape[1];
 __pyx_t_10.strides[0] = __pyx_v_arrout.strides[1];
     __pyx_t_10.suboffsets[0] = -1;
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_6, __pyx_t_10, 1, 1, 0) < 0)) __PYX_ERR(0, 276, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_6, __pyx_t_10, 1, 1, 0) < 0)) __PYX_ERR(0, 246, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
     __pyx_t_10.memview = NULL;
     __pyx_t_10.data = NULL;
@@ -8325,7 +7700,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_6, __pyx_t_10, 1, 1, 0) < 0)
     __pyx_t_6.memview = NULL;
     __pyx_t_6.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":277
+    /* "latticeModelMashup/src/Cfuncs.pyx":247
  *     elif pol == 1:
  *         arrout[0, :] = arr[-1, :]
  *         arrout[1:, :] = arr[:-1, :]             # <<<<<<<<<<<<<<
@@ -8350,7 +7725,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_6, __pyx_t_10, 1, 1, 0) < 0)
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 277, __pyx_L1_error)
+    __PYX_ERR(0, 247, __pyx_L1_error)
 }
 
 __pyx_t_5.shape[1] = __pyx_v_arr.shape[1];
@@ -8375,14 +7750,14 @@ __pyx_t_11.data = __pyx_v_arrout.data;
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 277, __pyx_L1_error)
+    __PYX_ERR(0, 247, __pyx_L1_error)
 }
 
 __pyx_t_11.shape[1] = __pyx_v_arrout.shape[1];
 __pyx_t_11.strides[1] = __pyx_v_arrout.strides[1];
     __pyx_t_11.suboffsets[1] = -1;
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_11, 2, 2, 0) < 0)) __PYX_ERR(0, 277, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_11, 2, 2, 0) < 0)) __PYX_ERR(0, 247, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_11, 1);
     __pyx_t_11.memview = NULL;
     __pyx_t_11.data = NULL;
@@ -8390,7 +7765,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_11, 2, 2, 0) < 0)
     __pyx_t_5.memview = NULL;
     __pyx_t_5.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":275
+    /* "latticeModelMashup/src/Cfuncs.pyx":245
  *         arrout[-1, :] = arr[0, :]
  *         arrout[:-1, :] = arr[1:, :]
  *     elif pol == 1:             # <<<<<<<<<<<<<<
@@ -8401,7 +7776,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_11, 2, 2, 0) < 0)
     default: break;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":278
+  /* "latticeModelMashup/src/Cfuncs.pyx":248
  *         arrout[0, :] = arr[-1, :]
  *         arrout[1:, :] = arr[:-1, :]
  *     return arrout             # <<<<<<<<<<<<<<
@@ -8412,7 +7787,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_11, 2, 2, 0) < 0)
   __pyx_r = __pyx_v_arrout;
   goto __pyx_L0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":262
+  /* "latticeModelMashup/src/Cfuncs.pyx":232
  *     return arrout
  * 
  * cpdef int[:, :] roll_rows(int pol, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -8447,9 +7822,9 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_5, __pyx_t_11, 2, 2, 0) < 0)
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_27roll_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_26roll_rows[] = "\n    Rolls along the rows axis (0)\n\n    :param pol:         (int) polarity of roll\n    :param dim:         (pointer) dimensions of arr\n    :param arr:       (2D pointer) arr\n    :return:            (2D pointer) new arr\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_27roll_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_23roll_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_22roll_rows[] = "\n    Rolls along the rows axis (0)\n\n    :param pol:         (int) polarity of roll\n    :param dim:         (pointer) dimensions of arr\n    :param arr:       (2D pointer) arr\n    :return:            (2D pointer) new arr\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_23roll_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_pol;
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -8481,17 +7856,17 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_27roll_rows(PyObject
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("roll_rows", 1, 3, 3, 1); __PYX_ERR(0, 262, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("roll_rows", 1, 3, 3, 1); __PYX_ERR(0, 232, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("roll_rows", 1, 3, 3, 2); __PYX_ERR(0, 262, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("roll_rows", 1, 3, 3, 2); __PYX_ERR(0, 232, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "roll_rows") < 0)) __PYX_ERR(0, 262, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "roll_rows") < 0)) __PYX_ERR(0, 232, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -8500,36 +7875,36 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_27roll_rows(PyObject
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_pol = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_pol == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 262, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 262, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 262, __pyx_L3_error)
+    __pyx_v_pol = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_pol == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 232, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 232, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 232, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("roll_rows", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 262, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("roll_rows", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 232, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.roll_rows", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_26roll_rows(__pyx_self, __pyx_v_pol, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_22roll_rows(__pyx_self, __pyx_v_pol, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_26roll_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_22roll_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("roll_rows", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 262, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 262, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(__pyx_v_pol, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 262, __pyx_L1_error)
-  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 2, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 262, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 232, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 232, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows(__pyx_v_pol, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 232, __pyx_L1_error)
+  __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 2, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 232, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
   __pyx_t_1.memview = NULL;
@@ -8552,7 +7927,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_26roll_rows(CYTHON_U
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":280
+/* "latticeModelMashup/src/Cfuncs.pyx":250
  *     return arrout
  * 
  * cpdef roll_columns_pointer(int pol, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -8560,7 +7935,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_26roll_rows(CYTHON_U
  *     Rolls along the columns axis (1)
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_29roll_columns_pointer(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_25roll_columns_pointer(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   int __pyx_v_temp;
   Py_ssize_t __pyx_v_i;
@@ -8597,7 +7972,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
   Py_ssize_t __pyx_t_28;
   __Pyx_RefNannySetupContext("roll_columns_pointer", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":291
+  /* "latticeModelMashup/src/Cfuncs.pyx":261
  *     cdef int temp
  *     cdef Py_ssize_t i, j
  *     if pol == -1:             # <<<<<<<<<<<<<<
@@ -8607,7 +7982,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
   switch (__pyx_v_pol) {
     case -1L:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":292
+    /* "latticeModelMashup/src/Cfuncs.pyx":262
  *     cdef Py_ssize_t i, j
  *     if pol == -1:
  *         for i in range(dim[0]):             # <<<<<<<<<<<<<<
@@ -8622,14 +7997,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
     } else if (unlikely(__pyx_t_1 >= __pyx_v_dim.shape[0])) __pyx_t_2 = 0;
     if (unlikely(__pyx_t_2 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_2);
-      __PYX_ERR(0, 292, __pyx_L1_error)
+      __PYX_ERR(0, 262, __pyx_L1_error)
     }
     __pyx_t_2 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_1 * __pyx_v_dim.strides[0]) )));
     __pyx_t_3 = __pyx_t_2;
     for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
       __pyx_v_i = __pyx_t_4;
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":293
+      /* "latticeModelMashup/src/Cfuncs.pyx":263
  *     if pol == -1:
  *         for i in range(dim[0]):
  *             temp = arr[i][0]             # <<<<<<<<<<<<<<
@@ -8649,11 +8024,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
       } else if (unlikely(__pyx_t_6 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
       if (unlikely(__pyx_t_7 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_7);
-        __PYX_ERR(0, 293, __pyx_L1_error)
+        __PYX_ERR(0, 263, __pyx_L1_error)
       }
       __pyx_v_temp = (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_5 * __pyx_v_arr.strides[0]) ) + __pyx_t_6 * __pyx_v_arr.strides[1]) )));
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":294
+      /* "latticeModelMashup/src/Cfuncs.pyx":264
  *         for i in range(dim[0]):
  *             temp = arr[i][0]
  *             for j in range(dim[1]-1):             # <<<<<<<<<<<<<<
@@ -8668,14 +8043,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
       } else if (unlikely(__pyx_t_8 >= __pyx_v_dim.shape[0])) __pyx_t_7 = 0;
       if (unlikely(__pyx_t_7 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_7);
-        __PYX_ERR(0, 294, __pyx_L1_error)
+        __PYX_ERR(0, 264, __pyx_L1_error)
       }
       __pyx_t_9 = ((*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_8 * __pyx_v_dim.strides[0]) ))) - 1);
       __pyx_t_10 = __pyx_t_9;
       for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
         __pyx_v_j = __pyx_t_11;
 
-        /* "latticeModelMashup/src/Cfuncs.pyx":295
+        /* "latticeModelMashup/src/Cfuncs.pyx":265
  *             temp = arr[i][0]
  *             for j in range(dim[1]-1):
  *                 arr[i][j] = arr[i][j+1]             # <<<<<<<<<<<<<<
@@ -8695,7 +8070,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
         } else if (unlikely(__pyx_t_13 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
         if (unlikely(__pyx_t_7 != -1)) {
           __Pyx_RaiseBufferIndexError(__pyx_t_7);
-          __PYX_ERR(0, 295, __pyx_L1_error)
+          __PYX_ERR(0, 265, __pyx_L1_error)
         }
         __pyx_t_14 = __pyx_v_i;
         __pyx_t_15 = __pyx_v_j;
@@ -8710,12 +8085,12 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
         } else if (unlikely(__pyx_t_15 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
         if (unlikely(__pyx_t_7 != -1)) {
           __Pyx_RaiseBufferIndexError(__pyx_t_7);
-          __PYX_ERR(0, 295, __pyx_L1_error)
+          __PYX_ERR(0, 265, __pyx_L1_error)
         }
         *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_14 * __pyx_v_arr.strides[0]) ) + __pyx_t_15 * __pyx_v_arr.strides[1]) )) = (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_12 * __pyx_v_arr.strides[0]) ) + __pyx_t_13 * __pyx_v_arr.strides[1]) )));
       }
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":296
+      /* "latticeModelMashup/src/Cfuncs.pyx":266
  *             for j in range(dim[1]-1):
  *                 arr[i][j] = arr[i][j+1]
  *             arr[i][dim[1] - 1] = temp             # <<<<<<<<<<<<<<
@@ -8730,7 +8105,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
       } else if (unlikely(__pyx_t_16 >= __pyx_v_dim.shape[0])) __pyx_t_7 = 0;
       if (unlikely(__pyx_t_7 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_7);
-        __PYX_ERR(0, 296, __pyx_L1_error)
+        __PYX_ERR(0, 266, __pyx_L1_error)
       }
       __pyx_t_17 = __pyx_v_i;
       __pyx_t_18 = ((*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_16 * __pyx_v_dim.strides[0]) ))) - 1);
@@ -8745,12 +8120,12 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
       } else if (unlikely(__pyx_t_18 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
       if (unlikely(__pyx_t_7 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_7);
-        __PYX_ERR(0, 296, __pyx_L1_error)
+        __PYX_ERR(0, 266, __pyx_L1_error)
       }
       *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_17 * __pyx_v_arr.strides[0]) ) + __pyx_t_18 * __pyx_v_arr.strides[1]) )) = __pyx_v_temp;
     }
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":291
+    /* "latticeModelMashup/src/Cfuncs.pyx":261
  *     cdef int temp
  *     cdef Py_ssize_t i, j
  *     if pol == -1:             # <<<<<<<<<<<<<<
@@ -8760,7 +8135,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
     break;
     case 1:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":298
+    /* "latticeModelMashup/src/Cfuncs.pyx":268
  *             arr[i][dim[1] - 1] = temp
  *     elif pol == 1:
  *         for i in range(dim[0]):             # <<<<<<<<<<<<<<
@@ -8775,14 +8150,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
     } else if (unlikely(__pyx_t_19 >= __pyx_v_dim.shape[0])) __pyx_t_2 = 0;
     if (unlikely(__pyx_t_2 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_2);
-      __PYX_ERR(0, 298, __pyx_L1_error)
+      __PYX_ERR(0, 268, __pyx_L1_error)
     }
     __pyx_t_2 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_19 * __pyx_v_dim.strides[0]) )));
     __pyx_t_3 = __pyx_t_2;
     for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
       __pyx_v_i = __pyx_t_4;
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":299
+      /* "latticeModelMashup/src/Cfuncs.pyx":269
  *     elif pol == 1:
  *         for i in range(dim[0]):
  *             temp = arr[i][-1]             # <<<<<<<<<<<<<<
@@ -8802,11 +8177,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
       } else if (unlikely(__pyx_t_21 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
       if (unlikely(__pyx_t_7 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_7);
-        __PYX_ERR(0, 299, __pyx_L1_error)
+        __PYX_ERR(0, 269, __pyx_L1_error)
       }
       __pyx_v_temp = (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_20 * __pyx_v_arr.strides[0]) ) + __pyx_t_21 * __pyx_v_arr.strides[1]) )));
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":300
+      /* "latticeModelMashup/src/Cfuncs.pyx":270
  *         for i in range(dim[0]):
  *             temp = arr[i][-1]
  *             for j in range(dim[1]-1):             # <<<<<<<<<<<<<<
@@ -8821,14 +8196,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
       } else if (unlikely(__pyx_t_22 >= __pyx_v_dim.shape[0])) __pyx_t_7 = 0;
       if (unlikely(__pyx_t_7 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_7);
-        __PYX_ERR(0, 300, __pyx_L1_error)
+        __PYX_ERR(0, 270, __pyx_L1_error)
       }
       __pyx_t_9 = ((*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_22 * __pyx_v_dim.strides[0]) ))) - 1);
       __pyx_t_10 = __pyx_t_9;
       for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
         __pyx_v_j = __pyx_t_11;
 
-        /* "latticeModelMashup/src/Cfuncs.pyx":301
+        /* "latticeModelMashup/src/Cfuncs.pyx":271
  *             temp = arr[i][-1]
  *             for j in range(dim[1]-1):
  *                 arr[i][-1-j] = arr[i][-1-j-1]             # <<<<<<<<<<<<<<
@@ -8848,7 +8223,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
         } else if (unlikely(__pyx_t_24 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
         if (unlikely(__pyx_t_7 != -1)) {
           __Pyx_RaiseBufferIndexError(__pyx_t_7);
-          __PYX_ERR(0, 301, __pyx_L1_error)
+          __PYX_ERR(0, 271, __pyx_L1_error)
         }
         __pyx_t_25 = __pyx_v_i;
         __pyx_t_26 = (-1L - __pyx_v_j);
@@ -8863,12 +8238,12 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
         } else if (unlikely(__pyx_t_26 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
         if (unlikely(__pyx_t_7 != -1)) {
           __Pyx_RaiseBufferIndexError(__pyx_t_7);
-          __PYX_ERR(0, 301, __pyx_L1_error)
+          __PYX_ERR(0, 271, __pyx_L1_error)
         }
         *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_25 * __pyx_v_arr.strides[0]) ) + __pyx_t_26 * __pyx_v_arr.strides[1]) )) = (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_23 * __pyx_v_arr.strides[0]) ) + __pyx_t_24 * __pyx_v_arr.strides[1]) )));
       }
 
-      /* "latticeModelMashup/src/Cfuncs.pyx":302
+      /* "latticeModelMashup/src/Cfuncs.pyx":272
  *             for j in range(dim[1]-1):
  *                 arr[i][-1-j] = arr[i][-1-j-1]
  *             arr[i][0] = temp             # <<<<<<<<<<<<<<
@@ -8888,12 +8263,12 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
       } else if (unlikely(__pyx_t_28 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
       if (unlikely(__pyx_t_7 != -1)) {
         __Pyx_RaiseBufferIndexError(__pyx_t_7);
-        __PYX_ERR(0, 302, __pyx_L1_error)
+        __PYX_ERR(0, 272, __pyx_L1_error)
       }
       *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_27 * __pyx_v_arr.strides[0]) ) + __pyx_t_28 * __pyx_v_arr.strides[1]) )) = __pyx_v_temp;
     }
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":297
+    /* "latticeModelMashup/src/Cfuncs.pyx":267
  *                 arr[i][j] = arr[i][j+1]
  *             arr[i][dim[1] - 1] = temp
  *     elif pol == 1:             # <<<<<<<<<<<<<<
@@ -8904,7 +8279,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
     default: break;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":280
+  /* "latticeModelMashup/src/Cfuncs.pyx":250
  *     return arrout
  * 
  * cpdef roll_columns_pointer(int pol, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -8925,9 +8300,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_29roll_columns_pointer(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_28roll_columns_pointer[] = "\n    Rolls along the columns axis (1)\n\n    :param pol:         (int) polarity of roll\n    :param dim:         (pointer) dimensions of arr\n    :param arr:       (2D pointer) arr\n    :return:            None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_29roll_columns_pointer(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_25roll_columns_pointer(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_24roll_columns_pointer[] = "\n    Rolls along the columns axis (1)\n\n    :param pol:         (int) polarity of roll\n    :param dim:         (pointer) dimensions of arr\n    :param arr:       (2D pointer) arr\n    :return:            None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_25roll_columns_pointer(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_pol;
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -8959,17 +8334,17 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_29roll_columns_point
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("roll_columns_pointer", 1, 3, 3, 1); __PYX_ERR(0, 280, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("roll_columns_pointer", 1, 3, 3, 1); __PYX_ERR(0, 250, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("roll_columns_pointer", 1, 3, 3, 2); __PYX_ERR(0, 280, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("roll_columns_pointer", 1, 3, 3, 2); __PYX_ERR(0, 250, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "roll_columns_pointer") < 0)) __PYX_ERR(0, 280, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "roll_columns_pointer") < 0)) __PYX_ERR(0, 250, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -8978,34 +8353,34 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_29roll_columns_point
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_pol = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_pol == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 280, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 280, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 280, __pyx_L3_error)
+    __pyx_v_pol = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_pol == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 250, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 250, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 250, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("roll_columns_pointer", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 280, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("roll_columns_pointer", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 250, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.roll_columns_pointer", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_28roll_columns_pointer(__pyx_self, __pyx_v_pol, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_24roll_columns_pointer(__pyx_self, __pyx_v_pol, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_28roll_columns_pointer(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_24roll_columns_pointer(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("roll_columns_pointer", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 280, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 280, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(__pyx_v_pol, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 280, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 250, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 250, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_columns_pointer(__pyx_v_pol, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 250, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -9024,7 +8399,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_28roll_columns_point
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":304
+/* "latticeModelMashup/src/Cfuncs.pyx":274
  *             arr[i][0] = temp
  * 
  * cpdef roll_rows_pointer(int pol, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -9032,7 +8407,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_28roll_columns_point
  *     Rolls along the rows axis (0)
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_31roll_rows_pointer(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_27roll_rows_pointer(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows_pointer(int __pyx_v_pol, CYTHON_UNUSED __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   __Pyx_memviewslice __pyx_v_temp_v = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_r = NULL;
@@ -9047,7 +8422,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows_pointer(int
   __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("roll_rows_pointer", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":315
+  /* "latticeModelMashup/src/Cfuncs.pyx":285
  *     cdef int[:] temp_v
  *     cdef Py_ssize_t i, j
  *     if pol == -1:             # <<<<<<<<<<<<<<
@@ -9057,7 +8432,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows_pointer(int
   switch (__pyx_v_pol) {
     case -1L:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":316
+    /* "latticeModelMashup/src/Cfuncs.pyx":286
  *     cdef Py_ssize_t i, j
  *     if pol == -1:
  *         temp_v = array.array('i', arr[0, :])             # <<<<<<<<<<<<<<
@@ -9076,7 +8451,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows_pointer(int
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 316, __pyx_L1_error)
+            __PYX_ERR(0, 286, __pyx_L1_error)
         }
         __pyx_t_1.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -9085,12 +8460,12 @@ __pyx_t_1.shape[0] = __pyx_v_arr.shape[1];
 __pyx_t_1.strides[0] = __pyx_v_arr.strides[1];
     __pyx_t_1.suboffsets[0] = -1;
 
-__pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 316, __pyx_L1_error)
+__pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 286, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
     __pyx_t_1.memview = NULL;
     __pyx_t_1.data = NULL;
-    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 316, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 286, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_INCREF(__pyx_n_s_i);
     __Pyx_GIVEREF(__pyx_n_s_i);
@@ -9098,16 +8473,16 @@ __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 1, (PyObject *(*)(char *)) __p
     __Pyx_GIVEREF(__pyx_t_2);
     PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_2);
     __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 316, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 286, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_1 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 316, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 286, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_temp_v = __pyx_t_1;
     __pyx_t_1.memview = NULL;
     __pyx_t_1.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":317
+    /* "latticeModelMashup/src/Cfuncs.pyx":287
  *     if pol == -1:
  *         temp_v = array.array('i', arr[0, :])
  *         arr[:-1, :] = arr[1:, :]             # <<<<<<<<<<<<<<
@@ -9132,7 +8507,7 @@ __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_1, 1, (PyObject *(*)(char *)) __p
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 317, __pyx_L1_error)
+    __PYX_ERR(0, 287, __pyx_L1_error)
 }
 
 __pyx_t_4.shape[1] = __pyx_v_arr.shape[1];
@@ -9157,14 +8532,14 @@ __pyx_t_6.data = __pyx_v_arr.data;
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 317, __pyx_L1_error)
+    __PYX_ERR(0, 287, __pyx_L1_error)
 }
 
 __pyx_t_6.shape[1] = __pyx_v_arr.shape[1];
 __pyx_t_6.strides[1] = __pyx_v_arr.strides[1];
     __pyx_t_6.suboffsets[1] = -1;
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_4, __pyx_t_6, 2, 2, 0) < 0)) __PYX_ERR(0, 317, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_4, __pyx_t_6, 2, 2, 0) < 0)) __PYX_ERR(0, 287, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
     __pyx_t_6.memview = NULL;
     __pyx_t_6.data = NULL;
@@ -9172,7 +8547,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_4, __pyx_t_6, 2, 2, 0) < 0))
     __pyx_t_4.memview = NULL;
     __pyx_t_4.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":318
+    /* "latticeModelMashup/src/Cfuncs.pyx":288
  *         temp_v = array.array('i', arr[0, :])
  *         arr[:-1, :] = arr[1:, :]
  *         arr[-1, :] = temp_v             # <<<<<<<<<<<<<<
@@ -9191,7 +8566,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_4, __pyx_t_6, 2, 2, 0) < 0))
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 318, __pyx_L1_error)
+            __PYX_ERR(0, 288, __pyx_L1_error)
         }
         __pyx_t_1.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -9200,12 +8575,12 @@ __pyx_t_1.shape[0] = __pyx_v_arr.shape[1];
 __pyx_t_1.strides[0] = __pyx_v_arr.strides[1];
     __pyx_t_1.suboffsets[0] = -1;
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_temp_v, __pyx_t_1, 1, 1, 0) < 0)) __PYX_ERR(0, 318, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_temp_v, __pyx_t_1, 1, 1, 0) < 0)) __PYX_ERR(0, 288, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
     __pyx_t_1.memview = NULL;
     __pyx_t_1.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":315
+    /* "latticeModelMashup/src/Cfuncs.pyx":285
  *     cdef int[:] temp_v
  *     cdef Py_ssize_t i, j
  *     if pol == -1:             # <<<<<<<<<<<<<<
@@ -9215,7 +8590,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_temp_v, __pyx_t_1, 1, 1, 0) 
     break;
     case 1:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":320
+    /* "latticeModelMashup/src/Cfuncs.pyx":290
  *         arr[-1, :] = temp_v
  *     elif pol == 1:
  *         temp_v = array.array('i', arr[-1, :])             # <<<<<<<<<<<<<<
@@ -9234,7 +8609,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_temp_v, __pyx_t_1, 1, 1, 0) 
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 320, __pyx_L1_error)
+            __PYX_ERR(0, 290, __pyx_L1_error)
         }
         __pyx_t_7.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -9243,12 +8618,12 @@ __pyx_t_7.shape[0] = __pyx_v_arr.shape[1];
 __pyx_t_7.strides[0] = __pyx_v_arr.strides[1];
     __pyx_t_7.suboffsets[0] = -1;
 
-__pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_7, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 320, __pyx_L1_error)
+__pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_7, 1, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 290, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
     __pyx_t_7.memview = NULL;
     __pyx_t_7.data = NULL;
-    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 320, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 290, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_INCREF(__pyx_n_s_i);
     __Pyx_GIVEREF(__pyx_n_s_i);
@@ -9256,16 +8631,16 @@ __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_7, 1, (PyObject *(*)(char *)) __p
     __Pyx_GIVEREF(__pyx_t_2);
     PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_2);
     __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 320, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 290, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 320, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_2, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 290, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_temp_v = __pyx_t_7;
     __pyx_t_7.memview = NULL;
     __pyx_t_7.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":321
+    /* "latticeModelMashup/src/Cfuncs.pyx":291
  *     elif pol == 1:
  *         temp_v = array.array('i', arr[-1, :])
  *         arr[1:, :] = arr[:-1, :]             # <<<<<<<<<<<<<<
@@ -9290,7 +8665,7 @@ __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_t_7, 1, (PyObject *(*)(char *)) __p
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 321, __pyx_L1_error)
+    __PYX_ERR(0, 291, __pyx_L1_error)
 }
 
 __pyx_t_4.shape[1] = __pyx_v_arr.shape[1];
@@ -9315,14 +8690,14 @@ __pyx_t_8.data = __pyx_v_arr.data;
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 321, __pyx_L1_error)
+    __PYX_ERR(0, 291, __pyx_L1_error)
 }
 
 __pyx_t_8.shape[1] = __pyx_v_arr.shape[1];
 __pyx_t_8.strides[1] = __pyx_v_arr.strides[1];
     __pyx_t_8.suboffsets[1] = -1;
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_4, __pyx_t_8, 2, 2, 0) < 0)) __PYX_ERR(0, 321, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_4, __pyx_t_8, 2, 2, 0) < 0)) __PYX_ERR(0, 291, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
     __pyx_t_8.memview = NULL;
     __pyx_t_8.data = NULL;
@@ -9330,7 +8705,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_4, __pyx_t_8, 2, 2, 0) < 0))
     __pyx_t_4.memview = NULL;
     __pyx_t_4.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":322
+    /* "latticeModelMashup/src/Cfuncs.pyx":292
  *         temp_v = array.array('i', arr[-1, :])
  *         arr[1:, :] = arr[:-1, :]
  *         arr[0, :] = temp_v             # <<<<<<<<<<<<<<
@@ -9349,7 +8724,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_4, __pyx_t_8, 2, 2, 0) < 0))
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 322, __pyx_L1_error)
+            __PYX_ERR(0, 292, __pyx_L1_error)
         }
         __pyx_t_7.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -9358,12 +8733,12 @@ __pyx_t_7.shape[0] = __pyx_v_arr.shape[1];
 __pyx_t_7.strides[0] = __pyx_v_arr.strides[1];
     __pyx_t_7.suboffsets[0] = -1;
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_temp_v, __pyx_t_7, 1, 1, 0) < 0)) __PYX_ERR(0, 322, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_temp_v, __pyx_t_7, 1, 1, 0) < 0)) __PYX_ERR(0, 292, __pyx_L1_error)
     __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
     __pyx_t_7.memview = NULL;
     __pyx_t_7.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":319
+    /* "latticeModelMashup/src/Cfuncs.pyx":289
  *         arr[:-1, :] = arr[1:, :]
  *         arr[-1, :] = temp_v
  *     elif pol == 1:             # <<<<<<<<<<<<<<
@@ -9374,7 +8749,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_temp_v, __pyx_t_7, 1, 1, 0) 
     default: break;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":304
+  /* "latticeModelMashup/src/Cfuncs.pyx":274
  *             arr[i][0] = temp
  * 
  * cpdef roll_rows_pointer(int pol, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -9403,9 +8778,9 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_temp_v, __pyx_t_7, 1, 1, 0) 
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_31roll_rows_pointer(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_30roll_rows_pointer[] = "\n    Rolls along the rows axis (0)\n\n    :param pol:         (int) polarity of roll\n    :param dim:         (pointer) dimensions of arr\n    :param arr:       (2D pointer) arr\n    :return:            None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_31roll_rows_pointer(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_27roll_rows_pointer(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_26roll_rows_pointer[] = "\n    Rolls along the rows axis (0)\n\n    :param pol:         (int) polarity of roll\n    :param dim:         (pointer) dimensions of arr\n    :param arr:       (2D pointer) arr\n    :return:            None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_27roll_rows_pointer(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_pol;
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -9437,17 +8812,17 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_31roll_rows_pointer(
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("roll_rows_pointer", 1, 3, 3, 1); __PYX_ERR(0, 304, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("roll_rows_pointer", 1, 3, 3, 1); __PYX_ERR(0, 274, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("roll_rows_pointer", 1, 3, 3, 2); __PYX_ERR(0, 304, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("roll_rows_pointer", 1, 3, 3, 2); __PYX_ERR(0, 274, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "roll_rows_pointer") < 0)) __PYX_ERR(0, 304, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "roll_rows_pointer") < 0)) __PYX_ERR(0, 274, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -9456,34 +8831,34 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_31roll_rows_pointer(
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_pol = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_pol == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 304, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 304, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 304, __pyx_L3_error)
+    __pyx_v_pol = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_pol == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 274, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 274, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 274, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("roll_rows_pointer", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 304, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("roll_rows_pointer", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 274, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.roll_rows_pointer", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_30roll_rows_pointer(__pyx_self, __pyx_v_pol, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_26roll_rows_pointer(__pyx_self, __pyx_v_pol, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_30roll_rows_pointer(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_26roll_rows_pointer(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_pol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("roll_rows_pointer", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 304, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 304, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows_pointer(__pyx_v_pol, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 304, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 274, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 274, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_roll_rows_pointer(__pyx_v_pol, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 274, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -9502,7 +8877,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_30roll_rows_pointer(
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":327
+/* "latticeModelMashup/src/Cfuncs.pyx":297
  * #TODO: these can be made way more performant. Auto speedtests plox.
  * #TODO: fix the sum so it doesnt double count corners
  * cpdef sum_rim(int num, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -9510,7 +8885,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_30roll_rows_pointer(
  *     Sums the cells on the edge.
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_33sum_rim(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_29sum_rim(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_sum_rim(int __pyx_v_num, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   PyObject *__pyx_v_tot = NULL;
   Py_ssize_t __pyx_v_i;
@@ -9535,7 +8910,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_sum_rim(int __pyx_v_n
   Py_ssize_t __pyx_t_16;
   __Pyx_RefNannySetupContext("sum_rim", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":336
+  /* "latticeModelMashup/src/Cfuncs.pyx":306
  *     :return:        (int) total
  *     """
  *     tot = 0             # <<<<<<<<<<<<<<
@@ -9545,7 +8920,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_sum_rim(int __pyx_v_n
   __Pyx_INCREF(__pyx_int_0);
   __pyx_v_tot = __pyx_int_0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":338
+  /* "latticeModelMashup/src/Cfuncs.pyx":308
  *     tot = 0
  *     cdef Py_ssize_t i, j
  *     for i in range(dim[0]):             # <<<<<<<<<<<<<<
@@ -9560,14 +8935,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_sum_rim(int __pyx_v_n
   } else if (unlikely(__pyx_t_1 >= __pyx_v_dim.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 338, __pyx_L1_error)
+    __PYX_ERR(0, 308, __pyx_L1_error)
   }
   __pyx_t_2 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_1 * __pyx_v_dim.strides[0]) )));
   __pyx_t_3 = __pyx_t_2;
   for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
     __pyx_v_i = __pyx_t_4;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":339
+    /* "latticeModelMashup/src/Cfuncs.pyx":309
  *     cdef Py_ssize_t i, j
  *     for i in range(dim[0]):
  *         tot += arr[i][0 + num]             # <<<<<<<<<<<<<<
@@ -9587,17 +8962,17 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_sum_rim(int __pyx_v_n
     } else if (unlikely(__pyx_t_6 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
     if (unlikely(__pyx_t_7 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_7);
-      __PYX_ERR(0, 339, __pyx_L1_error)
+      __PYX_ERR(0, 309, __pyx_L1_error)
     }
-    __pyx_t_8 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_5 * __pyx_v_arr.strides[0]) ) + __pyx_t_6 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 339, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_5 * __pyx_v_arr.strides[0]) ) + __pyx_t_6 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 309, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_9 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 339, __pyx_L1_error)
+    __pyx_t_9 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 309, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF_SET(__pyx_v_tot, __pyx_t_9);
     __pyx_t_9 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":340
+    /* "latticeModelMashup/src/Cfuncs.pyx":310
  *     for i in range(dim[0]):
  *         tot += arr[i][0 + num]
  *         tot += arr[i][-1 - num]             # <<<<<<<<<<<<<<
@@ -9617,18 +8992,18 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_sum_rim(int __pyx_v_n
     } else if (unlikely(__pyx_t_11 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
     if (unlikely(__pyx_t_7 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_7);
-      __PYX_ERR(0, 340, __pyx_L1_error)
+      __PYX_ERR(0, 310, __pyx_L1_error)
     }
-    __pyx_t_9 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_10 * __pyx_v_arr.strides[0]) ) + __pyx_t_11 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_10 * __pyx_v_arr.strides[0]) ) + __pyx_t_11 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 310, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_8 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __pyx_t_8 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 310, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_DECREF_SET(__pyx_v_tot, __pyx_t_8);
     __pyx_t_8 = 0;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":341
+  /* "latticeModelMashup/src/Cfuncs.pyx":311
  *         tot += arr[i][0 + num]
  *         tot += arr[i][-1 - num]
  *     for j in range(dim[1]):             # <<<<<<<<<<<<<<
@@ -9643,14 +9018,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_sum_rim(int __pyx_v_n
   } else if (unlikely(__pyx_t_12 >= __pyx_v_dim.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 341, __pyx_L1_error)
+    __PYX_ERR(0, 311, __pyx_L1_error)
   }
   __pyx_t_2 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_12 * __pyx_v_dim.strides[0]) )));
   __pyx_t_3 = __pyx_t_2;
   for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
     __pyx_v_j = __pyx_t_4;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":342
+    /* "latticeModelMashup/src/Cfuncs.pyx":312
  *         tot += arr[i][-1 - num]
  *     for j in range(dim[1]):
  *         tot += arr[0 + num][j]             # <<<<<<<<<<<<<<
@@ -9670,17 +9045,17 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_sum_rim(int __pyx_v_n
     } else if (unlikely(__pyx_t_14 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
     if (unlikely(__pyx_t_7 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_7);
-      __PYX_ERR(0, 342, __pyx_L1_error)
+      __PYX_ERR(0, 312, __pyx_L1_error)
     }
-    __pyx_t_8 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_13 * __pyx_v_arr.strides[0]) ) + __pyx_t_14 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 342, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_13 * __pyx_v_arr.strides[0]) ) + __pyx_t_14 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 312, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_9 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 342, __pyx_L1_error)
+    __pyx_t_9 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 312, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF_SET(__pyx_v_tot, __pyx_t_9);
     __pyx_t_9 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":343
+    /* "latticeModelMashup/src/Cfuncs.pyx":313
  *     for j in range(dim[1]):
  *         tot += arr[0 + num][j]
  *         tot += arr[-1 - num][j]             # <<<<<<<<<<<<<<
@@ -9700,18 +9075,18 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_sum_rim(int __pyx_v_n
     } else if (unlikely(__pyx_t_16 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
     if (unlikely(__pyx_t_7 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_7);
-      __PYX_ERR(0, 343, __pyx_L1_error)
+      __PYX_ERR(0, 313, __pyx_L1_error)
     }
-    __pyx_t_9 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_15 * __pyx_v_arr.strides[0]) ) + __pyx_t_16 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 343, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_15 * __pyx_v_arr.strides[0]) ) + __pyx_t_16 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 313, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_8 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 343, __pyx_L1_error)
+    __pyx_t_8 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 313, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_DECREF_SET(__pyx_v_tot, __pyx_t_8);
     __pyx_t_8 = 0;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":344
+  /* "latticeModelMashup/src/Cfuncs.pyx":314
  *         tot += arr[0 + num][j]
  *         tot += arr[-1 - num][j]
  *     return tot             # <<<<<<<<<<<<<<
@@ -9723,7 +9098,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_sum_rim(int __pyx_v_n
   __pyx_r = __pyx_v_tot;
   goto __pyx_L0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":327
+  /* "latticeModelMashup/src/Cfuncs.pyx":297
  * #TODO: these can be made way more performant. Auto speedtests plox.
  * #TODO: fix the sum so it doesnt double count corners
  * cpdef sum_rim(int num, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -9745,9 +9120,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_sum_rim(int __pyx_v_n
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_33sum_rim(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_32sum_rim[] = "\n    Sums the cells on the edge.\n\n    :param num:     (int) distance from edge\n    :param dim:     (pointer) arr dimensions\n    :param arr:     (2D pointer) arr\n    :return:        (int) total\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_33sum_rim(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_29sum_rim(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_28sum_rim[] = "\n    Sums the cells on the edge.\n\n    :param num:     (int) distance from edge\n    :param dim:     (pointer) arr dimensions\n    :param arr:     (2D pointer) arr\n    :return:        (int) total\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_29sum_rim(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_num;
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -9779,17 +9154,17 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_33sum_rim(PyObject *
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("sum_rim", 1, 3, 3, 1); __PYX_ERR(0, 327, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("sum_rim", 1, 3, 3, 1); __PYX_ERR(0, 297, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("sum_rim", 1, 3, 3, 2); __PYX_ERR(0, 327, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("sum_rim", 1, 3, 3, 2); __PYX_ERR(0, 297, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "sum_rim") < 0)) __PYX_ERR(0, 327, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "sum_rim") < 0)) __PYX_ERR(0, 297, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -9798,34 +9173,34 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_33sum_rim(PyObject *
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 327, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 327, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 327, __pyx_L3_error)
+    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 297, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 297, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 297, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("sum_rim", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 327, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("sum_rim", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 297, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.sum_rim", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_32sum_rim(__pyx_self, __pyx_v_num, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_28sum_rim(__pyx_self, __pyx_v_num, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_32sum_rim(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_28sum_rim(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("sum_rim", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 327, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 327, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_sum_rim(__pyx_v_num, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 327, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 297, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 297, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_sum_rim(__pyx_v_num, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 297, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -9844,7 +9219,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_32sum_rim(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":346
+/* "latticeModelMashup/src/Cfuncs.pyx":316
  *     return tot
  * 
  * cpdef check_rim(int num, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -9852,7 +9227,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_32sum_rim(CYTHON_UNU
  *     Checks there are cells on the edge.
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_35check_rim(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_31check_rim(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(int __pyx_v_num, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   PyObject *__pyx_v_tot = NULL;
   Py_ssize_t __pyx_v_i;
@@ -9879,7 +9254,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(int __pyx_v
   Py_ssize_t __pyx_t_18;
   __Pyx_RefNannySetupContext("check_rim", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":355
+  /* "latticeModelMashup/src/Cfuncs.pyx":325
  *     :return:        (int) total
  *     """
  *     tot = 0             # <<<<<<<<<<<<<<
@@ -9889,7 +9264,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(int __pyx_v
   __Pyx_INCREF(__pyx_int_0);
   __pyx_v_tot = __pyx_int_0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":357
+  /* "latticeModelMashup/src/Cfuncs.pyx":327
  *     tot = 0
  *     cdef Py_ssize_t i, j
  *     for i in range(dim[0]):             # <<<<<<<<<<<<<<
@@ -9904,14 +9279,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(int __pyx_v
   } else if (unlikely(__pyx_t_1 >= __pyx_v_dim.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 357, __pyx_L1_error)
+    __PYX_ERR(0, 327, __pyx_L1_error)
   }
   __pyx_t_2 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_1 * __pyx_v_dim.strides[0]) )));
   __pyx_t_3 = __pyx_t_2;
   for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
     __pyx_v_i = __pyx_t_4;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":358
+    /* "latticeModelMashup/src/Cfuncs.pyx":328
  *     cdef Py_ssize_t i, j
  *     for i in range(dim[0]):
  *         tot += arr[i][0 + num]             # <<<<<<<<<<<<<<
@@ -9931,17 +9306,17 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(int __pyx_v
     } else if (unlikely(__pyx_t_6 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
     if (unlikely(__pyx_t_7 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_7);
-      __PYX_ERR(0, 358, __pyx_L1_error)
+      __PYX_ERR(0, 328, __pyx_L1_error)
     }
-    __pyx_t_8 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_5 * __pyx_v_arr.strides[0]) ) + __pyx_t_6 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 358, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_5 * __pyx_v_arr.strides[0]) ) + __pyx_t_6 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 328, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_9 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 358, __pyx_L1_error)
+    __pyx_t_9 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 328, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF_SET(__pyx_v_tot, __pyx_t_9);
     __pyx_t_9 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":359
+    /* "latticeModelMashup/src/Cfuncs.pyx":329
  *     for i in range(dim[0]):
  *         tot += arr[i][0 + num]
  *         tot += arr[i][-1 - num]             # <<<<<<<<<<<<<<
@@ -9961,17 +9336,17 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(int __pyx_v
     } else if (unlikely(__pyx_t_11 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
     if (unlikely(__pyx_t_7 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_7);
-      __PYX_ERR(0, 359, __pyx_L1_error)
+      __PYX_ERR(0, 329, __pyx_L1_error)
     }
-    __pyx_t_9 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_10 * __pyx_v_arr.strides[0]) ) + __pyx_t_11 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 359, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_10 * __pyx_v_arr.strides[0]) ) + __pyx_t_11 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 329, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_8 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 359, __pyx_L1_error)
+    __pyx_t_8 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 329, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_DECREF_SET(__pyx_v_tot, __pyx_t_8);
     __pyx_t_8 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":360
+    /* "latticeModelMashup/src/Cfuncs.pyx":330
  *         tot += arr[i][0 + num]
  *         tot += arr[i][-1 - num]
  *         if tot is not 0: return True             # <<<<<<<<<<<<<<
@@ -9988,7 +9363,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(int __pyx_v
     }
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":361
+  /* "latticeModelMashup/src/Cfuncs.pyx":331
  *         tot += arr[i][-1 - num]
  *         if tot is not 0: return True
  *     for j in range(dim[1]):             # <<<<<<<<<<<<<<
@@ -10003,14 +9378,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(int __pyx_v
   } else if (unlikely(__pyx_t_14 >= __pyx_v_dim.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 361, __pyx_L1_error)
+    __PYX_ERR(0, 331, __pyx_L1_error)
   }
   __pyx_t_2 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_14 * __pyx_v_dim.strides[0]) )));
   __pyx_t_3 = __pyx_t_2;
   for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
     __pyx_v_j = __pyx_t_4;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":362
+    /* "latticeModelMashup/src/Cfuncs.pyx":332
  *         if tot is not 0: return True
  *     for j in range(dim[1]):
  *         tot += arr[0 + num][j]             # <<<<<<<<<<<<<<
@@ -10030,17 +9405,17 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(int __pyx_v
     } else if (unlikely(__pyx_t_16 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
     if (unlikely(__pyx_t_7 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_7);
-      __PYX_ERR(0, 362, __pyx_L1_error)
+      __PYX_ERR(0, 332, __pyx_L1_error)
     }
-    __pyx_t_8 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_15 * __pyx_v_arr.strides[0]) ) + __pyx_t_16 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 362, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_15 * __pyx_v_arr.strides[0]) ) + __pyx_t_16 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 332, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_9 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 362, __pyx_L1_error)
+    __pyx_t_9 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 332, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF_SET(__pyx_v_tot, __pyx_t_9);
     __pyx_t_9 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":363
+    /* "latticeModelMashup/src/Cfuncs.pyx":333
  *     for j in range(dim[1]):
  *         tot += arr[0 + num][j]
  *         tot += arr[-1 - num][j]             # <<<<<<<<<<<<<<
@@ -10060,17 +9435,17 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(int __pyx_v
     } else if (unlikely(__pyx_t_18 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
     if (unlikely(__pyx_t_7 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_7);
-      __PYX_ERR(0, 363, __pyx_L1_error)
+      __PYX_ERR(0, 333, __pyx_L1_error)
     }
-    __pyx_t_9 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_17 * __pyx_v_arr.strides[0]) ) + __pyx_t_18 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 363, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_From_int((*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_17 * __pyx_v_arr.strides[0]) ) + __pyx_t_18 * __pyx_v_arr.strides[1]) )))); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 333, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_8 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 363, __pyx_L1_error)
+    __pyx_t_8 = PyNumber_InPlaceAdd(__pyx_v_tot, __pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 333, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_DECREF_SET(__pyx_v_tot, __pyx_t_8);
     __pyx_t_8 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":364
+    /* "latticeModelMashup/src/Cfuncs.pyx":334
  *         tot += arr[0 + num][j]
  *         tot += arr[-1 - num][j]
  *         if tot is not 0: return True             # <<<<<<<<<<<<<<
@@ -10087,7 +9462,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(int __pyx_v
     }
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":365
+  /* "latticeModelMashup/src/Cfuncs.pyx":335
  *         tot += arr[-1 - num][j]
  *         if tot is not 0: return True
  *     return False             # <<<<<<<<<<<<<<
@@ -10099,7 +9474,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(int __pyx_v
   __pyx_r = Py_False;
   goto __pyx_L0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":346
+  /* "latticeModelMashup/src/Cfuncs.pyx":316
  *     return tot
  * 
  * cpdef check_rim(int num, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -10121,9 +9496,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(int __pyx_v
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_35check_rim(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_34check_rim[] = "\n    Checks there are cells on the edge.\n\n    :param num:     (int) distance from edge\n    :param dim:     (pointer) arr dimensions\n    :param arr:     (2D pointer) arr\n    :return:        (int) total\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_35check_rim(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_31check_rim(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_30check_rim[] = "\n    Checks there are cells on the edge.\n\n    :param num:     (int) distance from edge\n    :param dim:     (pointer) arr dimensions\n    :param arr:     (2D pointer) arr\n    :return:        (int) total\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_31check_rim(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_num;
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -10155,17 +9530,17 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_35check_rim(PyObject
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("check_rim", 1, 3, 3, 1); __PYX_ERR(0, 346, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("check_rim", 1, 3, 3, 1); __PYX_ERR(0, 316, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("check_rim", 1, 3, 3, 2); __PYX_ERR(0, 346, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("check_rim", 1, 3, 3, 2); __PYX_ERR(0, 316, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "check_rim") < 0)) __PYX_ERR(0, 346, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "check_rim") < 0)) __PYX_ERR(0, 316, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -10174,34 +9549,34 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_35check_rim(PyObject
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 346, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 346, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 346, __pyx_L3_error)
+    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 316, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 316, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 316, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("check_rim", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 346, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("check_rim", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 316, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.check_rim", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_34check_rim(__pyx_self, __pyx_v_num, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_30check_rim(__pyx_self, __pyx_v_num, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_34check_rim(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_30check_rim(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("check_rim", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 346, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 346, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(__pyx_v_num, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 346, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 316, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 316, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_check_rim(__pyx_v_num, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 316, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -10220,7 +9595,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_34check_rim(CYTHON_U
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":370
+/* "latticeModelMashup/src/Cfuncs.pyx":340
  * #=========Array editing=============
  * #TODO: allow for multiple bars
  * cpdef scroll_bars(             # <<<<<<<<<<<<<<
@@ -10228,7 +9603,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_34check_rim(CYTHON_U
  *     int[:] horizontal = array.array('i', [0, 1, 1, 1]),
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_37scroll_bars(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_33scroll_bars(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch, struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_scroll_bars *__pyx_optional_args) {
   __Pyx_memviewslice __pyx_v_horizontal = __pyx_k__3;
   __Pyx_memviewslice __pyx_v_vertical = __pyx_k__4;
@@ -10262,7 +9637,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
     }
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":384
+  /* "latticeModelMashup/src/Cfuncs.pyx":354
  *     :return:            None
  *     """
  *     if horizontal[-1] == -1 and vertical[-1] == -1:             # <<<<<<<<<<<<<<
@@ -10277,7 +9652,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
   } else if (unlikely(__pyx_t_2 >= __pyx_v_horizontal.shape[0])) __pyx_t_3 = 0;
   if (unlikely(__pyx_t_3 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_3);
-    __PYX_ERR(0, 384, __pyx_L1_error)
+    __PYX_ERR(0, 354, __pyx_L1_error)
   }
   __pyx_t_4 = (((*((int *) ( /* dim=0 */ (__pyx_v_horizontal.data + __pyx_t_2 * __pyx_v_horizontal.strides[0]) ))) == -1L) != 0);
   if (__pyx_t_4) {
@@ -10293,14 +9668,14 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
   } else if (unlikely(__pyx_t_5 >= __pyx_v_vertical.shape[0])) __pyx_t_3 = 0;
   if (unlikely(__pyx_t_3 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_3);
-    __PYX_ERR(0, 384, __pyx_L1_error)
+    __PYX_ERR(0, 354, __pyx_L1_error)
   }
   __pyx_t_4 = (((*((int *) ( /* dim=0 */ (__pyx_v_vertical.data + __pyx_t_5 * __pyx_v_vertical.strides[0]) ))) == -1L) != 0);
   __pyx_t_1 = __pyx_t_4;
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":385
+    /* "latticeModelMashup/src/Cfuncs.pyx":355
  *     """
  *     if horizontal[-1] == -1 and vertical[-1] == -1:
  *         return             # <<<<<<<<<<<<<<
@@ -10311,7 +9686,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":384
+    /* "latticeModelMashup/src/Cfuncs.pyx":354
  *     :return:            None
  *     """
  *     if horizontal[-1] == -1 and vertical[-1] == -1:             # <<<<<<<<<<<<<<
@@ -10320,7 +9695,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
  */
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":387
+  /* "latticeModelMashup/src/Cfuncs.pyx":357
  *         return
  * 
  *     if horizontal[-1] == 1:             # <<<<<<<<<<<<<<
@@ -10335,12 +9710,12 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
   } else if (unlikely(__pyx_t_6 >= __pyx_v_horizontal.shape[0])) __pyx_t_3 = 0;
   if (unlikely(__pyx_t_3 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_3);
-    __PYX_ERR(0, 387, __pyx_L1_error)
+    __PYX_ERR(0, 357, __pyx_L1_error)
   }
   __pyx_t_1 = (((*((int *) ( /* dim=0 */ (__pyx_v_horizontal.data + __pyx_t_6 * __pyx_v_horizontal.strides[0]) ))) == 1) != 0);
   if (__pyx_t_1) {
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":388
+    /* "latticeModelMashup/src/Cfuncs.pyx":358
  * 
  *     if horizontal[-1] == 1:
  *         fill_rows(horizontal[0], horizontal[1], dim, arr)             # <<<<<<<<<<<<<<
@@ -10355,7 +9730,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
     } else if (unlikely(__pyx_t_7 >= __pyx_v_horizontal.shape[0])) __pyx_t_3 = 0;
     if (unlikely(__pyx_t_3 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_3);
-      __PYX_ERR(0, 388, __pyx_L1_error)
+      __PYX_ERR(0, 358, __pyx_L1_error)
     }
     __pyx_t_8 = 1;
     __pyx_t_3 = -1;
@@ -10365,13 +9740,13 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
     } else if (unlikely(__pyx_t_8 >= __pyx_v_horizontal.shape[0])) __pyx_t_3 = 0;
     if (unlikely(__pyx_t_3 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_3);
-      __PYX_ERR(0, 388, __pyx_L1_error)
+      __PYX_ERR(0, 358, __pyx_L1_error)
     }
-    __pyx_t_9 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_rows((*((int *) ( /* dim=0 */ (__pyx_v_horizontal.data + __pyx_t_7 * __pyx_v_horizontal.strides[0]) ))), (*((int *) ( /* dim=0 */ (__pyx_v_horizontal.data + __pyx_t_8 * __pyx_v_horizontal.strides[0]) ))), __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 388, __pyx_L1_error)
+    __pyx_t_9 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_rows((*((int *) ( /* dim=0 */ (__pyx_v_horizontal.data + __pyx_t_7 * __pyx_v_horizontal.strides[0]) ))), (*((int *) ( /* dim=0 */ (__pyx_v_horizontal.data + __pyx_t_8 * __pyx_v_horizontal.strides[0]) ))), __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 358, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":387
+    /* "latticeModelMashup/src/Cfuncs.pyx":357
  *         return
  * 
  *     if horizontal[-1] == 1:             # <<<<<<<<<<<<<<
@@ -10381,7 +9756,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
     goto __pyx_L6;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":389
+  /* "latticeModelMashup/src/Cfuncs.pyx":359
  *     if horizontal[-1] == 1:
  *         fill_rows(horizontal[0], horizontal[1], dim, arr)
  *     elif horizontal[-1] == 0:             # <<<<<<<<<<<<<<
@@ -10396,12 +9771,12 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
   } else if (unlikely(__pyx_t_10 >= __pyx_v_horizontal.shape[0])) __pyx_t_3 = 0;
   if (unlikely(__pyx_t_3 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_3);
-    __PYX_ERR(0, 389, __pyx_L1_error)
+    __PYX_ERR(0, 359, __pyx_L1_error)
   }
   __pyx_t_1 = (((*((int *) ( /* dim=0 */ (__pyx_v_horizontal.data + __pyx_t_10 * __pyx_v_horizontal.strides[0]) ))) == 0) != 0);
   if (__pyx_t_1) {
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":390
+    /* "latticeModelMashup/src/Cfuncs.pyx":360
  *         fill_rows(horizontal[0], horizontal[1], dim, arr)
  *     elif horizontal[-1] == 0:
  *         clear_rows(horizontal[0], horizontal[1], dim, arr)             # <<<<<<<<<<<<<<
@@ -10416,7 +9791,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
     } else if (unlikely(__pyx_t_11 >= __pyx_v_horizontal.shape[0])) __pyx_t_3 = 0;
     if (unlikely(__pyx_t_3 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_3);
-      __PYX_ERR(0, 390, __pyx_L1_error)
+      __PYX_ERR(0, 360, __pyx_L1_error)
     }
     __pyx_t_12 = 1;
     __pyx_t_3 = -1;
@@ -10426,13 +9801,13 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
     } else if (unlikely(__pyx_t_12 >= __pyx_v_horizontal.shape[0])) __pyx_t_3 = 0;
     if (unlikely(__pyx_t_3 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_3);
-      __PYX_ERR(0, 390, __pyx_L1_error)
+      __PYX_ERR(0, 360, __pyx_L1_error)
     }
-    __pyx_t_9 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_rows((*((int *) ( /* dim=0 */ (__pyx_v_horizontal.data + __pyx_t_11 * __pyx_v_horizontal.strides[0]) ))), (*((int *) ( /* dim=0 */ (__pyx_v_horizontal.data + __pyx_t_12 * __pyx_v_horizontal.strides[0]) ))), __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 390, __pyx_L1_error)
+    __pyx_t_9 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_rows((*((int *) ( /* dim=0 */ (__pyx_v_horizontal.data + __pyx_t_11 * __pyx_v_horizontal.strides[0]) ))), (*((int *) ( /* dim=0 */ (__pyx_v_horizontal.data + __pyx_t_12 * __pyx_v_horizontal.strides[0]) ))), __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 360, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":389
+    /* "latticeModelMashup/src/Cfuncs.pyx":359
  *     if horizontal[-1] == 1:
  *         fill_rows(horizontal[0], horizontal[1], dim, arr)
  *     elif horizontal[-1] == 0:             # <<<<<<<<<<<<<<
@@ -10442,7 +9817,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
   }
   __pyx_L6:;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":392
+  /* "latticeModelMashup/src/Cfuncs.pyx":362
  *         clear_rows(horizontal[0], horizontal[1], dim, arr)
  * 
  *     if vertical[-1] == 1:             # <<<<<<<<<<<<<<
@@ -10457,12 +9832,12 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
   } else if (unlikely(__pyx_t_13 >= __pyx_v_vertical.shape[0])) __pyx_t_3 = 0;
   if (unlikely(__pyx_t_3 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_3);
-    __PYX_ERR(0, 392, __pyx_L1_error)
+    __PYX_ERR(0, 362, __pyx_L1_error)
   }
   __pyx_t_1 = (((*((int *) ( /* dim=0 */ (__pyx_v_vertical.data + __pyx_t_13 * __pyx_v_vertical.strides[0]) ))) == 1) != 0);
   if (__pyx_t_1) {
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":393
+    /* "latticeModelMashup/src/Cfuncs.pyx":363
  * 
  *     if vertical[-1] == 1:
  *         fill_columns(vertical[0], vertical[1], dim, arr)             # <<<<<<<<<<<<<<
@@ -10477,7 +9852,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
     } else if (unlikely(__pyx_t_14 >= __pyx_v_vertical.shape[0])) __pyx_t_3 = 0;
     if (unlikely(__pyx_t_3 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_3);
-      __PYX_ERR(0, 393, __pyx_L1_error)
+      __PYX_ERR(0, 363, __pyx_L1_error)
     }
     __pyx_t_15 = 1;
     __pyx_t_3 = -1;
@@ -10487,13 +9862,13 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
     } else if (unlikely(__pyx_t_15 >= __pyx_v_vertical.shape[0])) __pyx_t_3 = 0;
     if (unlikely(__pyx_t_3 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_3);
-      __PYX_ERR(0, 393, __pyx_L1_error)
+      __PYX_ERR(0, 363, __pyx_L1_error)
     }
-    __pyx_t_9 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_columns((*((int *) ( /* dim=0 */ (__pyx_v_vertical.data + __pyx_t_14 * __pyx_v_vertical.strides[0]) ))), (*((int *) ( /* dim=0 */ (__pyx_v_vertical.data + __pyx_t_15 * __pyx_v_vertical.strides[0]) ))), __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 393, __pyx_L1_error)
+    __pyx_t_9 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_columns((*((int *) ( /* dim=0 */ (__pyx_v_vertical.data + __pyx_t_14 * __pyx_v_vertical.strides[0]) ))), (*((int *) ( /* dim=0 */ (__pyx_v_vertical.data + __pyx_t_15 * __pyx_v_vertical.strides[0]) ))), __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 363, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":392
+    /* "latticeModelMashup/src/Cfuncs.pyx":362
  *         clear_rows(horizontal[0], horizontal[1], dim, arr)
  * 
  *     if vertical[-1] == 1:             # <<<<<<<<<<<<<<
@@ -10503,7 +9878,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
     goto __pyx_L7;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":394
+  /* "latticeModelMashup/src/Cfuncs.pyx":364
  *     if vertical[-1] == 1:
  *         fill_columns(vertical[0], vertical[1], dim, arr)
  *     elif vertical[-1] == 0:             # <<<<<<<<<<<<<<
@@ -10518,12 +9893,12 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
   } else if (unlikely(__pyx_t_16 >= __pyx_v_vertical.shape[0])) __pyx_t_3 = 0;
   if (unlikely(__pyx_t_3 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_3);
-    __PYX_ERR(0, 394, __pyx_L1_error)
+    __PYX_ERR(0, 364, __pyx_L1_error)
   }
   __pyx_t_1 = (((*((int *) ( /* dim=0 */ (__pyx_v_vertical.data + __pyx_t_16 * __pyx_v_vertical.strides[0]) ))) == 0) != 0);
   if (__pyx_t_1) {
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":395
+    /* "latticeModelMashup/src/Cfuncs.pyx":365
  *         fill_columns(vertical[0], vertical[1], dim, arr)
  *     elif vertical[-1] == 0:
  *         clear_columns(vertical[0], vertical[1], dim, arr)             # <<<<<<<<<<<<<<
@@ -10538,7 +9913,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
     } else if (unlikely(__pyx_t_17 >= __pyx_v_vertical.shape[0])) __pyx_t_3 = 0;
     if (unlikely(__pyx_t_3 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_3);
-      __PYX_ERR(0, 395, __pyx_L1_error)
+      __PYX_ERR(0, 365, __pyx_L1_error)
     }
     __pyx_t_18 = 1;
     __pyx_t_3 = -1;
@@ -10548,13 +9923,13 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
     } else if (unlikely(__pyx_t_18 >= __pyx_v_vertical.shape[0])) __pyx_t_3 = 0;
     if (unlikely(__pyx_t_3 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_3);
-      __PYX_ERR(0, 395, __pyx_L1_error)
+      __PYX_ERR(0, 365, __pyx_L1_error)
     }
-    __pyx_t_9 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_columns((*((int *) ( /* dim=0 */ (__pyx_v_vertical.data + __pyx_t_17 * __pyx_v_vertical.strides[0]) ))), (*((int *) ( /* dim=0 */ (__pyx_v_vertical.data + __pyx_t_18 * __pyx_v_vertical.strides[0]) ))), __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 395, __pyx_L1_error)
+    __pyx_t_9 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_columns((*((int *) ( /* dim=0 */ (__pyx_v_vertical.data + __pyx_t_17 * __pyx_v_vertical.strides[0]) ))), (*((int *) ( /* dim=0 */ (__pyx_v_vertical.data + __pyx_t_18 * __pyx_v_vertical.strides[0]) ))), __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 365, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":394
+    /* "latticeModelMashup/src/Cfuncs.pyx":364
  *     if vertical[-1] == 1:
  *         fill_columns(vertical[0], vertical[1], dim, arr)
  *     elif vertical[-1] == 0:             # <<<<<<<<<<<<<<
@@ -10564,7 +9939,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
   }
   __pyx_L7:;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":370
+  /* "latticeModelMashup/src/Cfuncs.pyx":340
  * #=========Array editing=============
  * #TODO: allow for multiple bars
  * cpdef scroll_bars(             # <<<<<<<<<<<<<<
@@ -10586,9 +9961,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__Pyx_mem
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_37scroll_bars(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_36scroll_bars[] = "\n    Controls the vertical and horizontal scroll bars.\n\n    :param horizontal:  [start, width, step, polarity (-1 is off)]\n    :param vertical:    [start, width, step, polarity (-1 is off)]\n    :param dim:         (pointer) dimensions\n    :param arr:         (2D pointer) array\n    :return:            None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_37scroll_bars(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_33scroll_bars(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_32scroll_bars[] = "\n    Controls the vertical and horizontal scroll bars.\n\n    :param horizontal:  [start, width, step, polarity (-1 is off)]\n    :param vertical:    [start, width, step, polarity (-1 is off)]\n    :param dim:         (pointer) dimensions\n    :param arr:         (2D pointer) array\n    :return:            None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_33scroll_bars(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_horizontal = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -10623,7 +9998,7 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_37scroll_bars(PyObje
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("scroll_bars", 0, 2, 4, 1); __PYX_ERR(0, 370, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("scroll_bars", 0, 2, 4, 1); __PYX_ERR(0, 340, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -10639,7 +10014,7 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_37scroll_bars(PyObje
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scroll_bars") < 0)) __PYX_ERR(0, 370, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "scroll_bars") < 0)) __PYX_ERR(0, 340, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -10653,16 +10028,16 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_37scroll_bars(PyObje
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 371, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 371, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 341, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 341, __pyx_L3_error)
     if (values[2]) {
-      __pyx_v_horizontal = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_horizontal.memview)) __PYX_ERR(0, 372, __pyx_L3_error)
+      __pyx_v_horizontal = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_horizontal.memview)) __PYX_ERR(0, 342, __pyx_L3_error)
     } else {
       __pyx_v_horizontal = __pyx_k__3;
       __PYX_INC_MEMVIEW(&__pyx_v_horizontal, 1);
     }
     if (values[3]) {
-      __pyx_v_vertical = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_vertical.memview)) __PYX_ERR(0, 373, __pyx_L3_error)
+      __pyx_v_vertical = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_vertical.memview)) __PYX_ERR(0, 343, __pyx_L3_error)
     } else {
       __pyx_v_vertical = __pyx_k__4;
       __PYX_INC_MEMVIEW(&__pyx_v_vertical, 1);
@@ -10670,34 +10045,34 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_37scroll_bars(PyObje
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("scroll_bars", 0, 2, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 370, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("scroll_bars", 0, 2, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 340, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.scroll_bars", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_36scroll_bars(__pyx_self, __pyx_v_dim, __pyx_v_arr, __pyx_v_horizontal, __pyx_v_vertical);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_32scroll_bars(__pyx_self, __pyx_v_dim, __pyx_v_arr, __pyx_v_horizontal, __pyx_v_vertical);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_36scroll_bars(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, __Pyx_memviewslice __pyx_v_horizontal, __Pyx_memviewslice __pyx_v_vertical) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_32scroll_bars(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, __Pyx_memviewslice __pyx_v_horizontal, __Pyx_memviewslice __pyx_v_vertical) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   struct __pyx_opt_args_18latticeModelMashup_3src_6Cfuncs_scroll_bars __pyx_t_2;
   __Pyx_RefNannySetupContext("scroll_bars", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 370, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 370, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_horizontal.memview)) { __Pyx_RaiseUnboundLocalError("horizontal"); __PYX_ERR(0, 370, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_vertical.memview)) { __Pyx_RaiseUnboundLocalError("vertical"); __PYX_ERR(0, 370, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 340, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 340, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_horizontal.memview)) { __Pyx_RaiseUnboundLocalError("horizontal"); __PYX_ERR(0, 340, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_vertical.memview)) { __Pyx_RaiseUnboundLocalError("vertical"); __PYX_ERR(0, 340, __pyx_L1_error) }
   __pyx_t_2.__pyx_n = 2;
   __pyx_t_2.horizontal = __pyx_v_horizontal;
   __pyx_t_2.vertical = __pyx_v_vertical;
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__pyx_v_dim, __pyx_v_arr, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 370, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_scroll_bars(__pyx_v_dim, __pyx_v_arr, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 340, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -10718,7 +10093,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_36scroll_bars(CYTHON
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":397
+/* "latticeModelMashup/src/Cfuncs.pyx":367
  *         clear_columns(vertical[0], vertical[1], dim, arr)
  * 
  * cpdef set_bounds(int ub, int rb, int db, int lb, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -10726,14 +10101,14 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_36scroll_bars(CYTHON
  *     Sets boundaries
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_39set_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_35set_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(int __pyx_v_ub, int __pyx_v_rb, int __pyx_v_db, int __pyx_v_lb, CYTHON_UNUSED __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("set_bounds", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":409
+  /* "latticeModelMashup/src/Cfuncs.pyx":379
  *     :return:        None
  *     """
  *     if ub == 1:             # <<<<<<<<<<<<<<
@@ -10743,18 +10118,18 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(int __pyx_
   switch (__pyx_v_ub) {
     case 1:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":410
+    /* "latticeModelMashup/src/Cfuncs.pyx":380
  *     """
  *     if ub == 1:
  *         fill_row(0, arr)             # <<<<<<<<<<<<<<
  *     elif ub == 0:
  *         clear_row(0, arr)
  */
-    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_row(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 410, __pyx_L1_error)
+    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_row(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 380, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":409
+    /* "latticeModelMashup/src/Cfuncs.pyx":379
  *     :return:        None
  *     """
  *     if ub == 1:             # <<<<<<<<<<<<<<
@@ -10764,18 +10139,18 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(int __pyx_
     break;
     case 0:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":412
+    /* "latticeModelMashup/src/Cfuncs.pyx":382
  *         fill_row(0, arr)
  *     elif ub == 0:
  *         clear_row(0, arr)             # <<<<<<<<<<<<<<
  * 
  *     if db == 1:
  */
-    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_row(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 412, __pyx_L1_error)
+    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_row(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 382, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":411
+    /* "latticeModelMashup/src/Cfuncs.pyx":381
  *     if ub == 1:
  *         fill_row(0, arr)
  *     elif ub == 0:             # <<<<<<<<<<<<<<
@@ -10786,7 +10161,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(int __pyx_
     default: break;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":414
+  /* "latticeModelMashup/src/Cfuncs.pyx":384
  *         clear_row(0, arr)
  * 
  *     if db == 1:             # <<<<<<<<<<<<<<
@@ -10796,18 +10171,18 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(int __pyx_
   switch (__pyx_v_db) {
     case 1:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":415
+    /* "latticeModelMashup/src/Cfuncs.pyx":385
  * 
  *     if db == 1:
  *         fill_row(-1, arr)             # <<<<<<<<<<<<<<
  *     elif db == 0:
  *         clear_row(-1, arr)
  */
-    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_row(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 415, __pyx_L1_error)
+    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_row(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 385, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":414
+    /* "latticeModelMashup/src/Cfuncs.pyx":384
  *         clear_row(0, arr)
  * 
  *     if db == 1:             # <<<<<<<<<<<<<<
@@ -10817,18 +10192,18 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(int __pyx_
     break;
     case 0:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":417
+    /* "latticeModelMashup/src/Cfuncs.pyx":387
  *         fill_row(-1, arr)
  *     elif db == 0:
  *         clear_row(-1, arr)             # <<<<<<<<<<<<<<
  * 
  *     if lb == 1:
  */
-    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_row(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 417, __pyx_L1_error)
+    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_row(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 387, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":416
+    /* "latticeModelMashup/src/Cfuncs.pyx":386
  *     if db == 1:
  *         fill_row(-1, arr)
  *     elif db == 0:             # <<<<<<<<<<<<<<
@@ -10839,7 +10214,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(int __pyx_
     default: break;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":419
+  /* "latticeModelMashup/src/Cfuncs.pyx":389
  *         clear_row(-1, arr)
  * 
  *     if lb == 1:             # <<<<<<<<<<<<<<
@@ -10849,18 +10224,18 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(int __pyx_
   switch (__pyx_v_lb) {
     case 1:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":420
+    /* "latticeModelMashup/src/Cfuncs.pyx":390
  * 
  *     if lb == 1:
  *         fill_column(0, arr)             # <<<<<<<<<<<<<<
  *     elif lb == 0:
  *         clear_column(0, arr)
  */
-    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_column(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 420, __pyx_L1_error)
+    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_column(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 390, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":419
+    /* "latticeModelMashup/src/Cfuncs.pyx":389
  *         clear_row(-1, arr)
  * 
  *     if lb == 1:             # <<<<<<<<<<<<<<
@@ -10870,18 +10245,18 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(int __pyx_
     break;
     case 0:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":422
+    /* "latticeModelMashup/src/Cfuncs.pyx":392
  *         fill_column(0, arr)
  *     elif lb == 0:
  *         clear_column(0, arr)             # <<<<<<<<<<<<<<
  * 
  *     if rb == 1:
  */
-    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_column(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 422, __pyx_L1_error)
+    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_column(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 392, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":421
+    /* "latticeModelMashup/src/Cfuncs.pyx":391
  *     if lb == 1:
  *         fill_column(0, arr)
  *     elif lb == 0:             # <<<<<<<<<<<<<<
@@ -10892,7 +10267,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(int __pyx_
     default: break;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":424
+  /* "latticeModelMashup/src/Cfuncs.pyx":394
  *         clear_column(0, arr)
  * 
  *     if rb == 1:             # <<<<<<<<<<<<<<
@@ -10902,18 +10277,18 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(int __pyx_
   switch (__pyx_v_rb) {
     case 1:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":425
+    /* "latticeModelMashup/src/Cfuncs.pyx":395
  * 
  *     if rb == 1:
  *         fill_column(-1, arr)             # <<<<<<<<<<<<<<
  *     elif rb == 0:
  *         clear_column(-1, arr)
  */
-    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_column(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 425, __pyx_L1_error)
+    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_column(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 395, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":424
+    /* "latticeModelMashup/src/Cfuncs.pyx":394
  *         clear_column(0, arr)
  * 
  *     if rb == 1:             # <<<<<<<<<<<<<<
@@ -10923,18 +10298,18 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(int __pyx_
     break;
     case 0:
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":427
+    /* "latticeModelMashup/src/Cfuncs.pyx":397
  *         fill_column(-1, arr)
  *     elif rb == 0:
  *         clear_column(-1, arr)             # <<<<<<<<<<<<<<
  * 
  * cpdef fill_array(int[:] dim, int[:, :] arr):
  */
-    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_column(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 427, __pyx_L1_error)
+    __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_column(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 397, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":426
+    /* "latticeModelMashup/src/Cfuncs.pyx":396
  *     if rb == 1:
  *         fill_column(-1, arr)
  *     elif rb == 0:             # <<<<<<<<<<<<<<
@@ -10945,7 +10320,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(int __pyx_
     default: break;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":397
+  /* "latticeModelMashup/src/Cfuncs.pyx":367
  *         clear_columns(vertical[0], vertical[1], dim, arr)
  * 
  * cpdef set_bounds(int ub, int rb, int db, int lb, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -10967,9 +10342,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(int __pyx_
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_39set_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_38set_bounds[] = "\n    Sets boundaries\n\n    :param ub:      (int) upper bound value\n    :param rb:      (int) right bound value\n    :param db:      (int) down bound value\n    :param lb:      (int) left bound value\n    :param dim:     (pointer) dimensions of arr\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_39set_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_35set_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_34set_bounds[] = "\n    Sets boundaries\n\n    :param ub:      (int) upper bound value\n    :param rb:      (int) right bound value\n    :param db:      (int) down bound value\n    :param lb:      (int) left bound value\n    :param dim:     (pointer) dimensions of arr\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_35set_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_ub;
   int __pyx_v_rb;
   int __pyx_v_db;
@@ -11010,35 +10385,35 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_39set_bounds(PyObjec
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_rb)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set_bounds", 1, 6, 6, 1); __PYX_ERR(0, 397, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("set_bounds", 1, 6, 6, 1); __PYX_ERR(0, 367, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_db)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set_bounds", 1, 6, 6, 2); __PYX_ERR(0, 397, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("set_bounds", 1, 6, 6, 2); __PYX_ERR(0, 367, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_lb)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set_bounds", 1, 6, 6, 3); __PYX_ERR(0, 397, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("set_bounds", 1, 6, 6, 3); __PYX_ERR(0, 367, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set_bounds", 1, 6, 6, 4); __PYX_ERR(0, 397, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("set_bounds", 1, 6, 6, 4); __PYX_ERR(0, 367, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set_bounds", 1, 6, 6, 5); __PYX_ERR(0, 397, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("set_bounds", 1, 6, 6, 5); __PYX_ERR(0, 367, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set_bounds") < 0)) __PYX_ERR(0, 397, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set_bounds") < 0)) __PYX_ERR(0, 367, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 6) {
       goto __pyx_L5_argtuple_error;
@@ -11050,37 +10425,37 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_39set_bounds(PyObjec
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
       values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
     }
-    __pyx_v_ub = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_ub == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 397, __pyx_L3_error)
-    __pyx_v_rb = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_rb == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 397, __pyx_L3_error)
-    __pyx_v_db = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_db == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 397, __pyx_L3_error)
-    __pyx_v_lb = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_lb == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 397, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 397, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 397, __pyx_L3_error)
+    __pyx_v_ub = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_ub == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 367, __pyx_L3_error)
+    __pyx_v_rb = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_rb == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 367, __pyx_L3_error)
+    __pyx_v_db = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_db == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 367, __pyx_L3_error)
+    __pyx_v_lb = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_lb == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 367, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 367, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 367, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("set_bounds", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 397, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("set_bounds", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 367, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.set_bounds", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_38set_bounds(__pyx_self, __pyx_v_ub, __pyx_v_rb, __pyx_v_db, __pyx_v_lb, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_34set_bounds(__pyx_self, __pyx_v_ub, __pyx_v_rb, __pyx_v_db, __pyx_v_lb, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_38set_bounds(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_ub, int __pyx_v_rb, int __pyx_v_db, int __pyx_v_lb, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_34set_bounds(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_ub, int __pyx_v_rb, int __pyx_v_db, int __pyx_v_lb, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("set_bounds", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 397, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 397, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(__pyx_v_ub, __pyx_v_rb, __pyx_v_db, __pyx_v_lb, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 397, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 367, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 367, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_set_bounds(__pyx_v_ub, __pyx_v_rb, __pyx_v_db, __pyx_v_lb, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 367, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -11099,7 +10474,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_38set_bounds(CYTHON_
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":429
+/* "latticeModelMashup/src/Cfuncs.pyx":399
  *         clear_column(-1, arr)
  * 
  * cpdef fill_array(int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -11107,13 +10482,13 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_38set_bounds(CYTHON_
  *     Fills arr with 1s
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_41fill_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_37fill_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_array(CYTHON_UNUSED __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("fill_array", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":436
+  /* "latticeModelMashup/src/Cfuncs.pyx":406
  *     :return:        None
  *     """
  *     arr[:, :] = 1             # <<<<<<<<<<<<<<
@@ -11143,7 +10518,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_array(CYTHON_UNU
       }
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":429
+  /* "latticeModelMashup/src/Cfuncs.pyx":399
  *         clear_column(-1, arr)
  * 
  * cpdef fill_array(int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -11159,9 +10534,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_array(CYTHON_UNU
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_41fill_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_40fill_array[] = "\n    Fills arr with 1s\n\n    :param arr:     (2D pointer) arr\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_41fill_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_37fill_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_36fill_array[] = "\n    Fills arr with 1s\n\n    :param arr:     (2D pointer) arr\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_37fill_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_r = 0;
@@ -11190,11 +10565,11 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_41fill_array(PyObjec
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fill_array", 1, 2, 2, 1); __PYX_ERR(0, 429, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fill_array", 1, 2, 2, 1); __PYX_ERR(0, 399, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fill_array") < 0)) __PYX_ERR(0, 429, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fill_array") < 0)) __PYX_ERR(0, 399, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -11202,33 +10577,33 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_41fill_array(PyObjec
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 429, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 429, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 399, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 399, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fill_array", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 429, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("fill_array", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 399, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.fill_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_40fill_array(__pyx_self, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_36fill_array(__pyx_self, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_40fill_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_36fill_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("fill_array", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 429, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 429, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_array(__pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 429, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 399, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 399, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_array(__pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 399, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -11247,7 +10622,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_40fill_array(CYTHON_
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":438
+/* "latticeModelMashup/src/Cfuncs.pyx":408
  *     arr[:, :] = 1
  * 
  * cpdef clear_array(int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -11255,13 +10630,13 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_40fill_array(CYTHON_
  *     Fills arr with 0s
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_43clear_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_39clear_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_array(CYTHON_UNUSED __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("clear_array", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":445
+  /* "latticeModelMashup/src/Cfuncs.pyx":415
  *     :return:        None
  *     """
  *     arr[:, :] = 0             # <<<<<<<<<<<<<<
@@ -11291,7 +10666,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_array(CYTHON_UN
       }
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":438
+  /* "latticeModelMashup/src/Cfuncs.pyx":408
  *     arr[:, :] = 1
  * 
  * cpdef clear_array(int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -11307,9 +10682,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_array(CYTHON_UN
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_43clear_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_42clear_array[] = "\n    Fills arr with 0s\n\n    :param arr:     (2D pointer) arr\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_43clear_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_39clear_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_38clear_array[] = "\n    Fills arr with 0s\n\n    :param arr:     (2D pointer) arr\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_39clear_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_r = 0;
@@ -11338,11 +10713,11 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_43clear_array(PyObje
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("clear_array", 1, 2, 2, 1); __PYX_ERR(0, 438, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("clear_array", 1, 2, 2, 1); __PYX_ERR(0, 408, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "clear_array") < 0)) __PYX_ERR(0, 438, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "clear_array") < 0)) __PYX_ERR(0, 408, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -11350,33 +10725,33 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_43clear_array(PyObje
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 438, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 438, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 408, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 408, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("clear_array", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 438, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("clear_array", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 408, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.clear_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_42clear_array(__pyx_self, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_38clear_array(__pyx_self, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_42clear_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_38clear_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("clear_array", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 438, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 438, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_array(__pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 438, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 408, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 408, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_array(__pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 408, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -11395,7 +10770,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_42clear_array(CYTHON
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":447
+/* "latticeModelMashup/src/Cfuncs.pyx":417
  *     arr[:, :] = 0
  * 
  * cpdef replace_array(int[:] offset, int[:] dim_nu, int[:, :] nuarr, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -11403,7 +10778,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_42clear_array(CYTHON
  *     Fills arr with another arr
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_45replace_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_41replace_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_array(__Pyx_memviewslice __pyx_v_offset, __Pyx_memviewslice __pyx_v_dim_nu, __Pyx_memviewslice __pyx_v_nuarr, CYTHON_UNUSED __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -11417,7 +10792,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_array(__Pyx_m
   __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("replace_array", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":457
+  /* "latticeModelMashup/src/Cfuncs.pyx":427
  *     :return:        None
  *     """
  *     arr[offset[0] : dim_nu[0] + offset[0], offset[1] : dim_nu[1] + offset[1]] =\             # <<<<<<<<<<<<<<
@@ -11432,7 +10807,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_array(__Pyx_m
   } else if (unlikely(__pyx_t_1 >= __pyx_v_offset.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 457, __pyx_L1_error)
+    __PYX_ERR(0, 427, __pyx_L1_error)
   }
   __pyx_t_3 = 0;
   __pyx_t_2 = -1;
@@ -11442,7 +10817,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_array(__Pyx_m
   } else if (unlikely(__pyx_t_3 >= __pyx_v_dim_nu.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 457, __pyx_L1_error)
+    __PYX_ERR(0, 427, __pyx_L1_error)
   }
   __pyx_t_4 = 0;
   __pyx_t_2 = -1;
@@ -11452,7 +10827,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_array(__Pyx_m
   } else if (unlikely(__pyx_t_4 >= __pyx_v_offset.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 457, __pyx_L1_error)
+    __PYX_ERR(0, 427, __pyx_L1_error)
   }
   __pyx_t_5 = 1;
   __pyx_t_2 = -1;
@@ -11462,7 +10837,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_array(__Pyx_m
   } else if (unlikely(__pyx_t_5 >= __pyx_v_offset.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 457, __pyx_L1_error)
+    __PYX_ERR(0, 427, __pyx_L1_error)
   }
   __pyx_t_6 = 1;
   __pyx_t_2 = -1;
@@ -11472,7 +10847,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_array(__Pyx_m
   } else if (unlikely(__pyx_t_6 >= __pyx_v_dim_nu.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 457, __pyx_L1_error)
+    __PYX_ERR(0, 427, __pyx_L1_error)
   }
   __pyx_t_7 = 1;
   __pyx_t_2 = -1;
@@ -11482,7 +10857,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_array(__Pyx_m
   } else if (unlikely(__pyx_t_7 >= __pyx_v_offset.shape[0])) __pyx_t_2 = 0;
   if (unlikely(__pyx_t_2 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_2);
-    __PYX_ERR(0, 457, __pyx_L1_error)
+    __PYX_ERR(0, 427, __pyx_L1_error)
   }
   __pyx_t_8.data = __pyx_v_arr.data;
   __pyx_t_8.memview = __pyx_v_arr.memview;
@@ -11502,7 +10877,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_array(__Pyx_m
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 457, __pyx_L1_error)
+    __PYX_ERR(0, 427, __pyx_L1_error)
 }
 
 if (unlikely(__pyx_memoryview_slice_memviewslice(
@@ -11519,15 +10894,15 @@ if (unlikely(__pyx_memoryview_slice_memviewslice(
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 457, __pyx_L1_error)
+    __PYX_ERR(0, 427, __pyx_L1_error)
 }
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_nuarr, __pyx_t_8, 2, 2, 0) < 0)) __PYX_ERR(0, 457, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_nuarr, __pyx_t_8, 2, 2, 0) < 0)) __PYX_ERR(0, 427, __pyx_L1_error)
   __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":447
+  /* "latticeModelMashup/src/Cfuncs.pyx":417
  *     arr[:, :] = 0
  * 
  * cpdef replace_array(int[:] offset, int[:] dim_nu, int[:, :] nuarr, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -11549,9 +10924,9 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_nuarr, __pyx_t_8, 2, 2, 0) <
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_45replace_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_44replace_array[] = "\n    Fills arr with another arr\n\n    :param offset:  (pointer) offset of inner arr\n    :param dim_nu:  (pointer) dimensions of inner arr\n    :param nuarr:   (2D pointer) inner arr\n    :param arr:     (2D pointer) arr\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_45replace_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_41replace_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_40replace_array[] = "\n    Fills arr with another arr\n\n    :param offset:  (pointer) offset of inner arr\n    :param dim_nu:  (pointer) dimensions of inner arr\n    :param nuarr:   (2D pointer) inner arr\n    :param arr:     (2D pointer) arr\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_41replace_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_offset = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_dim_nu = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_nuarr = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -11589,29 +10964,29 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_45replace_array(PyOb
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim_nu)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("replace_array", 1, 5, 5, 1); __PYX_ERR(0, 447, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("replace_array", 1, 5, 5, 1); __PYX_ERR(0, 417, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_nuarr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("replace_array", 1, 5, 5, 2); __PYX_ERR(0, 447, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("replace_array", 1, 5, 5, 2); __PYX_ERR(0, 417, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("replace_array", 1, 5, 5, 3); __PYX_ERR(0, 447, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("replace_array", 1, 5, 5, 3); __PYX_ERR(0, 417, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("replace_array", 1, 5, 5, 4); __PYX_ERR(0, 447, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("replace_array", 1, 5, 5, 4); __PYX_ERR(0, 417, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "replace_array") < 0)) __PYX_ERR(0, 447, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "replace_array") < 0)) __PYX_ERR(0, 417, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
       goto __pyx_L5_argtuple_error;
@@ -11622,39 +10997,39 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_45replace_array(PyOb
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
     }
-    __pyx_v_offset = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_offset.memview)) __PYX_ERR(0, 447, __pyx_L3_error)
-    __pyx_v_dim_nu = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim_nu.memview)) __PYX_ERR(0, 447, __pyx_L3_error)
-    __pyx_v_nuarr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_nuarr.memview)) __PYX_ERR(0, 447, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 447, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 447, __pyx_L3_error)
+    __pyx_v_offset = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_offset.memview)) __PYX_ERR(0, 417, __pyx_L3_error)
+    __pyx_v_dim_nu = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim_nu.memview)) __PYX_ERR(0, 417, __pyx_L3_error)
+    __pyx_v_nuarr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_nuarr.memview)) __PYX_ERR(0, 417, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 417, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 417, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("replace_array", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 447, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("replace_array", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 417, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.replace_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_44replace_array(__pyx_self, __pyx_v_offset, __pyx_v_dim_nu, __pyx_v_nuarr, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_40replace_array(__pyx_self, __pyx_v_offset, __pyx_v_dim_nu, __pyx_v_nuarr, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_44replace_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_offset, __Pyx_memviewslice __pyx_v_dim_nu, __Pyx_memviewslice __pyx_v_nuarr, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_40replace_array(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_offset, __Pyx_memviewslice __pyx_v_dim_nu, __Pyx_memviewslice __pyx_v_nuarr, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("replace_array", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_offset.memview)) { __Pyx_RaiseUnboundLocalError("offset"); __PYX_ERR(0, 447, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_dim_nu.memview)) { __Pyx_RaiseUnboundLocalError("dim_nu"); __PYX_ERR(0, 447, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_nuarr.memview)) { __Pyx_RaiseUnboundLocalError("nuarr"); __PYX_ERR(0, 447, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 447, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 447, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_array(__pyx_v_offset, __pyx_v_dim_nu, __pyx_v_nuarr, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 447, __pyx_L1_error)
+  if (unlikely(!__pyx_v_offset.memview)) { __Pyx_RaiseUnboundLocalError("offset"); __PYX_ERR(0, 417, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_dim_nu.memview)) { __Pyx_RaiseUnboundLocalError("dim_nu"); __PYX_ERR(0, 417, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_nuarr.memview)) { __Pyx_RaiseUnboundLocalError("nuarr"); __PYX_ERR(0, 417, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 417, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 417, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_array(__pyx_v_offset, __pyx_v_dim_nu, __pyx_v_nuarr, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 417, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -11676,7 +11051,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_44replace_array(CYTH
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":460
+/* "latticeModelMashup/src/Cfuncs.pyx":430
  *         nuarr[:, :]
  * 
  * cpdef create_box(int left, int wid, int top, int hi, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -11684,7 +11059,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_44replace_array(CYTH
  *     Makes a rectangle of 1s at positions specified
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_47create_box(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_43create_box(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_create_box(int __pyx_v_left, int __pyx_v_wid, int __pyx_v_top, int __pyx_v_hi, CYTHON_UNUSED __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -11692,7 +11067,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_create_box(int __pyx_
   int __pyx_t_2;
   __Pyx_RefNannySetupContext("create_box", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":472
+  /* "latticeModelMashup/src/Cfuncs.pyx":442
  *     :return:        None
  *     """
  *     arr[left:left + wid,top:top + hi] = 1             # <<<<<<<<<<<<<<
@@ -11717,7 +11092,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_create_box(int __pyx_
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 472, __pyx_L1_error)
+    __PYX_ERR(0, 442, __pyx_L1_error)
 }
 
 if (unlikely(__pyx_memoryview_slice_memviewslice(
@@ -11734,7 +11109,7 @@ if (unlikely(__pyx_memoryview_slice_memviewslice(
     0,
     1) < 0))
 {
-    __PYX_ERR(0, 472, __pyx_L1_error)
+    __PYX_ERR(0, 442, __pyx_L1_error)
 }
 
 {
@@ -11763,7 +11138,7 @@ if (unlikely(__pyx_memoryview_slice_memviewslice(
   __pyx_t_1.memview = NULL;
   __pyx_t_1.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":460
+  /* "latticeModelMashup/src/Cfuncs.pyx":430
  *         nuarr[:, :]
  * 
  * cpdef create_box(int left, int wid, int top, int hi, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -11785,9 +11160,9 @@ if (unlikely(__pyx_memoryview_slice_memviewslice(
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_47create_box(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_46create_box[] = "\n    Makes a rectangle of 1s at positions specified\n\n    :param left:    (int)\n    :param wid:     (int)\n    :param top:     (int)\n    :param hi:      (int)\n    :param dim:     (pointer) arr dimensions\n    :param arr:     (2D pointer) arr\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_47create_box(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_43create_box(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_42create_box[] = "\n    Makes a rectangle of 1s at positions specified\n\n    :param left:    (int)\n    :param wid:     (int)\n    :param top:     (int)\n    :param hi:      (int)\n    :param dim:     (pointer) arr dimensions\n    :param arr:     (2D pointer) arr\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_43create_box(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_left;
   int __pyx_v_wid;
   int __pyx_v_top;
@@ -11828,35 +11203,35 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_47create_box(PyObjec
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_wid)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("create_box", 1, 6, 6, 1); __PYX_ERR(0, 460, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("create_box", 1, 6, 6, 1); __PYX_ERR(0, 430, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_top)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("create_box", 1, 6, 6, 2); __PYX_ERR(0, 460, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("create_box", 1, 6, 6, 2); __PYX_ERR(0, 430, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_hi)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("create_box", 1, 6, 6, 3); __PYX_ERR(0, 460, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("create_box", 1, 6, 6, 3); __PYX_ERR(0, 430, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("create_box", 1, 6, 6, 4); __PYX_ERR(0, 460, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("create_box", 1, 6, 6, 4); __PYX_ERR(0, 430, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("create_box", 1, 6, 6, 5); __PYX_ERR(0, 460, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("create_box", 1, 6, 6, 5); __PYX_ERR(0, 430, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "create_box") < 0)) __PYX_ERR(0, 460, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "create_box") < 0)) __PYX_ERR(0, 430, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 6) {
       goto __pyx_L5_argtuple_error;
@@ -11868,37 +11243,37 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_47create_box(PyObjec
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
       values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
     }
-    __pyx_v_left = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_left == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 460, __pyx_L3_error)
-    __pyx_v_wid = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_wid == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 460, __pyx_L3_error)
-    __pyx_v_top = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_top == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 460, __pyx_L3_error)
-    __pyx_v_hi = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_hi == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 460, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 460, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 460, __pyx_L3_error)
+    __pyx_v_left = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_left == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 430, __pyx_L3_error)
+    __pyx_v_wid = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_wid == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 430, __pyx_L3_error)
+    __pyx_v_top = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_top == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 430, __pyx_L3_error)
+    __pyx_v_hi = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_hi == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 430, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 430, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[5], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 430, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("create_box", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 460, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("create_box", 1, 6, 6, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 430, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.create_box", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_46create_box(__pyx_self, __pyx_v_left, __pyx_v_wid, __pyx_v_top, __pyx_v_hi, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_42create_box(__pyx_self, __pyx_v_left, __pyx_v_wid, __pyx_v_top, __pyx_v_hi, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_46create_box(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_left, int __pyx_v_wid, int __pyx_v_top, int __pyx_v_hi, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_42create_box(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_left, int __pyx_v_wid, int __pyx_v_top, int __pyx_v_hi, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("create_box", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 460, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 460, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_create_box(__pyx_v_left, __pyx_v_wid, __pyx_v_top, __pyx_v_hi, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 460, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 430, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 430, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_create_box(__pyx_v_left, __pyx_v_wid, __pyx_v_top, __pyx_v_hi, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 430, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -11917,7 +11292,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_46create_box(CYTHON_
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":474
+/* "latticeModelMashup/src/Cfuncs.pyx":444
  *     arr[left:left + wid,top:top + hi] = 1
  * 
  * cpdef set_points(int[:, :] points, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -11925,7 +11300,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_46create_box(CYTHON_
  *     Sets points to 1
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_49set_points(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_45set_points(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_points(__Pyx_memviewslice __pyx_v_points, CYTHON_UNUSED __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   __Pyx_memviewslice __pyx_v_i = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_r = NULL;
@@ -11942,22 +11317,22 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_points(__Pyx_memv
   Py_ssize_t __pyx_t_10;
   __Pyx_RefNannySetupContext("set_points", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":484
+  /* "latticeModelMashup/src/Cfuncs.pyx":454
  *     """
  *     cdef int[:] i
  *     for i in points:             # <<<<<<<<<<<<<<
  *         arr[i[0]][i[1]] = 1
  * 
  */
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_points, 2, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 484, __pyx_L1_error)
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_points, 2, (PyObject *(*)(char *)) __pyx_memview_get_int, (int (*)(char *, PyObject *)) __pyx_memview_set_int, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 454, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
     __pyx_t_2 = __pyx_t_1; __Pyx_INCREF(__pyx_t_2); __pyx_t_3 = 0;
     __pyx_t_4 = NULL;
   } else {
-    __pyx_t_3 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 484, __pyx_L1_error)
+    __pyx_t_3 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 454, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 484, __pyx_L1_error)
+    __pyx_t_4 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 454, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   for (;;) {
@@ -11965,17 +11340,17 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_points(__Pyx_memv
       if (likely(PyList_CheckExact(__pyx_t_2))) {
         if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 484, __pyx_L1_error)
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 454, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 484, __pyx_L1_error)
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 454, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         #endif
       } else {
         if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 484, __pyx_L1_error)
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 454, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 484, __pyx_L1_error)
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 454, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         #endif
       }
@@ -11985,20 +11360,20 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_points(__Pyx_memv
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 484, __pyx_L1_error)
+          else __PYX_ERR(0, 454, __pyx_L1_error)
         }
         break;
       }
       __Pyx_GOTREF(__pyx_t_1);
     }
-    __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 484, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 454, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __PYX_XDEC_MEMVIEW(&__pyx_v_i, 1);
     __pyx_v_i = __pyx_t_5;
     __pyx_t_5.memview = NULL;
     __pyx_t_5.data = NULL;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":485
+    /* "latticeModelMashup/src/Cfuncs.pyx":455
  *     cdef int[:] i
  *     for i in points:
  *         arr[i[0]][i[1]] = 1             # <<<<<<<<<<<<<<
@@ -12013,7 +11388,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_points(__Pyx_memv
     } else if (unlikely(__pyx_t_6 >= __pyx_v_i.shape[0])) __pyx_t_7 = 0;
     if (unlikely(__pyx_t_7 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_7);
-      __PYX_ERR(0, 485, __pyx_L1_error)
+      __PYX_ERR(0, 455, __pyx_L1_error)
     }
     __pyx_t_8 = 1;
     __pyx_t_7 = -1;
@@ -12023,7 +11398,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_points(__Pyx_memv
     } else if (unlikely(__pyx_t_8 >= __pyx_v_i.shape[0])) __pyx_t_7 = 0;
     if (unlikely(__pyx_t_7 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_7);
-      __PYX_ERR(0, 485, __pyx_L1_error)
+      __PYX_ERR(0, 455, __pyx_L1_error)
     }
     __pyx_t_9 = (*((int *) ( /* dim=0 */ (__pyx_v_i.data + __pyx_t_6 * __pyx_v_i.strides[0]) )));
     __pyx_t_10 = (*((int *) ( /* dim=0 */ (__pyx_v_i.data + __pyx_t_8 * __pyx_v_i.strides[0]) )));
@@ -12038,11 +11413,11 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_points(__Pyx_memv
     } else if (unlikely(__pyx_t_10 >= __pyx_v_arr.shape[1])) __pyx_t_7 = 1;
     if (unlikely(__pyx_t_7 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_7);
-      __PYX_ERR(0, 485, __pyx_L1_error)
+      __PYX_ERR(0, 455, __pyx_L1_error)
     }
     *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_arr.data + __pyx_t_9 * __pyx_v_arr.strides[0]) ) + __pyx_t_10 * __pyx_v_arr.strides[1]) )) = 1;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":484
+    /* "latticeModelMashup/src/Cfuncs.pyx":454
  *     """
  *     cdef int[:] i
  *     for i in points:             # <<<<<<<<<<<<<<
@@ -12052,7 +11427,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_points(__Pyx_memv
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":474
+  /* "latticeModelMashup/src/Cfuncs.pyx":444
  *     arr[left:left + wid,top:top + hi] = 1
  * 
  * cpdef set_points(int[:, :] points, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -12077,9 +11452,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_set_points(__Pyx_memv
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_49set_points(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_48set_points[] = "\n    Sets points to 1\n\n    :param points:  (pointer)\n    :param dim:     (pointer) arr dimensions\n    :param arr:   (2D pointer) arr\n    :return:        (int) total\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_49set_points(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_45set_points(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_44set_points[] = "\n    Sets points to 1\n\n    :param points:  (pointer)\n    :param dim:     (pointer) arr dimensions\n    :param arr:   (2D pointer) arr\n    :return:        (int) total\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_45set_points(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_points = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -12111,17 +11486,17 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_49set_points(PyObjec
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set_points", 1, 3, 3, 1); __PYX_ERR(0, 474, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("set_points", 1, 3, 3, 1); __PYX_ERR(0, 444, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set_points", 1, 3, 3, 2); __PYX_ERR(0, 474, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("set_points", 1, 3, 3, 2); __PYX_ERR(0, 444, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set_points") < 0)) __PYX_ERR(0, 474, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set_points") < 0)) __PYX_ERR(0, 444, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -12130,35 +11505,35 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_49set_points(PyObjec
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_points = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_points.memview)) __PYX_ERR(0, 474, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 474, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 474, __pyx_L3_error)
+    __pyx_v_points = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_points.memview)) __PYX_ERR(0, 444, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 444, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 444, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("set_points", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 474, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("set_points", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 444, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.set_points", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_48set_points(__pyx_self, __pyx_v_points, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_44set_points(__pyx_self, __pyx_v_points, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_48set_points(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_points, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_44set_points(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_points, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("set_points", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_points.memview)) { __Pyx_RaiseUnboundLocalError("points"); __PYX_ERR(0, 474, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 474, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 474, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_set_points(__pyx_v_points, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 474, __pyx_L1_error)
+  if (unlikely(!__pyx_v_points.memview)) { __Pyx_RaiseUnboundLocalError("points"); __PYX_ERR(0, 444, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 444, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 444, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_set_points(__pyx_v_points, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 444, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -12178,7 +11553,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_48set_points(CYTHON_
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":487
+/* "latticeModelMashup/src/Cfuncs.pyx":457
  *         arr[i[0]][i[1]] = 1
  * 
  * cpdef fill_bounds(int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -12186,58 +11561,58 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_48set_points(CYTHON_
  *     Sets boundaries to 1
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_51fill_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_47fill_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_bounds(CYTHON_UNUSED __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("fill_bounds", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":495
+  /* "latticeModelMashup/src/Cfuncs.pyx":465
  *     :return:        None
  *     """
  *     fill_row(0, arr)             # <<<<<<<<<<<<<<
  *     fill_row(-1, arr)
  *     fill_column(0, arr)
  */
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_row(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 495, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_row(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 465, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":496
+  /* "latticeModelMashup/src/Cfuncs.pyx":466
  *     """
  *     fill_row(0, arr)
  *     fill_row(-1, arr)             # <<<<<<<<<<<<<<
  *     fill_column(0, arr)
  *     fill_column(-1, arr)
  */
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_row(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 496, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_row(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 466, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":497
+  /* "latticeModelMashup/src/Cfuncs.pyx":467
  *     fill_row(0, arr)
  *     fill_row(-1, arr)
  *     fill_column(0, arr)             # <<<<<<<<<<<<<<
  *     fill_column(-1, arr)
  * 
  */
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_column(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 497, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_column(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 467, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":498
+  /* "latticeModelMashup/src/Cfuncs.pyx":468
  *     fill_row(-1, arr)
  *     fill_column(0, arr)
  *     fill_column(-1, arr)             # <<<<<<<<<<<<<<
  * 
  * cpdef clear_bounds(int[:] dim, int[:, :] arr):
  */
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_column(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 498, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_column(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 468, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":487
+  /* "latticeModelMashup/src/Cfuncs.pyx":457
  *         arr[i[0]][i[1]] = 1
  * 
  * cpdef fill_bounds(int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -12259,9 +11634,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_bounds(CYTHON_UN
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_51fill_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_50fill_bounds[] = "\n    Sets boundaries to 1\n\n    :param dim:     (pointer) dimensions of arr\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_51fill_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_47fill_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_46fill_bounds[] = "\n    Sets boundaries to 1\n\n    :param dim:     (pointer) dimensions of arr\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_47fill_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_r = 0;
@@ -12290,11 +11665,11 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_51fill_bounds(PyObje
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fill_bounds", 1, 2, 2, 1); __PYX_ERR(0, 487, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fill_bounds", 1, 2, 2, 1); __PYX_ERR(0, 457, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fill_bounds") < 0)) __PYX_ERR(0, 487, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fill_bounds") < 0)) __PYX_ERR(0, 457, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -12302,33 +11677,33 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_51fill_bounds(PyObje
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 487, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 487, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 457, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 457, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fill_bounds", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 487, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("fill_bounds", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 457, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.fill_bounds", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_50fill_bounds(__pyx_self, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_46fill_bounds(__pyx_self, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_50fill_bounds(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_46fill_bounds(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("fill_bounds", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 487, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 487, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_bounds(__pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 487, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 457, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 457, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_bounds(__pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 457, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -12347,7 +11722,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_50fill_bounds(CYTHON
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":500
+/* "latticeModelMashup/src/Cfuncs.pyx":470
  *     fill_column(-1, arr)
  * 
  * cpdef clear_bounds(int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -12355,58 +11730,58 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_50fill_bounds(CYTHON
  *     Sets boundaries to 0
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_53clear_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_49clear_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_bounds(CYTHON_UNUSED __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("clear_bounds", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":508
+  /* "latticeModelMashup/src/Cfuncs.pyx":478
  *     :return:        None
  *     """
  *     clear_row(0, arr)             # <<<<<<<<<<<<<<
  *     clear_row(-1,  arr)
  *     clear_column(0,  arr)
  */
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_row(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 508, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_row(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 478, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":509
+  /* "latticeModelMashup/src/Cfuncs.pyx":479
  *     """
  *     clear_row(0, arr)
  *     clear_row(-1,  arr)             # <<<<<<<<<<<<<<
  *     clear_column(0,  arr)
  *     clear_column(-1, arr)
  */
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_row(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 509, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_row(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 479, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":510
+  /* "latticeModelMashup/src/Cfuncs.pyx":480
  *     clear_row(0, arr)
  *     clear_row(-1,  arr)
  *     clear_column(0,  arr)             # <<<<<<<<<<<<<<
  *     clear_column(-1, arr)
  * 
  */
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_column(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 510, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_column(0, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 480, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":511
+  /* "latticeModelMashup/src/Cfuncs.pyx":481
  *     clear_row(-1,  arr)
  *     clear_column(0,  arr)
  *     clear_column(-1, arr)             # <<<<<<<<<<<<<<
  * 
  * cpdef fill_rows(int num, int width, int[:] dim, int[:, :] arr):
  */
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_column(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 511, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_column(-1, __pyx_v_arr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 481, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":500
+  /* "latticeModelMashup/src/Cfuncs.pyx":470
  *     fill_column(-1, arr)
  * 
  * cpdef clear_bounds(int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -12428,9 +11803,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_bounds(CYTHON_U
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_53clear_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_52clear_bounds[] = "\n    Sets boundaries to 0\n\n    :param dim:     (pointer) dimensions of arr\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_53clear_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_49clear_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_48clear_bounds[] = "\n    Sets boundaries to 0\n\n    :param dim:     (pointer) dimensions of arr\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_49clear_bounds(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_arr = { 0, 0, { 0 }, { 0 }, { 0 } };
   PyObject *__pyx_r = 0;
@@ -12459,11 +11834,11 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_53clear_bounds(PyObj
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("clear_bounds", 1, 2, 2, 1); __PYX_ERR(0, 500, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("clear_bounds", 1, 2, 2, 1); __PYX_ERR(0, 470, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "clear_bounds") < 0)) __PYX_ERR(0, 500, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "clear_bounds") < 0)) __PYX_ERR(0, 470, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -12471,33 +11846,33 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_53clear_bounds(PyObj
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
     }
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 500, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 500, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[0], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 470, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[1], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 470, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("clear_bounds", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 500, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("clear_bounds", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 470, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.clear_bounds", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_52clear_bounds(__pyx_self, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_48clear_bounds(__pyx_self, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_52clear_bounds(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_48clear_bounds(CYTHON_UNUSED PyObject *__pyx_self, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("clear_bounds", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 500, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 500, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_bounds(__pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 500, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 470, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 470, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_bounds(__pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 470, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -12516,7 +11891,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_52clear_bounds(CYTHO
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":513
+/* "latticeModelMashup/src/Cfuncs.pyx":483
  *     clear_column(-1, arr)
  * 
  * cpdef fill_rows(int num, int width, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -12524,7 +11899,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_52clear_bounds(CYTHO
  *     Fills rows of arr with 1s
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_55fill_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_51fill_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_rows(int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   Py_ssize_t __pyx_v_i;
   PyObject *__pyx_r = NULL;
@@ -12538,7 +11913,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_rows(int __pyx_v
   PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("fill_rows", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":524
+  /* "latticeModelMashup/src/Cfuncs.pyx":494
  *     """
  *     cdef Py_ssize_t i
  *     for i in range(width):             # <<<<<<<<<<<<<<
@@ -12550,7 +11925,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_rows(int __pyx_v
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":525
+    /* "latticeModelMashup/src/Cfuncs.pyx":495
  *     cdef Py_ssize_t i
  *     for i in range(width):
  *         fill_row((num + i) % dim[0], arr)             # <<<<<<<<<<<<<<
@@ -12566,19 +11941,19 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_rows(int __pyx_v
     } else if (unlikely(__pyx_t_5 >= __pyx_v_dim.shape[0])) __pyx_t_6 = 0;
     if (unlikely(__pyx_t_6 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_6);
-      __PYX_ERR(0, 525, __pyx_L1_error)
+      __PYX_ERR(0, 495, __pyx_L1_error)
     }
     __pyx_t_6 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_5 * __pyx_v_dim.strides[0]) )));
     if (unlikely(__pyx_t_6 == 0)) {
       PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-      __PYX_ERR(0, 525, __pyx_L1_error)
+      __PYX_ERR(0, 495, __pyx_L1_error)
     }
-    __pyx_t_7 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_row(__Pyx_mod_Py_ssize_t(__pyx_t_4, __pyx_t_6), __pyx_v_arr); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 525, __pyx_L1_error)
+    __pyx_t_7 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_row(__Pyx_mod_Py_ssize_t(__pyx_t_4, __pyx_t_6), __pyx_v_arr); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 495, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":513
+  /* "latticeModelMashup/src/Cfuncs.pyx":483
  *     clear_column(-1, arr)
  * 
  * cpdef fill_rows(int num, int width, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -12600,9 +11975,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_rows(int __pyx_v
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_55fill_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_54fill_rows[] = "\n    Fills rows of arr with 1s\n\n    :param num:     (int) index of starting row\n    :param width:   (int) number of rows to fill\n    :param dim:     (pointer) dimensions of arr\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_55fill_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_51fill_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_50fill_rows[] = "\n    Fills rows of arr with 1s\n\n    :param num:     (int) index of starting row\n    :param width:   (int) number of rows to fill\n    :param dim:     (pointer) dimensions of arr\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_51fill_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_num;
   int __pyx_v_width;
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -12637,23 +12012,23 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_55fill_rows(PyObject
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_width)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fill_rows", 1, 4, 4, 1); __PYX_ERR(0, 513, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fill_rows", 1, 4, 4, 1); __PYX_ERR(0, 483, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fill_rows", 1, 4, 4, 2); __PYX_ERR(0, 513, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fill_rows", 1, 4, 4, 2); __PYX_ERR(0, 483, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fill_rows", 1, 4, 4, 3); __PYX_ERR(0, 513, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fill_rows", 1, 4, 4, 3); __PYX_ERR(0, 483, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fill_rows") < 0)) __PYX_ERR(0, 513, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fill_rows") < 0)) __PYX_ERR(0, 483, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -12663,35 +12038,35 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_55fill_rows(PyObject
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 513, __pyx_L3_error)
-    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 513, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 513, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 513, __pyx_L3_error)
+    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 483, __pyx_L3_error)
+    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 483, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 483, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 483, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fill_rows", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 513, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("fill_rows", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 483, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.fill_rows", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_54fill_rows(__pyx_self, __pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_50fill_rows(__pyx_self, __pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_54fill_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_50fill_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("fill_rows", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 513, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 513, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_rows(__pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 513, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 483, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 483, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_rows(__pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 483, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -12710,7 +12085,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_54fill_rows(CYTHON_U
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":527
+/* "latticeModelMashup/src/Cfuncs.pyx":497
  *         fill_row((num + i) % dim[0], arr)
  * 
  * cpdef clear_rows(int num, int width, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -12718,7 +12093,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_54fill_rows(CYTHON_U
  *     Fills rows of arr with 0s
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_57clear_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_53clear_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_rows(int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   Py_ssize_t __pyx_v_i;
   PyObject *__pyx_r = NULL;
@@ -12732,7 +12107,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_rows(int __pyx_
   PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("clear_rows", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":538
+  /* "latticeModelMashup/src/Cfuncs.pyx":508
  *     """
  *     cdef Py_ssize_t i
  *     for i in range(width):             # <<<<<<<<<<<<<<
@@ -12744,7 +12119,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_rows(int __pyx_
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":539
+    /* "latticeModelMashup/src/Cfuncs.pyx":509
  *     cdef Py_ssize_t i
  *     for i in range(width):
  *         clear_row((num + i) % dim[0], arr)             # <<<<<<<<<<<<<<
@@ -12760,19 +12135,19 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_rows(int __pyx_
     } else if (unlikely(__pyx_t_5 >= __pyx_v_dim.shape[0])) __pyx_t_6 = 0;
     if (unlikely(__pyx_t_6 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_6);
-      __PYX_ERR(0, 539, __pyx_L1_error)
+      __PYX_ERR(0, 509, __pyx_L1_error)
     }
     __pyx_t_6 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_5 * __pyx_v_dim.strides[0]) )));
     if (unlikely(__pyx_t_6 == 0)) {
       PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-      __PYX_ERR(0, 539, __pyx_L1_error)
+      __PYX_ERR(0, 509, __pyx_L1_error)
     }
-    __pyx_t_7 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_row(__Pyx_mod_Py_ssize_t(__pyx_t_4, __pyx_t_6), __pyx_v_arr); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 539, __pyx_L1_error)
+    __pyx_t_7 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_row(__Pyx_mod_Py_ssize_t(__pyx_t_4, __pyx_t_6), __pyx_v_arr); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 509, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":527
+  /* "latticeModelMashup/src/Cfuncs.pyx":497
  *         fill_row((num + i) % dim[0], arr)
  * 
  * cpdef clear_rows(int num, int width, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -12794,9 +12169,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_rows(int __pyx_
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_57clear_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_56clear_rows[] = "\n    Fills rows of arr with 0s\n\n    :param num:     (int) index of row\n    :param width:   (int) number of rows to fill\n    :param dim:     (pointer) dimensions of arr\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_57clear_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_53clear_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_52clear_rows[] = "\n    Fills rows of arr with 0s\n\n    :param num:     (int) index of row\n    :param width:   (int) number of rows to fill\n    :param dim:     (pointer) dimensions of arr\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_53clear_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_num;
   int __pyx_v_width;
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -12831,23 +12206,23 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_57clear_rows(PyObjec
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_width)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("clear_rows", 1, 4, 4, 1); __PYX_ERR(0, 527, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("clear_rows", 1, 4, 4, 1); __PYX_ERR(0, 497, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("clear_rows", 1, 4, 4, 2); __PYX_ERR(0, 527, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("clear_rows", 1, 4, 4, 2); __PYX_ERR(0, 497, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("clear_rows", 1, 4, 4, 3); __PYX_ERR(0, 527, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("clear_rows", 1, 4, 4, 3); __PYX_ERR(0, 497, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "clear_rows") < 0)) __PYX_ERR(0, 527, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "clear_rows") < 0)) __PYX_ERR(0, 497, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -12857,35 +12232,35 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_57clear_rows(PyObjec
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 527, __pyx_L3_error)
-    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 527, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 527, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 527, __pyx_L3_error)
+    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 497, __pyx_L3_error)
+    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 497, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 497, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 497, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("clear_rows", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 527, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("clear_rows", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 497, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.clear_rows", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_56clear_rows(__pyx_self, __pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_52clear_rows(__pyx_self, __pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_56clear_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_52clear_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("clear_rows", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 527, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 527, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_rows(__pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 527, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 497, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 497, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_rows(__pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 497, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -12904,7 +12279,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_56clear_rows(CYTHON_
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":541
+/* "latticeModelMashup/src/Cfuncs.pyx":511
  *         clear_row((num + i) % dim[0], arr)
  * 
  * cpdef replace_rows(int num, int width, int[:] nurow, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -12912,7 +12287,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_56clear_rows(CYTHON_
  *     Fills rows of arr with another row
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_59replace_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_55replace_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_rows(int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_nurow, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   Py_ssize_t __pyx_v_i;
   PyObject *__pyx_r = NULL;
@@ -12926,7 +12301,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_rows(int __py
   PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("replace_rows", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":553
+  /* "latticeModelMashup/src/Cfuncs.pyx":523
  *     """
  *     cdef Py_ssize_t i
  *     for i in range(width):             # <<<<<<<<<<<<<<
@@ -12938,7 +12313,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_rows(int __py
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":554
+    /* "latticeModelMashup/src/Cfuncs.pyx":524
  *     cdef Py_ssize_t i
  *     for i in range(width):
  *         replace_row((num + i) % dim[0], nurow, arr)             # <<<<<<<<<<<<<<
@@ -12954,19 +12329,19 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_rows(int __py
     } else if (unlikely(__pyx_t_5 >= __pyx_v_dim.shape[0])) __pyx_t_6 = 0;
     if (unlikely(__pyx_t_6 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_6);
-      __PYX_ERR(0, 554, __pyx_L1_error)
+      __PYX_ERR(0, 524, __pyx_L1_error)
     }
     __pyx_t_6 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_5 * __pyx_v_dim.strides[0]) )));
     if (unlikely(__pyx_t_6 == 0)) {
       PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-      __PYX_ERR(0, 554, __pyx_L1_error)
+      __PYX_ERR(0, 524, __pyx_L1_error)
     }
-    __pyx_t_7 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_row(__Pyx_mod_Py_ssize_t(__pyx_t_4, __pyx_t_6), __pyx_v_nurow, __pyx_v_arr); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 554, __pyx_L1_error)
+    __pyx_t_7 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_row(__Pyx_mod_Py_ssize_t(__pyx_t_4, __pyx_t_6), __pyx_v_nurow, __pyx_v_arr); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 524, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":541
+  /* "latticeModelMashup/src/Cfuncs.pyx":511
  *         clear_row((num + i) % dim[0], arr)
  * 
  * cpdef replace_rows(int num, int width, int[:] nurow, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -12988,9 +12363,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_rows(int __py
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_59replace_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_58replace_rows[] = "\n    Fills rows of arr with another row\n\n    :param num:     (int) index of row\n    :param width:   (int) number of rows to fill\n    :param dim:     (pointer) dimensions of arr\n    :param nurow:   (pointer) new row values\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_59replace_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_55replace_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_54replace_rows[] = "\n    Fills rows of arr with another row\n\n    :param num:     (int) index of row\n    :param width:   (int) number of rows to fill\n    :param dim:     (pointer) dimensions of arr\n    :param nurow:   (pointer) new row values\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_55replace_rows(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_num;
   int __pyx_v_width;
   __Pyx_memviewslice __pyx_v_nurow = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -13028,29 +12403,29 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_59replace_rows(PyObj
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_width)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("replace_rows", 1, 5, 5, 1); __PYX_ERR(0, 541, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("replace_rows", 1, 5, 5, 1); __PYX_ERR(0, 511, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_nurow)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("replace_rows", 1, 5, 5, 2); __PYX_ERR(0, 541, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("replace_rows", 1, 5, 5, 2); __PYX_ERR(0, 511, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("replace_rows", 1, 5, 5, 3); __PYX_ERR(0, 541, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("replace_rows", 1, 5, 5, 3); __PYX_ERR(0, 511, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("replace_rows", 1, 5, 5, 4); __PYX_ERR(0, 541, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("replace_rows", 1, 5, 5, 4); __PYX_ERR(0, 511, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "replace_rows") < 0)) __PYX_ERR(0, 541, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "replace_rows") < 0)) __PYX_ERR(0, 511, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
       goto __pyx_L5_argtuple_error;
@@ -13061,37 +12436,37 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_59replace_rows(PyObj
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
     }
-    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 541, __pyx_L3_error)
-    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 541, __pyx_L3_error)
-    __pyx_v_nurow = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_nurow.memview)) __PYX_ERR(0, 541, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 541, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 541, __pyx_L3_error)
+    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 511, __pyx_L3_error)
+    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 511, __pyx_L3_error)
+    __pyx_v_nurow = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_nurow.memview)) __PYX_ERR(0, 511, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 511, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 511, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("replace_rows", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 541, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("replace_rows", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 511, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.replace_rows", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_58replace_rows(__pyx_self, __pyx_v_num, __pyx_v_width, __pyx_v_nurow, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_54replace_rows(__pyx_self, __pyx_v_num, __pyx_v_width, __pyx_v_nurow, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_58replace_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_nurow, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_54replace_rows(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_nurow, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("replace_rows", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_nurow.memview)) { __Pyx_RaiseUnboundLocalError("nurow"); __PYX_ERR(0, 541, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 541, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 541, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_rows(__pyx_v_num, __pyx_v_width, __pyx_v_nurow, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 541, __pyx_L1_error)
+  if (unlikely(!__pyx_v_nurow.memview)) { __Pyx_RaiseUnboundLocalError("nurow"); __PYX_ERR(0, 511, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 511, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 511, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_rows(__pyx_v_num, __pyx_v_width, __pyx_v_nurow, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 511, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -13111,7 +12486,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_58replace_rows(CYTHO
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":556
+/* "latticeModelMashup/src/Cfuncs.pyx":526
  *         replace_row((num + i) % dim[0], nurow, arr)
  * 
  * cpdef fill_columns(int num, int width, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -13119,7 +12494,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_58replace_rows(CYTHO
  *     Fills columns of arr with 1s
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_61fill_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_57fill_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_columns(int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   Py_ssize_t __pyx_v_i;
   PyObject *__pyx_r = NULL;
@@ -13133,7 +12508,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_columns(int __py
   PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("fill_columns", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":567
+  /* "latticeModelMashup/src/Cfuncs.pyx":537
  *     """
  *     cdef Py_ssize_t i
  *     for i in range(width):             # <<<<<<<<<<<<<<
@@ -13145,7 +12520,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_columns(int __py
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":568
+    /* "latticeModelMashup/src/Cfuncs.pyx":538
  *     cdef Py_ssize_t i
  *     for i in range(width):
  *         fill_column((num + i) % dim[1], arr)             # <<<<<<<<<<<<<<
@@ -13161,19 +12536,19 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_columns(int __py
     } else if (unlikely(__pyx_t_5 >= __pyx_v_dim.shape[0])) __pyx_t_6 = 0;
     if (unlikely(__pyx_t_6 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_6);
-      __PYX_ERR(0, 568, __pyx_L1_error)
+      __PYX_ERR(0, 538, __pyx_L1_error)
     }
     __pyx_t_6 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_5 * __pyx_v_dim.strides[0]) )));
     if (unlikely(__pyx_t_6 == 0)) {
       PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-      __PYX_ERR(0, 568, __pyx_L1_error)
+      __PYX_ERR(0, 538, __pyx_L1_error)
     }
-    __pyx_t_7 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_column(__Pyx_mod_Py_ssize_t(__pyx_t_4, __pyx_t_6), __pyx_v_arr); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 568, __pyx_L1_error)
+    __pyx_t_7 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_column(__Pyx_mod_Py_ssize_t(__pyx_t_4, __pyx_t_6), __pyx_v_arr); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 538, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":556
+  /* "latticeModelMashup/src/Cfuncs.pyx":526
  *         replace_row((num + i) % dim[0], nurow, arr)
  * 
  * cpdef fill_columns(int num, int width, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -13195,9 +12570,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_columns(int __py
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_61fill_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_60fill_columns[] = "\n    Fills columns of arr with 1s\n\n    :param num:     (int) index of column\n    :param width:   (int) number of columns to fill\n    :param dim:     (pointer) dimensions of arr\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_61fill_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_57fill_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_56fill_columns[] = "\n    Fills columns of arr with 1s\n\n    :param num:     (int) index of column\n    :param width:   (int) number of columns to fill\n    :param dim:     (pointer) dimensions of arr\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_57fill_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_num;
   int __pyx_v_width;
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -13232,23 +12607,23 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_61fill_columns(PyObj
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_width)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fill_columns", 1, 4, 4, 1); __PYX_ERR(0, 556, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fill_columns", 1, 4, 4, 1); __PYX_ERR(0, 526, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fill_columns", 1, 4, 4, 2); __PYX_ERR(0, 556, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fill_columns", 1, 4, 4, 2); __PYX_ERR(0, 526, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fill_columns", 1, 4, 4, 3); __PYX_ERR(0, 556, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fill_columns", 1, 4, 4, 3); __PYX_ERR(0, 526, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fill_columns") < 0)) __PYX_ERR(0, 556, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fill_columns") < 0)) __PYX_ERR(0, 526, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -13258,35 +12633,35 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_61fill_columns(PyObj
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 556, __pyx_L3_error)
-    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 556, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 556, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 556, __pyx_L3_error)
+    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 526, __pyx_L3_error)
+    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 526, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 526, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 526, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fill_columns", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 556, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("fill_columns", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 526, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.fill_columns", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_60fill_columns(__pyx_self, __pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_56fill_columns(__pyx_self, __pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_60fill_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_56fill_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("fill_columns", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 556, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 556, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_columns(__pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 556, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 526, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 526, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_columns(__pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 526, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -13305,7 +12680,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_60fill_columns(CYTHO
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":570
+/* "latticeModelMashup/src/Cfuncs.pyx":540
  *         fill_column((num + i) % dim[1], arr)
  * 
  * cpdef clear_columns(int num, int width, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -13313,7 +12688,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_60fill_columns(CYTHO
  *     Fills columns of arr with 0s
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_63clear_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_59clear_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_columns(int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   Py_ssize_t __pyx_v_i;
   PyObject *__pyx_r = NULL;
@@ -13327,7 +12702,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_columns(int __p
   PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("clear_columns", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":581
+  /* "latticeModelMashup/src/Cfuncs.pyx":551
  *     """
  *     cdef Py_ssize_t i
  *     for i in range(width):             # <<<<<<<<<<<<<<
@@ -13339,7 +12714,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_columns(int __p
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":582
+    /* "latticeModelMashup/src/Cfuncs.pyx":552
  *     cdef Py_ssize_t i
  *     for i in range(width):
  *         clear_column((num + i) % dim[1], arr)             # <<<<<<<<<<<<<<
@@ -13355,19 +12730,19 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_columns(int __p
     } else if (unlikely(__pyx_t_5 >= __pyx_v_dim.shape[0])) __pyx_t_6 = 0;
     if (unlikely(__pyx_t_6 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_6);
-      __PYX_ERR(0, 582, __pyx_L1_error)
+      __PYX_ERR(0, 552, __pyx_L1_error)
     }
     __pyx_t_6 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_5 * __pyx_v_dim.strides[0]) )));
     if (unlikely(__pyx_t_6 == 0)) {
       PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-      __PYX_ERR(0, 582, __pyx_L1_error)
+      __PYX_ERR(0, 552, __pyx_L1_error)
     }
-    __pyx_t_7 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_column(__Pyx_mod_Py_ssize_t(__pyx_t_4, __pyx_t_6), __pyx_v_arr); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 582, __pyx_L1_error)
+    __pyx_t_7 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_column(__Pyx_mod_Py_ssize_t(__pyx_t_4, __pyx_t_6), __pyx_v_arr); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 552, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":570
+  /* "latticeModelMashup/src/Cfuncs.pyx":540
  *         fill_column((num + i) % dim[1], arr)
  * 
  * cpdef clear_columns(int num, int width, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -13389,9 +12764,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_columns(int __p
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_63clear_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_62clear_columns[] = "\n    Fills columns of arr with 0s\n\n    :param num:     (int) index of column\n    :param width:   (int) number of columns to fill\n    :param dim:     (pointer) dimensions of arr\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_63clear_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_59clear_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_58clear_columns[] = "\n    Fills columns of arr with 0s\n\n    :param num:     (int) index of column\n    :param width:   (int) number of columns to fill\n    :param dim:     (pointer) dimensions of arr\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_59clear_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_num;
   int __pyx_v_width;
   __Pyx_memviewslice __pyx_v_dim = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -13426,23 +12801,23 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_63clear_columns(PyOb
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_width)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("clear_columns", 1, 4, 4, 1); __PYX_ERR(0, 570, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("clear_columns", 1, 4, 4, 1); __PYX_ERR(0, 540, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("clear_columns", 1, 4, 4, 2); __PYX_ERR(0, 570, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("clear_columns", 1, 4, 4, 2); __PYX_ERR(0, 540, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("clear_columns", 1, 4, 4, 3); __PYX_ERR(0, 570, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("clear_columns", 1, 4, 4, 3); __PYX_ERR(0, 540, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "clear_columns") < 0)) __PYX_ERR(0, 570, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "clear_columns") < 0)) __PYX_ERR(0, 540, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -13452,35 +12827,35 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_63clear_columns(PyOb
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 570, __pyx_L3_error)
-    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 570, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 570, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 570, __pyx_L3_error)
+    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 540, __pyx_L3_error)
+    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 540, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 540, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 540, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("clear_columns", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 570, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("clear_columns", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 540, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.clear_columns", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_62clear_columns(__pyx_self, __pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_58clear_columns(__pyx_self, __pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_62clear_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_58clear_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("clear_columns", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 570, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 570, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_columns(__pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 570, __pyx_L1_error)
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 540, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 540, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_columns(__pyx_v_num, __pyx_v_width, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 540, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -13499,7 +12874,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_62clear_columns(CYTH
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":584
+/* "latticeModelMashup/src/Cfuncs.pyx":554
  *         clear_column((num + i) % dim[1], arr)
  * 
  * cpdef replace_columns(int num, int width, int[:] nucol, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -13507,7 +12882,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_62clear_columns(CYTH
  *     Fills columns of arr with new values
  */
 
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_65replace_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_61replace_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_columns(int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_nucol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr, CYTHON_UNUSED int __pyx_skip_dispatch) {
   Py_ssize_t __pyx_v_i;
   PyObject *__pyx_r = NULL;
@@ -13521,7 +12896,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_columns(int _
   PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("replace_columns", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":596
+  /* "latticeModelMashup/src/Cfuncs.pyx":566
  *     """
  *     cdef Py_ssize_t i
  *     for i in range(width):             # <<<<<<<<<<<<<<
@@ -13533,7 +12908,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_columns(int _
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "latticeModelMashup/src/Cfuncs.pyx":597
+    /* "latticeModelMashup/src/Cfuncs.pyx":567
  *     cdef Py_ssize_t i
  *     for i in range(width):
  *         replace_column((num + i) % dim[1], nucol, arr)             # <<<<<<<<<<<<<<
@@ -13549,19 +12924,19 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_columns(int _
     } else if (unlikely(__pyx_t_5 >= __pyx_v_dim.shape[0])) __pyx_t_6 = 0;
     if (unlikely(__pyx_t_6 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_6);
-      __PYX_ERR(0, 597, __pyx_L1_error)
+      __PYX_ERR(0, 567, __pyx_L1_error)
     }
     __pyx_t_6 = (*((int *) ( /* dim=0 */ (__pyx_v_dim.data + __pyx_t_5 * __pyx_v_dim.strides[0]) )));
     if (unlikely(__pyx_t_6 == 0)) {
       PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-      __PYX_ERR(0, 597, __pyx_L1_error)
+      __PYX_ERR(0, 567, __pyx_L1_error)
     }
-    __pyx_t_7 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_column(__Pyx_mod_Py_ssize_t(__pyx_t_4, __pyx_t_6), __pyx_v_nucol, __pyx_v_arr); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 597, __pyx_L1_error)
+    __pyx_t_7 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_column(__Pyx_mod_Py_ssize_t(__pyx_t_4, __pyx_t_6), __pyx_v_nucol, __pyx_v_arr); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 567, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":584
+  /* "latticeModelMashup/src/Cfuncs.pyx":554
  *         clear_column((num + i) % dim[1], arr)
  * 
  * cpdef replace_columns(int num, int width, int[:] nucol, int[:] dim, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -13583,9 +12958,9 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_columns(int _
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_65replace_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_64replace_columns[] = "\n    Fills columns of arr with new values\n\n    :param num:     (int) index of column\n    :param width:   (int) number of columns to fill\n    :param dim:     (pointer) dimensions of arr\n    :param nucol:   (pointer) values to fill column\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
-static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_65replace_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_61replace_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18latticeModelMashup_3src_6Cfuncs_60replace_columns[] = "\n    Fills columns of arr with new values\n\n    :param num:     (int) index of column\n    :param width:   (int) number of columns to fill\n    :param dim:     (pointer) dimensions of arr\n    :param nucol:   (pointer) values to fill column\n    :param arr:   (2D pointer) arr\n    :return:        None\n    ";
+static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_61replace_columns(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_v_num;
   int __pyx_v_width;
   __Pyx_memviewslice __pyx_v_nucol = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -13623,29 +12998,29 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_65replace_columns(Py
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_width)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("replace_columns", 1, 5, 5, 1); __PYX_ERR(0, 584, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("replace_columns", 1, 5, 5, 1); __PYX_ERR(0, 554, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_nucol)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("replace_columns", 1, 5, 5, 2); __PYX_ERR(0, 584, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("replace_columns", 1, 5, 5, 2); __PYX_ERR(0, 554, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("replace_columns", 1, 5, 5, 3); __PYX_ERR(0, 584, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("replace_columns", 1, 5, 5, 3); __PYX_ERR(0, 554, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("replace_columns", 1, 5, 5, 4); __PYX_ERR(0, 584, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("replace_columns", 1, 5, 5, 4); __PYX_ERR(0, 554, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "replace_columns") < 0)) __PYX_ERR(0, 584, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "replace_columns") < 0)) __PYX_ERR(0, 554, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
       goto __pyx_L5_argtuple_error;
@@ -13656,37 +13031,37 @@ static PyObject *__pyx_pw_18latticeModelMashup_3src_6Cfuncs_65replace_columns(Py
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
       values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
     }
-    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 584, __pyx_L3_error)
-    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 584, __pyx_L3_error)
-    __pyx_v_nucol = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_nucol.memview)) __PYX_ERR(0, 584, __pyx_L3_error)
-    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 584, __pyx_L3_error)
-    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 584, __pyx_L3_error)
+    __pyx_v_num = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_num == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 554, __pyx_L3_error)
+    __pyx_v_width = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_width == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 554, __pyx_L3_error)
+    __pyx_v_nucol = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[2], PyBUF_WRITABLE); if (unlikely(!__pyx_v_nucol.memview)) __PYX_ERR(0, 554, __pyx_L3_error)
+    __pyx_v_dim = __Pyx_PyObject_to_MemoryviewSlice_ds_int(values[3], PyBUF_WRITABLE); if (unlikely(!__pyx_v_dim.memview)) __PYX_ERR(0, 554, __pyx_L3_error)
+    __pyx_v_arr = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(values[4], PyBUF_WRITABLE); if (unlikely(!__pyx_v_arr.memview)) __PYX_ERR(0, 554, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("replace_columns", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 584, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("replace_columns", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 554, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("latticeModelMashup.src.Cfuncs.replace_columns", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_64replace_columns(__pyx_self, __pyx_v_num, __pyx_v_width, __pyx_v_nucol, __pyx_v_dim, __pyx_v_arr);
+  __pyx_r = __pyx_pf_18latticeModelMashup_3src_6Cfuncs_60replace_columns(__pyx_self, __pyx_v_num, __pyx_v_width, __pyx_v_nucol, __pyx_v_dim, __pyx_v_arr);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_64replace_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_nucol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
+static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_60replace_columns(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_num, int __pyx_v_width, __Pyx_memviewslice __pyx_v_nucol, __Pyx_memviewslice __pyx_v_dim, __Pyx_memviewslice __pyx_v_arr) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("replace_columns", 0);
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_v_nucol.memview)) { __Pyx_RaiseUnboundLocalError("nucol"); __PYX_ERR(0, 584, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 584, __pyx_L1_error) }
-  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 584, __pyx_L1_error) }
-  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_columns(__pyx_v_num, __pyx_v_width, __pyx_v_nucol, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 584, __pyx_L1_error)
+  if (unlikely(!__pyx_v_nucol.memview)) { __Pyx_RaiseUnboundLocalError("nucol"); __PYX_ERR(0, 554, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_dim.memview)) { __Pyx_RaiseUnboundLocalError("dim"); __PYX_ERR(0, 554, __pyx_L1_error) }
+  if (unlikely(!__pyx_v_arr.memview)) { __Pyx_RaiseUnboundLocalError("arr"); __PYX_ERR(0, 554, __pyx_L1_error) }
+  __pyx_t_1 = __pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_columns(__pyx_v_num, __pyx_v_width, __pyx_v_nucol, __pyx_v_dim, __pyx_v_arr, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 554, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -13706,7 +13081,7 @@ static PyObject *__pyx_pf_18latticeModelMashup_3src_6Cfuncs_64replace_columns(CY
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":599
+/* "latticeModelMashup/src/Cfuncs.pyx":569
  *         replace_column((num + i) % dim[1], nucol, arr)
  * 
  * cdef fill_row(int num, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -13720,7 +13095,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_row(int __pyx_v_
   __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("fill_row", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":600
+  /* "latticeModelMashup/src/Cfuncs.pyx":570
  * 
  * cdef fill_row(int num, int[:, :] arr):
  *     arr[num, :] = 1             # <<<<<<<<<<<<<<
@@ -13739,7 +13114,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_row(int __pyx_v_
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 600, __pyx_L1_error)
+            __PYX_ERR(0, 570, __pyx_L1_error)
         }
         __pyx_t_1.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -13766,7 +13141,7 @@ __pyx_t_1.strides[0] = __pyx_v_arr.strides[1];
   __pyx_t_1.memview = NULL;
   __pyx_t_1.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":599
+  /* "latticeModelMashup/src/Cfuncs.pyx":569
  *         replace_column((num + i) % dim[1], nucol, arr)
  * 
  * cdef fill_row(int num, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -13787,7 +13162,7 @@ __pyx_t_1.strides[0] = __pyx_v_arr.strides[1];
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":602
+/* "latticeModelMashup/src/Cfuncs.pyx":572
  *     arr[num, :] = 1
  * 
  * cdef clear_row(int num, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -13801,7 +13176,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_row(int __pyx_v
   __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("clear_row", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":603
+  /* "latticeModelMashup/src/Cfuncs.pyx":573
  * 
  * cdef clear_row(int num, int[:, :] arr):
  *     arr[num, :] = 0             # <<<<<<<<<<<<<<
@@ -13820,7 +13195,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_row(int __pyx_v
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 603, __pyx_L1_error)
+            __PYX_ERR(0, 573, __pyx_L1_error)
         }
         __pyx_t_1.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -13847,7 +13222,7 @@ __pyx_t_1.strides[0] = __pyx_v_arr.strides[1];
   __pyx_t_1.memview = NULL;
   __pyx_t_1.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":602
+  /* "latticeModelMashup/src/Cfuncs.pyx":572
  *     arr[num, :] = 1
  * 
  * cdef clear_row(int num, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -13868,7 +13243,7 @@ __pyx_t_1.strides[0] = __pyx_v_arr.strides[1];
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":605
+/* "latticeModelMashup/src/Cfuncs.pyx":575
  *     arr[num, :] = 0
  * 
  * cdef replace_row(int num, int[:] nurow, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -13882,7 +13257,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_row(int __pyx
   __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("replace_row", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":606
+  /* "latticeModelMashup/src/Cfuncs.pyx":576
  * 
  * cdef replace_row(int num, int[:] nurow, int[:, :] arr):
  *     arr[num, :] = nurow             # <<<<<<<<<<<<<<
@@ -13901,7 +13276,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_row(int __pyx
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 0)");
-            __PYX_ERR(0, 606, __pyx_L1_error)
+            __PYX_ERR(0, 576, __pyx_L1_error)
         }
         __pyx_t_1.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -13910,12 +13285,12 @@ __pyx_t_1.shape[0] = __pyx_v_arr.shape[1];
 __pyx_t_1.strides[0] = __pyx_v_arr.strides[1];
     __pyx_t_1.suboffsets[0] = -1;
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_nurow, __pyx_t_1, 1, 1, 0) < 0)) __PYX_ERR(0, 606, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_nurow, __pyx_t_1, 1, 1, 0) < 0)) __PYX_ERR(0, 576, __pyx_L1_error)
   __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
   __pyx_t_1.memview = NULL;
   __pyx_t_1.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":605
+  /* "latticeModelMashup/src/Cfuncs.pyx":575
  *     arr[num, :] = 0
  * 
  * cdef replace_row(int num, int[:] nurow, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -13936,7 +13311,7 @@ if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_nurow, __pyx_t_1, 1, 1, 0) <
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":608
+/* "latticeModelMashup/src/Cfuncs.pyx":578
  *     arr[num, :] = nurow
  * 
  * cdef fill_column(int num, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -13950,7 +13325,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_fill_column(int __pyx
   __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("fill_column", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":609
+  /* "latticeModelMashup/src/Cfuncs.pyx":579
  * 
  * cdef fill_column(int num, int[:, :] arr):
  *     arr[:, num] = 1             # <<<<<<<<<<<<<<
@@ -13973,7 +13348,7 @@ __pyx_t_1.strides[0] = __pyx_v_arr.strides[0];
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 1)");
-            __PYX_ERR(0, 609, __pyx_L1_error)
+            __PYX_ERR(0, 579, __pyx_L1_error)
         }
         __pyx_t_1.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -13996,7 +13371,7 @@ __pyx_t_1.strides[0] = __pyx_v_arr.strides[0];
   __pyx_t_1.memview = NULL;
   __pyx_t_1.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":608
+  /* "latticeModelMashup/src/Cfuncs.pyx":578
  *     arr[num, :] = nurow
  * 
  * cdef fill_column(int num, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -14017,7 +13392,7 @@ __pyx_t_1.strides[0] = __pyx_v_arr.strides[0];
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":611
+/* "latticeModelMashup/src/Cfuncs.pyx":581
  *     arr[:, num] = 1
  * 
  * cdef clear_column(int num, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -14031,7 +13406,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_clear_column(int __py
   __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("clear_column", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":612
+  /* "latticeModelMashup/src/Cfuncs.pyx":582
  * 
  * cdef clear_column(int num, int[:, :] arr):
  *     arr[:, num] = 0             # <<<<<<<<<<<<<<
@@ -14054,7 +13429,7 @@ __pyx_t_1.strides[0] = __pyx_v_arr.strides[0];
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 1)");
-            __PYX_ERR(0, 612, __pyx_L1_error)
+            __PYX_ERR(0, 582, __pyx_L1_error)
         }
         __pyx_t_1.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -14077,7 +13452,7 @@ __pyx_t_1.strides[0] = __pyx_v_arr.strides[0];
   __pyx_t_1.memview = NULL;
   __pyx_t_1.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":611
+  /* "latticeModelMashup/src/Cfuncs.pyx":581
  *     arr[:, num] = 1
  * 
  * cdef clear_column(int num, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -14098,7 +13473,7 @@ __pyx_t_1.strides[0] = __pyx_v_arr.strides[0];
   return __pyx_r;
 }
 
-/* "latticeModelMashup/src/Cfuncs.pyx":614
+/* "latticeModelMashup/src/Cfuncs.pyx":584
  *     arr[:, num] = 0
  * 
  * cdef replace_column(int num, int[:] nucol, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -14111,7 +13486,7 @@ static PyObject *__pyx_f_18latticeModelMashup_3src_6Cfuncs_replace_column(int __
   __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannySetupContext("replace_column", 0);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":615
+  /* "latticeModelMashup/src/Cfuncs.pyx":585
  * 
  * cdef replace_column(int num, int[:] nucol, int[:, :] arr):
  *     arr[:, num] = nucol             # <<<<<<<<<<<<<<
@@ -14132,17 +13507,17 @@ __pyx_t_1.strides[0] = __pyx_v_arr.strides[0];
         if (!__Pyx_is_valid_index(__pyx_tmp_idx, __pyx_tmp_shape)) {
             PyErr_SetString(PyExc_IndexError,
                             "Index out of bounds (axis 1)");
-            __PYX_ERR(0, 615, __pyx_L1_error)
+            __PYX_ERR(0, 585, __pyx_L1_error)
         }
         __pyx_t_1.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_nucol, __pyx_t_1, 1, 1, 0) < 0)) __PYX_ERR(0, 615, __pyx_L1_error)
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_v_nucol, __pyx_t_1, 1, 1, 0) < 0)) __PYX_ERR(0, 585, __pyx_L1_error)
   __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
   __pyx_t_1.memview = NULL;
   __pyx_t_1.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":614
+  /* "latticeModelMashup/src/Cfuncs.pyx":584
  *     arr[:, num] = 0
  * 
  * cdef replace_column(int num, int[:] nucol, int[:, :] arr):             # <<<<<<<<<<<<<<
@@ -30663,39 +30038,37 @@ static PyTypeObject __pyx_type___pyx_memoryviewslice = {
 };
 
 static PyMethodDef __pyx_methods[] = {
-  {"change_zoom_level", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_1change_zoom_level, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_change_zoom_level},
+  {"prepair_rule", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_1prepair_rule, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_prepair_rule},
   {"advance_array", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_3advance_array, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_2advance_array},
   {"change_buffer", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_5change_buffer, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_4change_buffer},
   {"init_array_buffer", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_7init_array_buffer, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_6init_array_buffer},
   {"resize_array_buffer", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_9resize_array_buffer, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_8resize_array_buffer},
-  {"resize_array", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_11resize_array, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_10resize_array},
-  {"init_array", (PyCFunction)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_13init_array, METH_O, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_12init_array},
-  {"prepair_rule", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_15prepair_rule, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_14prepair_rule},
-  {"randomize_center", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_17randomize_center, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_16randomize_center},
-  {"add_noise", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_19add_noise, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_18add_noise},
-  {"ising_process", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_21ising_process, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_20ising_process},
-  {"conway_process", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_23conway_process, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_22conway_process},
-  {"roll_columns", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_25roll_columns, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_24roll_columns},
-  {"roll_rows", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_27roll_rows, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_26roll_rows},
-  {"roll_columns_pointer", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_29roll_columns_pointer, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_28roll_columns_pointer},
-  {"roll_rows_pointer", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_31roll_rows_pointer, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_30roll_rows_pointer},
-  {"sum_rim", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_33sum_rim, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_32sum_rim},
-  {"check_rim", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_35check_rim, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_34check_rim},
-  {"scroll_bars", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_37scroll_bars, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_36scroll_bars},
-  {"set_bounds", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_39set_bounds, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_38set_bounds},
-  {"fill_array", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_41fill_array, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_40fill_array},
-  {"clear_array", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_43clear_array, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_42clear_array},
-  {"replace_array", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_45replace_array, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_44replace_array},
-  {"create_box", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_47create_box, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_46create_box},
-  {"set_points", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_49set_points, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_48set_points},
-  {"fill_bounds", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_51fill_bounds, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_50fill_bounds},
-  {"clear_bounds", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_53clear_bounds, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_52clear_bounds},
-  {"fill_rows", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_55fill_rows, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_54fill_rows},
-  {"clear_rows", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_57clear_rows, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_56clear_rows},
-  {"replace_rows", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_59replace_rows, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_58replace_rows},
-  {"fill_columns", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_61fill_columns, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_60fill_columns},
-  {"clear_columns", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_63clear_columns, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_62clear_columns},
-  {"replace_columns", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_65replace_columns, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_64replace_columns},
+  {"init_array", (PyCFunction)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_11init_array, METH_O, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_10init_array},
+  {"randomize_center", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_13randomize_center, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_12randomize_center},
+  {"add_noise", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_15add_noise, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_14add_noise},
+  {"ising_process", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_17ising_process, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_16ising_process},
+  {"conway_process", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_19conway_process, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_18conway_process},
+  {"roll_columns", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_21roll_columns, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_20roll_columns},
+  {"roll_rows", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_23roll_rows, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_22roll_rows},
+  {"roll_columns_pointer", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_25roll_columns_pointer, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_24roll_columns_pointer},
+  {"roll_rows_pointer", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_27roll_rows_pointer, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_26roll_rows_pointer},
+  {"sum_rim", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_29sum_rim, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_28sum_rim},
+  {"check_rim", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_31check_rim, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_30check_rim},
+  {"scroll_bars", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_33scroll_bars, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_32scroll_bars},
+  {"set_bounds", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_35set_bounds, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_34set_bounds},
+  {"fill_array", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_37fill_array, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_36fill_array},
+  {"clear_array", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_39clear_array, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_38clear_array},
+  {"replace_array", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_41replace_array, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_40replace_array},
+  {"create_box", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_43create_box, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_42create_box},
+  {"set_points", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_45set_points, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_44set_points},
+  {"fill_bounds", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_47fill_bounds, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_46fill_bounds},
+  {"clear_bounds", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_49clear_bounds, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_48clear_bounds},
+  {"fill_rows", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_51fill_rows, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_50fill_rows},
+  {"clear_rows", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_53clear_rows, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_52clear_rows},
+  {"replace_rows", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_55replace_rows, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_54replace_rows},
+  {"fill_columns", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_57fill_columns, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_56fill_columns},
+  {"clear_columns", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_59clear_columns, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_58clear_columns},
+  {"replace_columns", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18latticeModelMashup_3src_6Cfuncs_61replace_columns, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18latticeModelMashup_3src_6Cfuncs_60replace_columns},
   {0, 0, 0, 0}
 };
 
@@ -30772,13 +30145,11 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_add, __pyx_k_add, sizeof(__pyx_k_add), 0, 0, 1, 1},
   {&__pyx_n_s_allocate_buffer, __pyx_k_allocate_buffer, sizeof(__pyx_k_allocate_buffer), 0, 0, 1, 1},
   {&__pyx_n_s_arr, __pyx_k_arr, sizeof(__pyx_k_arr), 0, 0, 1, 1},
-  {&__pyx_n_s_arr_old, __pyx_k_arr_old, sizeof(__pyx_k_arr_old), 0, 0, 1, 1},
   {&__pyx_n_s_array, __pyx_k_array, sizeof(__pyx_k_array), 0, 0, 1, 1},
   {&__pyx_n_s_asarray, __pyx_k_asarray, sizeof(__pyx_k_asarray), 0, 0, 1, 1},
   {&__pyx_n_s_base, __pyx_k_base, sizeof(__pyx_k_base), 0, 0, 1, 1},
   {&__pyx_n_s_beta, __pyx_k_beta, sizeof(__pyx_k_beta), 0, 0, 1, 1},
   {&__pyx_n_s_buf, __pyx_k_buf, sizeof(__pyx_k_buf), 0, 0, 1, 1},
-  {&__pyx_n_s_buf_len, __pyx_k_buf_len, sizeof(__pyx_k_buf_len), 0, 0, 1, 1},
   {&__pyx_n_s_buf_nu, __pyx_k_buf_nu, sizeof(__pyx_k_buf_nu), 0, 0, 1, 1},
   {&__pyx_n_s_buf_old, __pyx_k_buf_old, sizeof(__pyx_k_buf_old), 0, 0, 1, 1},
   {&__pyx_n_s_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 0, 1, 1},
@@ -30808,7 +30179,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_frame, __pyx_k_frame, sizeof(__pyx_k_frame), 0, 0, 1, 1},
   {&__pyx_n_s_getstate, __pyx_k_getstate, sizeof(__pyx_k_getstate), 0, 0, 1, 1},
   {&__pyx_kp_s_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 0, 1, 0},
-  {&__pyx_n_s_head_pos, __pyx_k_head_pos, sizeof(__pyx_k_head_pos), 0, 0, 1, 1},
   {&__pyx_n_s_hi, __pyx_k_hi, sizeof(__pyx_k_hi), 0, 0, 1, 1},
   {&__pyx_n_s_horizontal, __pyx_k_horizontal, sizeof(__pyx_k_horizontal), 0, 0, 1, 1},
   {&__pyx_n_s_i, __pyx_k_i, sizeof(__pyx_k_i), 0, 0, 1, 1},
@@ -30892,7 +30262,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 127, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 109, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(2, 272, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(2, 856, __pyx_L1_error)
@@ -31659,14 +31029,14 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_time, __pyx_t_1) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":42
+  /* "latticeModelMashup/src/Cfuncs.pyx":35
  *     int pos, int length, int[:] dim_old, int[:, :, :] buf_old,
  *     int[:] dim_nu, int[:, :, :] buf_nu,
  *     int[:] offset=array.array('i', [1,1]), int[:] cut=array.array('i', [0,0])             # <<<<<<<<<<<<<<
  * ):
  *     """
  */
-  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_int_1);
   __Pyx_GIVEREF(__pyx_int_1);
@@ -31674,7 +31044,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_int_1);
   __Pyx_GIVEREF(__pyx_int_1);
   PyList_SET_ITEM(__pyx_t_1, 1, __pyx_int_1);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_s_i);
   __Pyx_GIVEREF(__pyx_n_s_i);
@@ -31682,15 +31052,15 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_k_ = __pyx_t_3;
   __pyx_t_3.memview = NULL;
   __pyx_t_3.data = NULL;
-  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_int_0);
   __Pyx_GIVEREF(__pyx_int_0);
@@ -31698,7 +31068,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_int_0);
   __Pyx_GIVEREF(__pyx_int_0);
   PyList_SET_ITEM(__pyx_t_1, 1, __pyx_int_0);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_s_i);
   __Pyx_GIVEREF(__pyx_n_s_i);
@@ -31706,23 +31076,23 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_k__2 = __pyx_t_3;
   __pyx_t_3.memview = NULL;
   __pyx_t_3.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":39
+  /* "latticeModelMashup/src/Cfuncs.pyx":32
  *     buf[(pos + 1) % length] = buf[pos]
  * 
  * cpdef change_buffer(             # <<<<<<<<<<<<<<
  *     int pos, int length, int[:] dim_old, int[:, :, :] buf_old,
  *     int[:] dim_nu, int[:, :, :] buf_nu,
  */
-  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_int_1);
   __Pyx_GIVEREF(__pyx_int_1);
@@ -31731,14 +31101,14 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_int_1);
   PyList_SET_ITEM(__pyx_t_1, 1, __pyx_int_1);
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":42
+  /* "latticeModelMashup/src/Cfuncs.pyx":35
  *     int pos, int length, int[:] dim_old, int[:, :, :] buf_old,
  *     int[:] dim_nu, int[:, :, :] buf_nu,
  *     int[:] offset=array.array('i', [1,1]), int[:] cut=array.array('i', [0,0])             # <<<<<<<<<<<<<<
  * ):
  *     """
  */
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_s_i);
   __Pyx_GIVEREF(__pyx_n_s_i);
@@ -31746,15 +31116,15 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_k_ = __pyx_t_3;
   __pyx_t_3.memview = NULL;
   __pyx_t_3.data = NULL;
-  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_int_0);
   __Pyx_GIVEREF(__pyx_int_0);
@@ -31762,7 +31132,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_int_0);
   __Pyx_GIVEREF(__pyx_int_0);
   PyList_SET_ITEM(__pyx_t_1, 1, __pyx_int_0);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_s_i);
   __Pyx_GIVEREF(__pyx_n_s_i);
@@ -31770,23 +31140,23 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_k__2 = __pyx_t_3;
   __pyx_t_3.memview = NULL;
   __pyx_t_3.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":372
+  /* "latticeModelMashup/src/Cfuncs.pyx":342
  * cpdef scroll_bars(
  *     int[:] dim, int[:, :] arr,
  *     int[:] horizontal = array.array('i', [0, 1, 1, 1]),             # <<<<<<<<<<<<<<
  *     int[:] vertical = array.array('i', [0, 1, 1, 1]),
  * ):
  */
-  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 372, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 342, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_int_0);
   __Pyx_GIVEREF(__pyx_int_0);
@@ -31800,7 +31170,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_int_1);
   __Pyx_GIVEREF(__pyx_int_1);
   PyList_SET_ITEM(__pyx_t_1, 3, __pyx_int_1);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 372, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 342, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_s_i);
   __Pyx_GIVEREF(__pyx_n_s_i);
@@ -31808,23 +31178,23 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 372, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 342, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 372, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 342, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_k__3 = __pyx_t_3;
   __pyx_t_3.memview = NULL;
   __pyx_t_3.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":373
+  /* "latticeModelMashup/src/Cfuncs.pyx":343
  *     int[:] dim, int[:, :] arr,
  *     int[:] horizontal = array.array('i', [0, 1, 1, 1]),
  *     int[:] vertical = array.array('i', [0, 1, 1, 1]),             # <<<<<<<<<<<<<<
  * ):
  *     """
  */
-  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 373, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 343, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_int_0);
   __Pyx_GIVEREF(__pyx_int_0);
@@ -31838,7 +31208,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_int_1);
   __Pyx_GIVEREF(__pyx_int_1);
   PyList_SET_ITEM(__pyx_t_1, 3, __pyx_int_1);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 373, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 343, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_s_i);
   __Pyx_GIVEREF(__pyx_n_s_i);
@@ -31846,23 +31216,23 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 373, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 343, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 373, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 343, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_k__4 = __pyx_t_3;
   __pyx_t_3.memview = NULL;
   __pyx_t_3.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":372
+  /* "latticeModelMashup/src/Cfuncs.pyx":342
  * cpdef scroll_bars(
  *     int[:] dim, int[:, :] arr,
  *     int[:] horizontal = array.array('i', [0, 1, 1, 1]),             # <<<<<<<<<<<<<<
  *     int[:] vertical = array.array('i', [0, 1, 1, 1]),
  * ):
  */
-  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 372, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 342, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_int_0);
   __Pyx_GIVEREF(__pyx_int_0);
@@ -31876,7 +31246,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_int_1);
   __Pyx_GIVEREF(__pyx_int_1);
   PyList_SET_ITEM(__pyx_t_1, 3, __pyx_int_1);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 372, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 342, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_s_i);
   __Pyx_GIVEREF(__pyx_n_s_i);
@@ -31884,23 +31254,23 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 372, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 342, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 372, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 342, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_k__3 = __pyx_t_3;
   __pyx_t_3.memview = NULL;
   __pyx_t_3.data = NULL;
 
-  /* "latticeModelMashup/src/Cfuncs.pyx":373
+  /* "latticeModelMashup/src/Cfuncs.pyx":343
  *     int[:] dim, int[:, :] arr,
  *     int[:] horizontal = array.array('i', [0, 1, 1, 1]),
  *     int[:] vertical = array.array('i', [0, 1, 1, 1]),             # <<<<<<<<<<<<<<
  * ):
  *     """
  */
-  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 373, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 343, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_int_0);
   __Pyx_GIVEREF(__pyx_int_0);
@@ -31914,7 +31284,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_INCREF(__pyx_int_1);
   __Pyx_GIVEREF(__pyx_int_1);
   PyList_SET_ITEM(__pyx_t_1, 3, __pyx_int_1);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 373, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 343, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_s_i);
   __Pyx_GIVEREF(__pyx_n_s_i);
@@ -31922,10 +31292,10 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 373, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 343, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 373, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 343, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_k__4 = __pyx_t_3;
   __pyx_t_3.memview = NULL;
@@ -32166,6 +31536,120 @@ static PyObject *__Pyx_GetBuiltinName(PyObject *name) {
     return result;
 }
 
+/* None */
+static CYTHON_INLINE Py_ssize_t __Pyx_mod_Py_ssize_t(Py_ssize_t a, Py_ssize_t b) {
+    Py_ssize_t r = a % b;
+    r += ((r != 0) & ((r ^ b) < 0)) * b;
+    return r;
+}
+
+/* GetItemInt */
+static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
+    PyObject *r;
+    if (!j) return NULL;
+    r = PyObject_GetItem(o, j);
+    Py_DECREF(j);
+    return r;
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
+                                                              CYTHON_NCP_UNUSED int wraparound,
+                                                              CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    Py_ssize_t wrapped_i = i;
+    if (wraparound & unlikely(i < 0)) {
+        wrapped_i += PyList_GET_SIZE(o);
+    }
+    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyList_GET_SIZE(o)))) {
+        PyObject *r = PyList_GET_ITEM(o, wrapped_i);
+        Py_INCREF(r);
+        return r;
+    }
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+#else
+    return PySequence_GetItem(o, i);
+#endif
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
+                                                              CYTHON_NCP_UNUSED int wraparound,
+                                                              CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    Py_ssize_t wrapped_i = i;
+    if (wraparound & unlikely(i < 0)) {
+        wrapped_i += PyTuple_GET_SIZE(o);
+    }
+    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyTuple_GET_SIZE(o)))) {
+        PyObject *r = PyTuple_GET_ITEM(o, wrapped_i);
+        Py_INCREF(r);
+        return r;
+    }
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+#else
+    return PySequence_GetItem(o, i);
+#endif
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, int is_list,
+                                                     CYTHON_NCP_UNUSED int wraparound,
+                                                     CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS && CYTHON_USE_TYPE_SLOTS
+    if (is_list || PyList_CheckExact(o)) {
+        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyList_GET_SIZE(o);
+        if ((!boundscheck) || (likely(__Pyx_is_valid_index(n, PyList_GET_SIZE(o))))) {
+            PyObject *r = PyList_GET_ITEM(o, n);
+            Py_INCREF(r);
+            return r;
+        }
+    }
+    else if (PyTuple_CheckExact(o)) {
+        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyTuple_GET_SIZE(o);
+        if ((!boundscheck) || likely(__Pyx_is_valid_index(n, PyTuple_GET_SIZE(o)))) {
+            PyObject *r = PyTuple_GET_ITEM(o, n);
+            Py_INCREF(r);
+            return r;
+        }
+    } else {
+        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
+        if (likely(m && m->sq_item)) {
+            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
+                Py_ssize_t l = m->sq_length(o);
+                if (likely(l >= 0)) {
+                    i += l;
+                } else {
+                    if (!PyErr_ExceptionMatches(PyExc_OverflowError))
+                        return NULL;
+                    PyErr_Clear();
+                }
+            }
+            return m->sq_item(o, i);
+        }
+    }
+#else
+    if (is_list || PySequence_Check(o)) {
+        return PySequence_GetItem(o, i);
+    }
+#endif
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+}
+
+/* PyObjectCall */
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw) {
+    PyObject *result;
+    ternaryfunc call = func->ob_type->tp_call;
+    if (unlikely(!call))
+        return PyObject_Call(func, arg, kw);
+    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
+        return NULL;
+    result = (*call)(func, arg, kw);
+    Py_LeaveRecursiveCall();
+    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
+        PyErr_SetString(
+            PyExc_SystemError,
+            "NULL result without error in PyObject_Call");
+    }
+    return result;
+}
+#endif
+
 /* MemviewSliceInit */
 static int
 __Pyx_init_memviewslice(struct __pyx_memoryview_obj *memview,
@@ -32302,78 +31786,6 @@ static CYTHON_INLINE void __Pyx_XDEC_MEMVIEW(__Pyx_memviewslice *memslice,
     } else {
         memslice->memview = NULL;
     }
-}
-
-/* RaiseTooManyValuesToUnpack */
-static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected) {
-    PyErr_Format(PyExc_ValueError,
-                 "too many values to unpack (expected %" CYTHON_FORMAT_SSIZE_T "d)", expected);
-}
-
-/* RaiseNeedMoreValuesToUnpack */
-static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index) {
-    PyErr_Format(PyExc_ValueError,
-                 "need more than %" CYTHON_FORMAT_SSIZE_T "d value%.1s to unpack",
-                 index, (index == 1) ? "" : "s");
-}
-
-/* IterFinish */
-static CYTHON_INLINE int __Pyx_IterFinish(void) {
-#if CYTHON_FAST_THREAD_STATE
-    PyThreadState *tstate = __Pyx_PyThreadState_Current;
-    PyObject* exc_type = tstate->curexc_type;
-    if (unlikely(exc_type)) {
-        if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) {
-            PyObject *exc_value, *exc_tb;
-            exc_value = tstate->curexc_value;
-            exc_tb = tstate->curexc_traceback;
-            tstate->curexc_type = 0;
-            tstate->curexc_value = 0;
-            tstate->curexc_traceback = 0;
-            Py_DECREF(exc_type);
-            Py_XDECREF(exc_value);
-            Py_XDECREF(exc_tb);
-            return 0;
-        } else {
-            return -1;
-        }
-    }
-    return 0;
-#else
-    if (unlikely(PyErr_Occurred())) {
-        if (likely(PyErr_ExceptionMatches(PyExc_StopIteration))) {
-            PyErr_Clear();
-            return 0;
-        } else {
-            return -1;
-        }
-    }
-    return 0;
-#endif
-}
-
-/* UnpackItemEndCheck */
-static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected) {
-    if (unlikely(retval)) {
-        Py_DECREF(retval);
-        __Pyx_RaiseTooManyValuesError(expected);
-        return -1;
-    } else {
-        return __Pyx_IterFinish();
-    }
-    return 0;
-}
-
-/* None */
-static CYTHON_INLINE int __Pyx_mod_int(int a, int b) {
-    int r = a % b;
-    r += ((r != 0) & ((r ^ b) < 0)) * b;
-    return r;
-}
-
-/* None */
-static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname) {
-    PyErr_Format(PyExc_UnboundLocalError, "local variable '%s' referenced before assignment", varname);
 }
 
 /* RaiseArgTupleInvalid */
@@ -32518,9 +31930,42 @@ bad:
     return -1;
 }
 
+/* ArgTypeTest */
+static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact)
+{
+    if (unlikely(!type)) {
+        PyErr_SetString(PyExc_SystemError, "Missing type object");
+        return 0;
+    }
+    else if (exact) {
+        #if PY_MAJOR_VERSION == 2
+        if ((type == &PyBaseString_Type) && likely(__Pyx_PyBaseString_CheckExact(obj))) return 1;
+        #endif
+    }
+    else {
+        if (likely(__Pyx_TypeCheck(obj, type))) return 1;
+    }
+    PyErr_Format(PyExc_TypeError,
+        "Argument '%.200s' has incorrect type (expected %.200s, got %.200s)",
+        name, type->tp_name, Py_TYPE(obj)->tp_name);
+    return 0;
+}
+
 /* None */
 static CYTHON_INLINE long __Pyx_mod_long(long a, long b) {
     long r = a % b;
+    r += ((r != 0) & ((r ^ b) < 0)) * b;
+    return r;
+}
+
+/* None */
+static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname) {
+    PyErr_Format(PyExc_UnboundLocalError, "local variable '%s' referenced before assignment", varname);
+}
+
+/* None */
+static CYTHON_INLINE int __Pyx_mod_int(int a, int b) {
+    int r = a % b;
     r += ((r != 0) & ((r ^ b) < 0)) * b;
     return r;
 }
@@ -32707,141 +32152,6 @@ static CYTHON_INLINE PyObject * __Pyx_PyCFunction_FastCall(PyObject *func_obj, P
     }
 }
 #endif
-
-/* PyObjectCall */
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw) {
-    PyObject *result;
-    ternaryfunc call = func->ob_type->tp_call;
-    if (unlikely(!call))
-        return PyObject_Call(func, arg, kw);
-    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
-        return NULL;
-    result = (*call)(func, arg, kw);
-    Py_LeaveRecursiveCall();
-    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
-        PyErr_SetString(
-            PyExc_SystemError,
-            "NULL result without error in PyObject_Call");
-    }
-    return result;
-}
-#endif
-
-/* None */
-static CYTHON_INLINE Py_ssize_t __Pyx_mod_Py_ssize_t(Py_ssize_t a, Py_ssize_t b) {
-    Py_ssize_t r = a % b;
-    r += ((r != 0) & ((r ^ b) < 0)) * b;
-    return r;
-}
-
-/* GetItemInt */
-static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
-    PyObject *r;
-    if (!j) return NULL;
-    r = PyObject_GetItem(o, j);
-    Py_DECREF(j);
-    return r;
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
-                                                              CYTHON_NCP_UNUSED int wraparound,
-                                                              CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    Py_ssize_t wrapped_i = i;
-    if (wraparound & unlikely(i < 0)) {
-        wrapped_i += PyList_GET_SIZE(o);
-    }
-    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyList_GET_SIZE(o)))) {
-        PyObject *r = PyList_GET_ITEM(o, wrapped_i);
-        Py_INCREF(r);
-        return r;
-    }
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-#else
-    return PySequence_GetItem(o, i);
-#endif
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
-                                                              CYTHON_NCP_UNUSED int wraparound,
-                                                              CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    Py_ssize_t wrapped_i = i;
-    if (wraparound & unlikely(i < 0)) {
-        wrapped_i += PyTuple_GET_SIZE(o);
-    }
-    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyTuple_GET_SIZE(o)))) {
-        PyObject *r = PyTuple_GET_ITEM(o, wrapped_i);
-        Py_INCREF(r);
-        return r;
-    }
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-#else
-    return PySequence_GetItem(o, i);
-#endif
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, int is_list,
-                                                     CYTHON_NCP_UNUSED int wraparound,
-                                                     CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS && CYTHON_USE_TYPE_SLOTS
-    if (is_list || PyList_CheckExact(o)) {
-        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyList_GET_SIZE(o);
-        if ((!boundscheck) || (likely(__Pyx_is_valid_index(n, PyList_GET_SIZE(o))))) {
-            PyObject *r = PyList_GET_ITEM(o, n);
-            Py_INCREF(r);
-            return r;
-        }
-    }
-    else if (PyTuple_CheckExact(o)) {
-        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyTuple_GET_SIZE(o);
-        if ((!boundscheck) || likely(__Pyx_is_valid_index(n, PyTuple_GET_SIZE(o)))) {
-            PyObject *r = PyTuple_GET_ITEM(o, n);
-            Py_INCREF(r);
-            return r;
-        }
-    } else {
-        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
-        if (likely(m && m->sq_item)) {
-            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
-                Py_ssize_t l = m->sq_length(o);
-                if (likely(l >= 0)) {
-                    i += l;
-                } else {
-                    if (!PyErr_ExceptionMatches(PyExc_OverflowError))
-                        return NULL;
-                    PyErr_Clear();
-                }
-            }
-            return m->sq_item(o, i);
-        }
-    }
-#else
-    if (is_list || PySequence_Check(o)) {
-        return PySequence_GetItem(o, i);
-    }
-#endif
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-}
-
-/* ArgTypeTest */
-static int __Pyx__ArgTypeTest(PyObject *obj, PyTypeObject *type, const char *name, int exact)
-{
-    if (unlikely(!type)) {
-        PyErr_SetString(PyExc_SystemError, "Missing type object");
-        return 0;
-    }
-    else if (exact) {
-        #if PY_MAJOR_VERSION == 2
-        if ((type == &PyBaseString_Type) && likely(__Pyx_PyBaseString_CheckExact(obj))) return 1;
-        #endif
-    }
-    else {
-        if (likely(__Pyx_TypeCheck(obj, type))) return 1;
-    }
-    PyErr_Format(PyExc_TypeError,
-        "Argument '%.200s' has incorrect type (expected %.200s, got %.200s)",
-        name, type->tp_name, Py_TYPE(obj)->tp_name);
-    return 0;
-}
 
 /* None */
 static CYTHON_INLINE long __Pyx_div_long(long a, long b) {
@@ -33154,6 +32464,19 @@ static PyObject *__Pyx_PyDict_GetItem(PyObject *d, PyObject* key) {
     return value;
 }
 #endif
+
+/* RaiseTooManyValuesToUnpack */
+static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected) {
+    PyErr_Format(PyExc_ValueError,
+                 "too many values to unpack (expected %" CYTHON_FORMAT_SSIZE_T "d)", expected);
+}
+
+/* RaiseNeedMoreValuesToUnpack */
+static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index) {
+    PyErr_Format(PyExc_ValueError,
+                 "need more than %" CYTHON_FORMAT_SSIZE_T "d value%.1s to unpack",
+                 index, (index == 1) ? "" : "s");
+}
 
 /* RaiseNoneIterError */
 static CYTHON_INLINE void __Pyx_RaiseNoneNotIterableError(void) {
@@ -35239,17 +34562,17 @@ no_fail:
 }
 
 /* ObjectToMemviewSlice */
-  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_int(PyObject *obj, int writable_flag) {
+  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsdsds_int(PyObject *obj, int writable_flag) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
+    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED), (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED), (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
     int retcode;
     if (obj == Py_None) {
         result.memview = (struct __pyx_memoryview_obj *) Py_None;
         return result;
     }
     retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS_RO | writable_flag, 1,
+                                                 PyBUF_RECORDS_RO | writable_flag, 3,
                                                  &__Pyx_TypeInfo_int, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
@@ -35262,17 +34585,17 @@ __pyx_fail:
 }
 
 /* ObjectToMemviewSlice */
-  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsdsds_int(PyObject *obj, int writable_flag) {
+  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_int(PyObject *obj, int writable_flag) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED), (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED), (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
+    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
     int retcode;
     if (obj == Py_None) {
         result.memview = (struct __pyx_memoryview_obj *) Py_None;
         return result;
     }
     retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS_RO | writable_flag, 3,
+                                                 PyBUF_RECORDS_RO | writable_flag, 1,
                                                  &__Pyx_TypeInfo_int, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))
@@ -35338,6 +34661,18 @@ __pyx_fail:
     }
 }
 
+/* MemviewDtypeToObject */
+  static CYTHON_INLINE PyObject *__pyx_memview_get_int(const char *itemp) {
+    return (PyObject *) __Pyx_PyInt_From_int(*(int *) itemp);
+}
+static CYTHON_INLINE int __pyx_memview_set_int(const char *itemp, PyObject *obj) {
+    int value = __Pyx_PyInt_As_int(obj);
+    if ((value == (int)-1) && PyErr_Occurred())
+        return 0;
+    *(int *) itemp = value;
+    return 1;
+}
+
 /* CIntToPy */
   static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value) {
     const long neg_one = (long) ((long) 0 - (long) 1), const_zero = (long) 0;
@@ -35367,18 +34702,6 @@ __pyx_fail:
         return _PyLong_FromByteArray(bytes, sizeof(long),
                                      little, !is_unsigned);
     }
-}
-
-/* MemviewDtypeToObject */
-  static CYTHON_INLINE PyObject *__pyx_memview_get_int(const char *itemp) {
-    return (PyObject *) __Pyx_PyInt_From_int(*(int *) itemp);
-}
-static CYTHON_INLINE int __pyx_memview_set_int(const char *itemp, PyObject *obj) {
-    int value = __Pyx_PyInt_As_int(obj);
-    if ((value == (int)-1) && PyErr_Occurred())
-        return 0;
-    *(int *) itemp = value;
-    return 1;
 }
 
 /* Declarations */

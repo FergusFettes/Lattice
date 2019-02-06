@@ -3,27 +3,29 @@ import numpy as np
 import time
 import operator
 import regex as re
+import contextlib
+import unittest
+
+from functools import partial
 
 from numpy.core import(
      float32, empty, arange, array_repr, ndarray, isnat, array)
 
-from src.Cfuncs import *
-from src.Pfuncs import *
-from src.PHifuncs import *
+from Cfuncs import *
+from Pfuncs import *
+from PHifuncs import *
 
-def test_all():
-    return
-    #automatically go through all the tests on this page
-    import src.tests as l
+debug = True
+
 
 def tst_arr():
     """
     Creates the following array:
         [00000,
-         00000,
-         01100,
-         01100,
-         00000]
+        00000,
+        01100,
+        01100,
+        00000]
     and returns a memoryview to it for the rest of the tests.
 
     :return:        (pointer) arr
@@ -35,85 +37,159 @@ def tst_arr():
 def tst_dim():
     return memoryview(array.array('i', [5, 5]))
 
-def test_set_points():
-    points = np.array([[1,1],[2,2]], np.intc)
-    arr = tst_arr()
-    set_points(points, tst_dim(), arr)
+class ArrayRollTestCase(unittest.TestCase):
 
-    arr2 = tst_arr()
-    arr2[1,1] = 1
-    arr2[2,2] = 1
+    def test_roll_columns_forward(self):
+        arrout = roll_columns(1, tst_dim(), tst_arr())
+        assert_array_equal(arrout, np.roll(tst_arr(), 1, axis=1))
 
-    assert_array_equal(arr2, arr)
-    print('Set points passed. REWRITE PRINTS AUTO')
+    def test_roll_columns_back(self):
+        arrout = roll_columns(-1, tst_dim(), tst_arr())
+        assert_array_equal(arrout, np.roll(tst_arr(), -1, axis=1))
 
-def test_fill_bounds():
-    arr = tst_arr()
-    fill_bounds(tst_dim(), arr)
+    def test_roll_rows_forward(self):
+        arrout = roll_rows(1, tst_dim(), tst_arr())
+        assert_array_equal(arrout, np.roll(tst_arr(), 1, axis=0))
 
-    arr2 = tst_arr()
-    arr2[0, :] = 1
-    arr2[-1, :] = 1
-    arr2[:, 0] = 1
-    arr2[:, -1] = 1
+    def test_roll_rows_back(self):
+        arrout = roll_rows(-1, tst_dim(), tst_arr())
+        assert_array_equal(arrout, np.roll(tst_arr(), -1, axis=0))
 
-    assert_array_equal(arr2, arr)
-    print('Fill bounds passed')
+    def test_roll_columns_pointer_forward(self):
+        arrout = tst_arr()
+        roll_columns_pointer(1, tst_dim(), arrout)
+        assert_array_equal(arrout, np.roll(tst_arr(), 1, axis=1))
 
-def test_clear_bounds():
-    arr = tst_arr()
-    clear_bounds(tst_dim(), arr)
+    def test_roll_columns_pointer_back(self):
+        arrout = tst_arr()
+        roll_columns_pointer(-1, tst_dim(), arrout)
+        assert_array_equal(arrout, np.roll(tst_arr(), -1, axis=1))
 
-    arr2 = tst_arr()
-    arr2[0, :] = 0
-    arr2[-1, :] = 0
-    arr2[:, 0] = 0
-    arr2[:, -1] = 0
+    def test_roll_rows_pointer_forward(self):
+        arrout = tst_arr()
+        roll_rows_pointer(1, tst_dim(), arrout)
+        assert_array_equal(arrout, np.roll(tst_arr(), 1, axis=0))
 
-    assert_array_equal(arr2, arr)
-    print('Clear bounds passed')
+    def test_roll_rows_pointer_back(self):
+        arrout = tst_arr()
+        roll_rows_pointer(-1, tst_dim(), arrout)
+        assert_array_equal(arrout, np.roll(tst_arr(), -1, axis=0))
+        # self.assertRaises(assert_array_equal(arrout, np.roll(tst_arr(), -1, axis=0)))
 
-def test_fill_columns():
-    arr = tst_arr()
-    fill_columns(0, 5, tst_dim(), arr)
-    assert_array_equal(np.ones_like(tst_arr()), arr)
-    print('Fill columns passed')
 
-def test_clear_columns():
-    arr = tst_arr()
-    clear_columns(0, 5, tst_dim(), arr)
-    assert_array_equal(np.zeros_like(tst_arr()), arr)
-    print('Clear columns passed')
+class ArrayRollSpeedTestCase(unittest.TestCase):
 
-def test_fill_rows():
-    arr = tst_arr()
-    fill_rows(0, 5, tst_dim(), arr)
-    assert_array_equal(np.ones_like(tst_arr()), arr)
-    print('Fill rows passed')
+    def test_roll_columns_speed(self):
+        print('WARNING: passing.')
 
-def test_clear_rows():
-    arr = tst_arr()
-    clear_rows(0, 5, tst_dim(), arr)
-    assert_array_equal(np.zeros_like(tst_arr()), arr)
-    print('Clear rows passed')
+    def test_roll_rows_speed(self):
+        print('WARNING: passing.')
 
-def test_replace_rows():
-    print('WARNING: passing replace.')
-    return
-    arr = tst_arr()
-    nu = np.ones(5, np.intc)
-    replace_rows(0, 5, nu, tst_dim(), arr)
-    assert_array_equal(np.ones_like(tst_arr()), arr)
-    print('Replace rows passed')
+    def test_roll_columns_pointer_speed(self):
+        print('WARNING: passing.')
 
-def test_replace_columns():
-    print('WARNING: passing replace.')
-    return
-    arr = tst_arr()
-    nu = np.ones(5, np.intc)
-    replace_columns(0, 5, nu, tst_dim(), arr)
-    assert_array_equal(np.ones_like(tst_arr()), arr)
-    print('Replace columns passed')
+    def test_roll_rows_pointer_speed(self):
+        print('WARNING: passing.')
+
+
+class ArrayCheckTestCase(unittest.TestCase):
+
+    def test_sum_rim(self):
+        self.assertEqual(count_rim(0, tst_dim(), tst_arr()), 0)
+        self.assertEqual(count_rim(1, tst_dim(), tst_arr()), 3)
+
+    def test_check_rim(self):
+        self.assertFalse(check_rim(0, tst_dim(), tst_arr()))
+        self.assertTrue(check_rim(1, tst_dim(), tst_arr()))
+
+
+class ArrayEditTestCase(unittest.TestCase):
+
+    def set_bounds(self):
+        print('WARNING: passing.')
+
+    def set_bounds_speed(self):
+        print('WARNING: passing.')
+
+    def test_create_box(self):
+        arr = tst_arr()
+        create_box(1, 3, 1, 3, tst_dim(), arr)
+
+        arr2 = tst_arr()
+        arr2[1:4,1:4] = 1
+
+        assert_array_equal(arr2, arr)
+
+    def test_set_points(self):
+        points = np.array([[1,1],[2,2]], np.intc)
+        arr = tst_arr()
+        set_points(points, tst_dim(), arr)
+
+        arr2 = tst_arr()
+        arr2[1,1] = 1
+        arr2[2,2] = 1
+
+        assert_array_equal(arr2, arr)
+
+    def test_fill_bounds(self):
+        arr = tst_arr()
+        fill_bounds(tst_dim(), arr)
+
+        arr2 = tst_arr()
+        arr2[0, :] = 1
+        arr2[-1, :] = 1
+        arr2[:, 0] = 1
+        arr2[:, -1] = 1
+
+        assert_array_equal(arr2, arr)
+
+    def test_clear_bounds(self):
+        arr = tst_arr()
+        clear_bounds(tst_dim(), arr)
+
+        arr2 = tst_arr()
+        arr2[0, :] = 0
+        arr2[-1, :] = 0
+        arr2[:, 0] = 0
+        arr2[:, -1] = 0
+
+        assert_array_equal(arr2, arr)
+
+    def test_fill_columns(self):
+        arr = tst_arr()
+        fill_columns(0, 5, tst_dim(), arr)
+        assert_array_equal(np.ones_like(tst_arr()), arr)
+
+    def test_clear_columns(self):
+        arr = tst_arr()
+        clear_columns(0, 5, tst_dim(), arr)
+        assert_array_equal(np.zeros_like(tst_arr()), arr)
+
+    def test_fill_rows(self):
+        arr = tst_arr()
+        fill_rows(0, 5, tst_dim(), arr)
+        assert_array_equal(np.ones_like(tst_arr()), arr)
+
+    def test_clear_rows(self):
+        arr = tst_arr()
+        clear_rows(0, 5, tst_dim(), arr)
+        assert_array_equal(np.zeros_like(tst_arr()), arr)
+
+    def test_replace_rows(self):
+        print('WARNING: passing replace.')
+        return
+        arr = tst_arr()
+        nu = np.ones(5, np.intc)
+        replace_rows(0, 5, nu, tst_dim(), arr)
+        assert_array_equal(np.ones_like(tst_arr()), arr)
+
+    def test_replace_columns(self):
+        print('WARNING: passing replace.')
+        return
+        arr = tst_arr()
+        nu = np.ones(5, np.intc)
+        replace_columns(0, 5, nu, tst_dim(), arr)
+        assert_array_equal(np.ones_like(tst_arr()), arr)
 
 # Stole this from numpys tests, should be handy
 def assert_array_compare(comparison, x, y, err_msg='', verbose=True,
@@ -348,3 +424,7 @@ def build_err_msg(arrays, err_msg, header='Items are not equal:',
                 r += '...'
             msg.append(' %s: %s' % (names[i], r))
     return '\n'.join(msg)
+
+
+if __name__=="__main__":
+    unittest.main(verbosity=2 if debug is True else 1)

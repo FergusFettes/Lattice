@@ -15,7 +15,7 @@ cpdef change_zoom_level(int head_pos, int buf_len, int[:] dim, int[:, :, :] buf)
     :param arr:
     :return:        (3D pointer) new buffer
     """
-    if check_rim(0, dim_v, arr_v) is True:
+    if check_rim(0, dim, buf[head_pos]) is True:
         dim_v, buf_v = resize_array_buffer(dim, buf_len)
         change_buffer(head_pos % buf_len, buf_len, dim, buf, dim_v, buf_v)
 #   else:   # if outer rim has nothing, check next one in
@@ -23,6 +23,7 @@ cpdef change_zoom_level(int head_pos, int buf_len, int[:] dim, int[:, :, :] buf)
 #           dim_v, buf_v = resize_array_buffer(dim, buf_len, -1)
 #           change_buffer(head_pos % buf_len, buf_len, dim, buf, dim_v, buf_v,
 #                         array.array('i', [1,1]), array.array('i', [2, 2]))
+    return dim_v, buf_v
 
 cpdef dynamic_zoom_run(list dim_list):
     """
@@ -33,31 +34,54 @@ cpdef dynamic_zoom_run(list dim_list):
     cdef list rules
     cdef int[:] horizontal, vertical, bounds, rule, dim
     cdef int[:, :] arr
-    cdef int[:, :, :] buf, head_buf, tail_buf
+    cdef int[:, :, :] head_buf
 
+    beta = 1/8
+    updates = 1000
+    threshold = 1
+    rules = [[2,3,3,3],[2,3,3,3]]
     horizontal = array.array('i', [0, 1, 2, 1])
     vertical = array.array('i', [0, 1, 1, 1])
     bounds = array.array('i', [1, 1, 1, 1])
 
     head_pos, buf_len, print_pos, analysis_pos,\
-        dim, arr, head_buf, tail_buf = init(dim_list)
+        dim_head, arr_head, buf_head = init(dim_list)
+    dim_tail = dim_head; arr_tail = arr_head; buf_tail = buf_head
 
-    basic_update(updates, beta, threshold, bounds, horizontal, vertical,
-                    prepair_rule(rules, head_pos), dim, arr)
+    basic_update(updates, beta, threshold, bounds,
+                    prepair_rule(rules, head_pos), dim_head, arr_head,
+                    horizontal, vertical)
     horizontal[0] += horizontal[2]
     vertical[0] += vertical[2]
     head_pos += 1
-    arr = head_buf[head_pos % buf_len]
+    arr_head = buf_head[head_pos % buf_len]
 
+    changes = 0
     while True:
         # analysis here
         #
 
-        print_arr = tail_buf[print_pos % buf_len]
-        basic_print(bounds, horizontal, vertical, dim, print_arr)
+        basic_print(bounds, dim_tail, arr_tail, horizontal, vertical)
+        print_pos += 1
+        arr_tail = buf_tail[print_pos % buf_len]
 
-        change_zoom_level(
+        basic_update(updates, beta, threshold, bounds,
+                        prepair_rule(rules, head_pos), dim_head, arr_head,
+                        horizontal, vertical)
+        if check_rim(0, dim_head, arr_head) is True:
+            dim_temp, buf_temp = resize_array_buffer(dim_head, buf_len)
+            change_buffer(head_pos % buf_len, buf_len, dim_head, buf_head,\
+                          dim_temp, buf_temp)
+            dim_head = dim_temp; buf_head = buf_temp
+            change_pos = head_pos; changes += 1
+        head_pos += 1
+        arr_head = buf_head[head_pos % buf_len]
 
+        if changes > 0:
+            if print_pos == change_pos:
+                dim_tail = dim_head; buf_tail = buf_head
+                arr_tail = buf_tail[print_pos % buf_len]
+                changes -= 1
 
 cpdef init(list dimensions):
     """
@@ -71,40 +95,36 @@ cpdef init(list dimensions):
         print_pos           (int) position to be printed
         analysis_pos        (int) positions to be analysed
         dim_v               (pointer) dimensions of array
-        arr_v               (2D pointer) head array
-        head_buf            (3D pointer) head buffer
-        tail_buf            (3D pointer) tail buffer
+        arr_v               (2D pointer) array
+        buf_v               (3D pointer) buffer
     """
     cdef int buf_len, head_pos, print_pos, analysis_pos
     cdef int[:] dim_v = array.array('i', dimensions)
     cdef int[:, :] arr_v
-    cdef int[:, :, :] buf_v, head_buf_v, tail_buf_v
+    cdef int[:, :, :] buf_v
 
     buf_len = 10
     head_pos = 0
     print_pos = 0
     analysis_pos = 0
     buf_v = init_array_buffer(dim_v, buf_len)
-    head_buf_v = buf_v
-    tail_buf_v = buf_v
     arr_v = buf_v[head_pos % buf_len]
 
-    clear_array(arr_v)
+    clear_array(dim_v, arr_v)
     randomize_center(7, dim_v, arr_v)
     advance_array(head_pos % buf_len, buf_len, buf_v)
 
     head_pos += 1
     arr_v = buf_v[head_pos % buf_len]
 
-    return head_pos, buf_len, print_pos, analysis_pos, dim_v, arr_v,\
-            head_buf_v, tail_buf_v
+    return head_pos, buf_len, print_pos, analysis_pos, dim_v, arr_v, buf_v
 
 cpdef basic_update(
-    int updates, float beta,\
-    float threshold, int[:] bounds,\
+    int updates, float beta,
+    float threshold, int[:] bounds,
+    int[:] rule, int[:] dim, int[:, :] arr,
     int[:] horizontal = array.array('i', [0, 1, 1, 1]),
     int[:] vertical = array.array('i', [0, 1, 1, 1]),
-    int[:] rule, int[:] dim, int[:, :] arr
 ):
     """
     Performs the basic update
@@ -113,38 +133,38 @@ cpdef basic_update(
     :param beta:        (float) inverse temperature
     :param threshold:   (float) noise threshold     (1 is off)
     :param bounds:      (pointer) boundary values   (-1 is off)
-    :param horizontal:  [start, width, step, polarity (-1 is off)]
-    :param vertical:    [start, width, step, polarity (-1 is off)]
     :param rule:        (pointer) conway rule       (rule[0] == -1 is off)
     :param dim:         (pointer) arr dimensions
     :param arr:       (2D pointer) array
+    :param horizontal:  [start, width, step, polarity (-1 is off)]
+    :param vertical:    [start, width, step, polarity (-1 is off)]
     :return:            None
     """
     ising_process(updates, beta, dim, arr)
     add_noise(threshold, dim, arr)
     set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
-    scroll_bars(horizontal, vertical, dim, arr)
+    scroll_bars(dim, arr, horizontal, vertical)
     conway_process(rule, dim, arr)
 
 cpdef basic_print(
     int[:] bounds,
+    int[:] dim, int[:, :] arr,
     int[:] horizontal = array.array('i', [0, 1, 1, 1]),
     int[:] vertical = array.array('i', [0, 1, 1, 1]),
-    int[:] dim, int[:, :] arr
 ):
     """
     Performs a basic print after adding back the bars etc. as reference.
     This means the bars and bounds are avoided in the calculation.
 
     :param bounds:      (pointer) boundary values   (-1 is off)
-    :param horizontal:  [start, width, step, polarity (-1 is off)]
-    :param vertical:    [start, width, step, polarity (-1 is off)]
     :param dim:         (pointer) arr dimensions
     :param arr:         (2D pointer) array
+    :param horizontal:  [start, width, step, polarity (-1 is off)]
+    :param vertical:    [start, width, step, polarity (-1 is off)]
     :return:            None
     """
     set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
-    scroll_bars(horizontal, vertical, dim, arr)
+    scroll_bars(dim, arr, horizontal, vertical)
 
     temp = np.empty_like(arr, str)
     out = []
@@ -198,7 +218,7 @@ cpdef change_buffer(
     :param cut:         (pointer) cut off sides of old buffer
     :return:            None
     """
-    clear_array(buf_nu[pos])
+    clear_array(dim_nu, buf_nu[pos])
     buf_nu[pos, offset[0]: offset[0] + dim_old[0] - cut[0] * 2,\
                 offset[1]: offset[1] + dim_old[1] - cut[1] * 2] =\
         buf_old[pos, cut[0]: dim_old[0] - cut[0],\
@@ -244,7 +264,7 @@ cpdef resize_array(int[:] dim_old, int[:, :] arr_old, int add=0):
     offset_v = array.array('i', [add, add])
     dim_v = array.array('i', [dim_old[0] + add * 2, dim_old[1] + add * 2])
     arr_v = init_array(dim_v)
-    replace_array(offset_v, dim_old, arr_old, arr_v)
+    replace_array(offset_v, dim_old, arr_old, dim_v, arr_v)
     return dim_v, arr_v
 
 cpdef int[:, :] init_array(int[:] dim_v):
@@ -281,12 +301,12 @@ cpdef randomize_center(int siz, int[:] dim, int[:, :] arr):
     arr_v = init_array(dim_v)
     add_noise(0.2, dim_v, arr_v)
     offset_v = array.array('i', [int((dim[0] - dim_v[0])/2), int((dim[1] - dim_v[1])/2)])
-    replace_array(offset_v, dim_v, arr_v, arr)
+    replace_array(offset_v, dim_v, arr_v, dim, arr)
 
 cpdef scroll_bars(
+    int[:] dim, int[:, :] arr,
     int[:] horizontal = array.array('i', [0, 1, 1, 1]),
     int[:] vertical = array.array('i', [0, 1, 1, 1]),
-    int[:] dim, int[:, :] arr
 ):
     """
     Controls the vertical and horizontal scrolls bars.
@@ -402,71 +422,12 @@ cpdef conway_process(int[:] rule, int[:] dim, int[:, :] arr):
                 if rule[2] <= NB <= rule[3]:
                     arr[i][j] = 1
 
-cpdef set_bounds(int ub, int rb, int db, int lb, int[:] dim, int[:, :] arr):
-    """
-    Sets boundaries
 
-    :param ub:      (int) upper bound value
-    :param rb:      (int) right bound value
-    :param db:      (int) down bound value
-    :param lb:      (int) left bound value
-    :param dim:     (pointer) dimensions of arr
-    :param arr:   (2D pointer) arr
-    :return:        None
-    """
-    if ub == 1:
-        fill_row(0, arr)
-    elif ub == 0:
-        clear_row(0, arr)
+#===============MOSTLY LOW-LEVEL======================
+#=====================================================
 
-    if db == 1:
-        fill_row(-1, arr)
-    elif db == 0:
-        clear_row(-1, arr)
-
-    if lb == 1:
-        fill_column(0, arr)
-    elif lb == 0:
-        clear_column(0, arr)
-
-    if rb == 1:
-        fill_column(-1, arr)
-    elif rb == 0:
-        clear_column(-1, arr)
-
-#======================LOW-LEVEL====================================
-
-cpdef fill_array(int[:, :] arr):
-    """
-    Fills arr with 1s
-
-    :param arr:     (2D pointer) arr
-    :return:        None
-    """
-    arr[:, :] = 1
-
-cpdef clear_array(int[:, :] arr):
-    """
-    Fills arr with 0s
-
-    :param arr:     (2D pointer) arr
-    :return:        None
-    """
-    arr[:, :] = 0
-
-cpdef replace_array(int[:] offset, int[:] dim_nu, int[:, :] nuarr, int[:, :] arr):
-    """
-    Fills arr with another arr
-
-    :param offset:  (pointer) offset of inner arr
-    :param dim_nu:  (pointer) dimensions of inner arr
-    :param nuarr:   (2D pointer) inner arr
-    :param arr:     (2D pointer) arr
-    :return:        None
-    """
-    arr[offset[0] : dim_nu[0] + offset[0], offset[1] : dim_nu[1] + offset[1]] =\
-        nuarr[:, :]
-
+#===================Rollers===========================
+#can automaticaly apply this decorator in unit tests????
 #@cython.boundscheck(False) saves you something like 3%
 cpdef int[:, :] roll_columns(int pol, int[:] dim, int[:, :] arr):
     """
@@ -478,10 +439,10 @@ cpdef int[:, :] roll_columns(int pol, int[:] dim, int[:, :] arr):
     :return:            (2D pointer) new arr
     """
     cdef int[:, :] arrout = np.empty_like(arr)
-    if pol == 1:
+    if pol == -1:
         arrout[:, -1] = arr[:, 0]
         arrout[:, :-1] = arr[:, 1:]
-    elif pol == -1:
+    elif pol == 1:
         arrout[:, 0] = arr[:, -1]
         arrout[:, 1:] = arr[:, :-1]
     return arrout
@@ -515,13 +476,13 @@ cpdef roll_columns_pointer(int pol, int[:] dim, int[:, :] arr):
     """
     cdef int temp
     cdef Py_ssize_t i, j
-    if pol == 1:
+    if pol == -1:
         for i in range(dim[0]):
             temp = arr[i][0]
             for j in range(dim[1]-1):
                 arr[i][j] = arr[i][j+1]
             arr[i][dim[1] - 1] = temp
-    elif pol == -1:
+    elif pol == 1:
         for i in range(dim[0]):
             temp = arr[i][-1]
             for j in range(dim[1]-1):
@@ -548,9 +509,11 @@ cpdef roll_rows_pointer(int pol, int[:] dim, int[:, :] arr):
         arr[1:, :] = arr[:-1, :]
         arr[0, :] = temp_v
 
-cpdef count_rim(int num, int[:] dim, int[:, :] arr):
+#==============Rim jobs===========================
+#TODO: these can be made way more performant. Auto speedtests plox.
+cpdef sum_rim(int num, int[:] dim, int[:, :] arr):
     """
-    Counts the number of cells on the edge.
+    Sums the cells on the edge.
 
     :param num:     (int) distance from edge
     :param dim:     (pointer) arr dimensions
@@ -569,7 +532,7 @@ cpdef count_rim(int num, int[:] dim, int[:, :] arr):
 
 cpdef check_rim(int num, int[:] dim, int[:, :] arr):
     """
-    Counts the number of cells on the edge.
+    Checks there are cells on the edge.
 
     :param num:     (int) distance from edge
     :param dim:     (pointer) arr dimensions
@@ -588,19 +551,84 @@ cpdef check_rim(int num, int[:] dim, int[:, :] arr):
         if tot is not 0: return True
     return False
 
-cpdef create_box(int left, int top, int right, int bottom, int[:] dim, int[:, :] arr):
+
+#=========Array editing=============
+cpdef set_bounds(int ub, int rb, int db, int lb, int[:] dim, int[:, :] arr):
+    """
+    Sets boundaries
+
+    :param ub:      (int) upper bound value
+    :param rb:      (int) right bound value
+    :param db:      (int) down bound value
+    :param lb:      (int) left bound value
+    :param dim:     (pointer) dimensions of arr
+    :param arr:   (2D pointer) arr
+    :return:        None
+    """
+    if ub == 1:
+        fill_row(0, arr)
+    elif ub == 0:
+        clear_row(0, arr)
+
+    if db == 1:
+        fill_row(-1, arr)
+    elif db == 0:
+        clear_row(-1, arr)
+
+    if lb == 1:
+        fill_column(0, arr)
+    elif lb == 0:
+        clear_column(0, arr)
+
+    if rb == 1:
+        fill_column(-1, arr)
+    elif rb == 0:
+        clear_column(-1, arr)
+
+cpdef fill_array(int[:] dim, int[:, :] arr):
+    """
+    Fills arr with 1s
+
+    :param arr:     (2D pointer) arr
+    :return:        None
+    """
+    arr[:, :] = 1
+
+cpdef clear_array(int[:] dim, int[:, :] arr):
+    """
+    Fills arr with 0s
+
+    :param arr:     (2D pointer) arr
+    :return:        None
+    """
+    arr[:, :] = 0
+
+cpdef replace_array(int[:] offset, int[:] dim_nu, int[:, :] nuarr, int[:] dim, int[:, :] arr):
+    """
+    Fills arr with another arr
+
+    :param offset:  (pointer) offset of inner arr
+    :param dim_nu:  (pointer) dimensions of inner arr
+    :param nuarr:   (2D pointer) inner arr
+    :param arr:     (2D pointer) arr
+    :return:        None
+    """
+    arr[offset[0] : dim_nu[0] + offset[0], offset[1] : dim_nu[1] + offset[1]] =\
+        nuarr[:, :]
+
+cpdef create_box(int left, int wid, int top, int hi, int[:] dim, int[:, :] arr):
     """
     Makes a rectangle of 1s at positions specified
 
     :param left:    (int)
-    :param right:   (int)
+    :param wid:     (int)
     :param top:     (int)
-    :param bottom:  (int)
+    :param hi:      (int)
     :param dim:     (pointer) arr dimensions
-    :param arr:   (2D pointer) arr
-    :return:        (int) total
+    :param arr:     (2D pointer) arr
+    :return:        None
     """
-    arr[left:right][top:bottom] = 1
+    arr[left:left + wid,top:top + hi] = 1
 
 cpdef set_points(int[:, :] points, int[:] dim, int[:, :] arr):
     """
@@ -624,9 +652,9 @@ cpdef fill_bounds(int[:] dim, int[:, :] arr):
     :return:        None
     """
     fill_row(0, arr)
-    fill_row(dim[0] - 1, arr)
+    fill_row(-1, arr)
     fill_column(0, arr)
-    fill_column(dim[0] - 1, arr)
+    fill_column(-1, arr)
 
 cpdef clear_bounds(int[:] dim, int[:, :] arr):
     """
@@ -637,9 +665,9 @@ cpdef clear_bounds(int[:] dim, int[:, :] arr):
     :return:        None
     """
     clear_row(0, arr)
-    clear_row(dim[0] - 1,  arr)
+    clear_row(-1,  arr)
     clear_column(0,  arr)
-    clear_column(dim[0] - 1, arr)
+    clear_column(-1, arr)
 
 cpdef fill_rows(int num, int width, int[:] dim, int[:, :] arr):
     """
@@ -669,7 +697,7 @@ cpdef clear_rows(int num, int width, int[:] dim, int[:, :] arr):
     for i in range(width):
         clear_row((num + i) % dim[0], arr)
 
-cpdef replace_rows(int num, int width, int[:] dim, int[:] nurow, int[:, :] arr):
+cpdef replace_rows(int num, int width, int[:] nurow, int[:] dim, int[:, :] arr):
     """
     Fills rows of arr with another row
 

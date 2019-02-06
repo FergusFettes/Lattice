@@ -1,8 +1,8 @@
 import array
 import numpy as np
 
-from src.Cfuncs import *
-from src.Pfuncs import *
+from Cfuncs import *
+from Pfuncs import *
 
 def recenter(com, dim, arr):
     """

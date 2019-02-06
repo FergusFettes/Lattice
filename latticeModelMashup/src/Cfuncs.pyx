@@ -272,7 +272,7 @@ cpdef int[:, :] init_array(int[:] dim_v):
     Creates a little array for testing
 
     :param size:    (pointer) size of the array
-    :return:        (pointer) dim_v, (pointer) arr_v, (arr) rule
+    :return:        (pointer) arr_v
     """
     return np.zeros(dim_v, np.intc)
 

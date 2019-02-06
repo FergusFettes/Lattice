@@ -457,10 +457,10 @@ cpdef int[:, :] roll_rows(int pol, int[:] dim, int[:, :] arr):
     :return:            (2D pointer) new arr
     """
     cdef int[:, :] arrout = np.empty_like(arr)
-    if pol == 1:
+    if pol == -1:
         arrout[-1, :] = arr[0, :]
         arrout[:-1, :] = arr[1:, :]
-    elif pol == -1:
+    elif pol == 1:
         arrout[0, :] = arr[-1, :]
         arrout[1:, :] = arr[:-1, :]
     return arrout
@@ -500,17 +500,18 @@ cpdef roll_rows_pointer(int pol, int[:] dim, int[:, :] arr):
     """
     cdef int[:] temp_v
     cdef Py_ssize_t i, j
-    if pol == 1:
+    if pol == -1:
         temp_v = array.array('i', arr[0, :])
         arr[:-1, :] = arr[1:, :]
         arr[-1, :] = temp_v
-    elif pol == -1:
+    elif pol == 1:
         temp_v = array.array('i', arr[-1, :])
         arr[1:, :] = arr[:-1, :]
         arr[0, :] = temp_v
 
 #==============Rim jobs===========================
 #TODO: these can be made way more performant. Auto speedtests plox.
+#TODO: fix the sum so it doesnt double count corners
 cpdef sum_rim(int num, int[:] dim, int[:, :] arr):
     """
     Sums the cells on the edge.

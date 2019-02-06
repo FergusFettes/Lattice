@@ -41,40 +41,47 @@ class ArrayRollTestCase(unittest.TestCase):
 
     def test_roll_columns_forward(self):
         arrout = roll_columns(1, tst_dim(), tst_arr())
-        assert_array_equal(arrout, np.roll(tst_arr(), 1, axis=1))
+        arrout = roll_columns(1, tst_dim(), arrout)
+        assert_array_equal(arrout, np.roll(tst_arr(), 2, axis=1))
 
     def test_roll_columns_back(self):
         arrout = roll_columns(-1, tst_dim(), tst_arr())
-        assert_array_equal(arrout, np.roll(tst_arr(), -1, axis=1))
+        arrout = roll_columns(-1, tst_dim(), arrout)
+        assert_array_equal(arrout, np.roll(tst_arr(), -2, axis=1))
 
     def test_roll_rows_forward(self):
         arrout = roll_rows(1, tst_dim(), tst_arr())
-        assert_array_equal(arrout, np.roll(tst_arr(), 1, axis=0))
+        arrout = roll_rows(1, tst_dim(), arrout)
+        assert_array_equal(arrout, np.roll(tst_arr(), 2, axis=0))
 
     def test_roll_rows_back(self):
         arrout = roll_rows(-1, tst_dim(), tst_arr())
-        assert_array_equal(arrout, np.roll(tst_arr(), -1, axis=0))
+        arrout = roll_rows(-1, tst_dim(), arrout)
+        assert_array_equal(arrout, np.roll(tst_arr(), -2, axis=0))
 
     def test_roll_columns_pointer_forward(self):
         arrout = tst_arr()
         roll_columns_pointer(1, tst_dim(), arrout)
-        assert_array_equal(arrout, np.roll(tst_arr(), 1, axis=1))
+        roll_columns_pointer(1, tst_dim(), arrout)
+        assert_array_equal(arrout, np.roll(tst_arr(), 2, axis=1))
 
     def test_roll_columns_pointer_back(self):
         arrout = tst_arr()
         roll_columns_pointer(-1, tst_dim(), arrout)
-        assert_array_equal(arrout, np.roll(tst_arr(), -1, axis=1))
+        roll_columns_pointer(-1, tst_dim(), arrout)
+        assert_array_equal(arrout, np.roll(tst_arr(), -2, axis=1))
 
     def test_roll_rows_pointer_forward(self):
         arrout = tst_arr()
         roll_rows_pointer(1, tst_dim(), arrout)
-        assert_array_equal(arrout, np.roll(tst_arr(), 1, axis=0))
+        roll_rows_pointer(1, tst_dim(), arrout)
+        assert_array_equal(arrout, np.roll(tst_arr(), 2, axis=0))
 
     def test_roll_rows_pointer_back(self):
         arrout = tst_arr()
         roll_rows_pointer(-1, tst_dim(), arrout)
-        assert_array_equal(arrout, np.roll(tst_arr(), -1, axis=0))
-        # self.assertRaises(assert_array_equal(arrout, np.roll(tst_arr(), -1, axis=0)))
+        roll_rows_pointer(-1, tst_dim(), arrout)
+        assert_array_equal(arrout, np.roll(tst_arr(), -2, axis=0))
 
 
 class ArrayRollSpeedTestCase(unittest.TestCase):
@@ -95,8 +102,8 @@ class ArrayRollSpeedTestCase(unittest.TestCase):
 class ArrayCheckTestCase(unittest.TestCase):
 
     def test_sum_rim(self):
-        self.assertEqual(count_rim(0, tst_dim(), tst_arr()), 0)
-        self.assertEqual(count_rim(1, tst_dim(), tst_arr()), 3)
+        self.assertEqual(sum_rim(0, tst_dim(), tst_arr()), 0)
+        self.assertEqual(sum_rim(1, tst_dim(), tst_arr()), 4)
 
     def test_check_rim(self):
         self.assertFalse(check_rim(0, tst_dim(), tst_arr()))
@@ -176,16 +183,12 @@ class ArrayEditTestCase(unittest.TestCase):
         assert_array_equal(np.zeros_like(tst_arr()), arr)
 
     def test_replace_rows(self):
-        print('WARNING: passing replace.')
-        return
         arr = tst_arr()
         nu = np.ones(5, np.intc)
         replace_rows(0, 5, nu, tst_dim(), arr)
         assert_array_equal(np.ones_like(tst_arr()), arr)
 
     def test_replace_columns(self):
-        print('WARNING: passing replace.')
-        return
         arr = tst_arr()
         nu = np.ones(5, np.intc)
         replace_columns(0, 5, nu, tst_dim(), arr)

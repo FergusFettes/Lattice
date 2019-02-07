@@ -8,7 +8,258 @@ from libc.stdlib cimport rand, RAND_MAX
 from cpython cimport array
 cimport numpy as np
 
-cpdef int[:] prepair_rule(list rules, int frame):
+
+#==================HI-LEVEL==================
+#============================================
+cpdef change_zoom_level(int head_pos, int buffer_length, int[:] dim, int[:, :, :] buf):
+    """
+    Checks the array edges, resizes if necessary.
+
+    :param arr:
+    :return:        (3D pointer) new buffer
+    """
+    if check_rim(0, dim, buf[head_pos]) is True:
+        dim_v, buf_v = resize_array_buffer(dim, buffer_length)
+        change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v)
+#   else:   # if outer rim has nothing, check next one in
+#       if check_rim(1, dim_v, arr_v) is False and check _rim(2, dim_v, arr_v) is False:
+#           dim_v, buf_v = resize_array_buffer(dim, buffer_length, -1)
+#           change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v,
+#                         array.array('i', [1,1]), array.array('i', [2, 2]))
+    return dim_v, buf_v
+
+
+cpdef tuple init(list dimensions):
+    """
+    Initializes all the variables for a standard run.
+
+    :param dimensions:      (list) initial dimensions of array
+    :param rules:           (list) rules
+    :return:
+        head_pos            (pointer) position of head in buffer
+        print_pos           (pointer) position to be printed
+        analysis_pos        (pointer) positions to be analysed
+        buffer_length       (int) buffer length
+        buffer_status       (pointer) list of array poistions in buffer
+        dim_v               (pointer) dimensions of array
+        arr_v               (2D pointer) array
+        buf_v               (3D pointer) buffer
+    """
+    cdef int buffer_length
+    cdef int[:] head_posistion, print_position, anaylsis_position, buffer_status
+    cdef int[:] dim_v = array.array('i', dimensions)
+    cdef int[:] dim_t = array.array('i', dimensions)
+    cdef int[:, :] arr_v, arr_t
+    cdef int[:, :, :] buf_v
+
+    buffer_length = 10
+    buffer_status = np.zeros(buffer_length, np.intc)
+    buffer_status[0] = 1
+    head_pos = array.array('i', [0])
+    print_pos = array.array('i', [0])
+    analysis_pos = array.array('i', [0])
+
+    buf_v = init_array_buffer(dim_v, buffer_length)
+    arr_v = buf_v[head_pos % buffer_length]
+    arr_t = buf_v[print_pos % buffer_length]
+
+    clear_array(dim_v, arr_v)
+    advance_array(head_pos, buffer_length, buf_v)
+    arr_v = update_array_positions(head_pos, buffer_length, buffer_status, buf_v, 0)
+
+    randomize_center(7, dim_v, arr_v)
+    advance_array(head_pos, buffer_length, buf_v)
+    arr_v = update_array_positions(head_pos, buffer_length, buffer_status, buf_v, 0)
+
+    buffer_status[1] = 2 #placing the analysis and printer in their places
+    buffer_status[0] = 3
+    print_buffer_status(buffer_status, 5, '%', 'm')
+
+    return head_pos, print_pos, analysis_pos, buffer_length, buffer_status,\
+            dim_t, arr_t, buf_v, dim_v, arr_v, buf_v
+
+
+cpdef basic_update(
+    int updates, float beta,
+    float threshold,
+    int[:] rule, int[:] dim, int[:, :] arr,
+    int[:] bounds = array.array('i', [-1, -1, -1, -1]),
+    int[:] horizontal = array.array('i', [0, 1, 1, 0, -1]),
+    int[:] vertical = array.array('i', [0, 1, 1, 0, -1]),
+):
+    """
+    Performs the basic update
+
+    :param updates:     (int) ising updates         (0 is off)
+    :param beta:        (float) inverse temperature
+    :param threshold:   (float) noise threshold     (1 is off)
+    :param bounds:      (pointer) boundary values   (-1 is off)
+    :param rule:        (pointer) conway rule       (rule[0] == -1 is off)
+    :param dim:         (pointer) arr dimensions
+    :param arr:       (2D pointer) array
+    :param horizontal:  [start, width, step, bounce, polarity (-1 is off)]
+    :param vertical:    [start, width, step, bounce, polarity (-1 is off)]
+    :return:            None
+    """
+    ising_process(updates, beta, dim, arr)
+    add_noise(threshold, dim, arr)
+    set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
+    scroll_bars(dim, arr, horizontal, vertical)
+    conway_process(rule, dim, arr)
+
+
+cpdef basic_print(
+    int[:] dim, int[:, :] arr,
+    int[:] bounds = array.array('i', [-1, -1, -1, -1]),
+    int[:] horizontal = array.array('i', [0, 1, 1, 0, -1]),
+    int[:] vertical = array.array('i', [0, 1, 1, 0, -1]),
+):
+    """
+    Performs a basic print after adding back the bars etc. as reference.
+    This means the bars and bounds are avoided in the calculation.
+
+    :param dim:         (pointer) arr dimensions
+    :param arr:         (2D pointer) array
+    :param bounds:      (pointer) boundary values   (-1 is off)
+    :param horizontal:  [start, width, step, bounce, polarity (-1 is off)]
+    :param vertical:    [start, width, step, bounce, polarity (-1 is off)]
+    :return:            None
+    """
+    set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
+    scroll_bars(dim, arr, horizontal, vertical)
+
+    temp = np.empty_like(arr, str)
+    out = []
+    cdef Py_ssize_t i, j
+    for i in range(dim[0]):
+        for j in range(dim[1]):
+            if arr[i][j] == 0:
+                temp[i][j] = '.'
+            elif arr[i][j] == 1:
+                temp[i][j] = 'o'
+        out.append(''.join(temp[i,:]))
+    fin = '\n'.join(out)
+    print(fin)
+
+
+#==============MID-LEVEL========================
+#===============================================
+#replace memoryview with pointer when you change everything to c
+cpdef update_array_positions(int[:] position, int buffer_length, int[:] buffer_status,
+                             int[:, :, :] buf, int display=1):
+    """
+    Updates the chosen array (switches the memoryview
+    to the next one in the buffer) and the buffer status.
+
+    :param position:            (pointer) position of array to update
+    :param buffer_length:       (int)
+    :param buffer_status:       (pointer) current positions of arrays
+    :param buf:                 (3D pointer) buffer
+    :param display:             (int) output position?
+    :return:                    (pointer) updated array
+    """
+    cdef int[:, :] arrout
+    cdef int index, target
+
+    index = position[0] % buffer_length
+    target = (index + 1) % buffer_length
+    if target:
+        raise OccupiedError
+    else:
+        buffer_status[target] = buffer_status[index]
+        buffer_status[index] = 0
+
+    position[0] += 1
+    arrout = buf[position[0]]
+
+    if display:
+        print_buffer_status(buffer_status)
+
+    # should make a pointer to the memview to be a real hero
+    return arrout
+
+
+cpdef print_buffer_status(int[:] buffer_status, int pad=4,
+                          str border=r"*", str base=r"#"):
+    """
+    Outputs the array positions like so:
+        ***************
+        *  h   p  a   *
+        *  PPPPAAAH   *
+        ***************
+        where h=head, p=print and a=analysis
+    :param buffer_status:      (pointer) current state of buffer
+    :param pad:                 (int) width of padding
+    :param border:              (str) style of border
+    :param base:                (str) style of base
+    :return:                    None
+    """
+    cdef str out
+    cdef str buff = ''.join((' ' if i == 0 else
+                             ('h' if i == 1 else
+                              ('a' if i == 2 else 'p'
+                               ))
+                             for i in buffer_status))
+    out = r'\n'.join(('{1}{2}{1}'.format(pad*border, len(buffer_status)*border),\
+                    '{1}{2}{3}{2}{1}'.format(border, ' '*pad-1, buff),\
+                    '{1}{2}{3}{2}{1}'.format(border, ' '*pad-1, base),\
+                     '{1}{2}{1}'.format(pad*border, len(buffer_status)*border)))
+    print(out)
+
+#needs to be c only!
+cdef void update_rules(
+    int* updates,
+    float* beta, float* threshold,
+    int[:] horizontal, int[:] vertical, int[:] bounds,
+    int[:, :] rules
+):
+    """
+    updates the rules.
+
+    :param update:      (int) ising updates
+    :param beta:        (float) inverse temperature
+    :param threshold:   (float) noise threshold
+    :param horizontal:  [start, width, step, bounce, polarity (-1 is off)]
+    :param vertical:    [start, width, step, bounce, polarity (-1 is off)]
+    :param bounds:      (pointer) boundary values   (-1 is off)
+    :param rules:       (2d pointer) rules for conway (-1 is off)
+    :return:        none
+    """
+    updates[0] = 100
+    beta[0] = 1/8
+    threshold[0] = 0.9
+    rules = np.array([[2,3,3,3],[2,3,3,3]], np.intc)
+    horizontal = array.array('i', [0, 1, 2, 0, 1])
+    vertical = array.array('i', [0, 1, 1, 0, 1])
+    bounds = array.array('i', [1, 1, 1, 1])
+
+
+cpdef scroll_instruction_update(int[:] horizontal, int[:] vertical, int[:] dim):
+    """
+    Updates the positons of the scrollbar.
+
+    :param horizontal:  [start, width, step, bounce, polarity (-1 is off)]
+    :param vertical:    [start, width, step, bounce, polarity (-1 is off)]
+    :param dim:         (pointer) dimensions of array
+    :return:            None
+    """
+    if horizontal[3]:
+        if horizontal[2] > 0:
+            if horizontal[0] + horizontal[1] + horizontal[2] > dim[0]:
+                horizontal[2] = -horizontal[2]
+            elif horizontal[0] + horizontal[2] < dim[0]:
+                horizontal[2] = -horizontal[2]
+        if vertical[2] > 0:
+            if vertical[0] + vertical[1] + vertical[2] > dim[1]:
+                vertical[2] = -vertical[2]
+            elif vertical[0] + vertical[2] < dim[1]:
+                vertical[2] = -vertical[2]
+
+    horizontal[0] = horizontal[0] + horizontal[2]
+    vertical[0] = vertical[0] + vertical[2]
+
+
+cpdef int[:] prepair_rule(int[:, :] rules, int frame):
     """
     Prepairs rule for this frame
 
@@ -27,7 +278,7 @@ cpdef advance_array(int pos, int length, int[:, :, :] buf):
     :param buf:         (3D pointer) buffer
     :return:            None
     """
-    buf[(pos + 1) % length] = buf[pos]
+    buf[(pos + 1) % length] = buf[pos % length]
 
 cpdef change_buffer(
     int pos, int length, int[:] dim_old, int[:, :, :] buf_old,
@@ -48,9 +299,9 @@ cpdef change_buffer(
     :return:            None
     """
     clear_array(dim_nu, buf_nu[pos % length])
-    buf_nu[pos, offset[0]: offset[0] + dim_old[0] - cut[0] * 2,\
+    buf_nu[pos % length, offset[0]: offset[0] + dim_old[0] - cut[0] * 2,\
                 offset[1]: offset[1] + dim_old[1] - cut[1] * 2] =\
-        buf_old[pos, cut[0]: dim_old[0] - cut[0],\
+        buf_old[pos % length, cut[0]: dim_old[0] - cut[0],\
                      cut[1]: dim_old[1] - cut[1]]
 
 cpdef int[:, :, :] init_array_buffer(int[:] dim, int length):
@@ -205,7 +456,7 @@ cpdef conway_process(int[:] rule, int[:] dim, int[:, :] arr):
                     arr[i][j] = 1
 
 
-#===============MOSTLY LOW-LEVEL======================
+#===============ATOMIC LOW-LEVEL======================
 #=====================================================
 
 #===================Rollers===========================
@@ -339,14 +590,14 @@ cpdef check_rim(int num, int[:] dim, int[:, :] arr):
 #TODO: allow for multiple bars
 cpdef scroll_bars(
     int[:] dim, int[:, :] arr,
-    int[:] horizontal = array.array('i', [0, 1, 1, 1]),
-    int[:] vertical = array.array('i', [0, 1, 1, 1]),
+    int[:] horizontal = array.array('i', [0, 1, 1, 0, 1]),
+    int[:] vertical = array.array('i', [0, 1, 1, 0, 1]),
 ):
     """
     Controls the vertical and horizontal scroll bars.
 
-    :param horizontal:  [start, width, step, polarity (-1 is off)]
-    :param vertical:    [start, width, step, polarity (-1 is off)]
+    :param horizontal:  [start, width, step, bounce, polarity (-1 is off)]
+    :param vertical:    [start, width, step, bounce, polarity (-1 is off)]
     :param dim:         (pointer) dimensions
     :param arr:         (2D pointer) array
     :return:            None

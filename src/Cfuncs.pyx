@@ -8,7 +8,12 @@ from libc.stdlib cimport rand, RAND_MAX
 from cpython cimport array
 cimport numpy as np
 
-from src.cylib.array_man cimport *
+from Cyarr import (
+    roll_rows, roll_columns, roll_rows_pointer, roll_columns_pointer,
+    check_rim, sum_rim, scroll_bars, set_bounds, fill_array, fill_bounds, fill_columns,
+    fill_rows, clear_array, clear_columns, clear_rows, clear_bounds, replace_array,
+    replace_columns, replace_rows
+)
 
 #==================HI-LEVEL==================
 #============================================
@@ -164,14 +169,14 @@ cpdef update_array_positions(int[:] position, int buffer_length, int[:] buffer_s
 
     index = position[0] % buffer_length
     target = (index + 1) % buffer_length
-    if target:
-        raise OccupiedError
+    if not buffer_status[target] == 0:
+        return None
     else:
         buffer_status[target] = buffer_status[index]
         buffer_status[index] = 0
 
     position[0] += 1
-    arrout = buf[position[0]]
+    arrout = buf[position[0] % buffer_length]
 
     if display:
         print_buffer_status(buffer_status)
@@ -197,6 +202,7 @@ cpdef print_buffer_status(int[:] buffer_status, int pad=4,
     """
     cdef str out
     cdef str buff
+    buff = 'a'
     for i in buffer_status:
         if i == 0:
             buff += ' '
@@ -206,10 +212,11 @@ cpdef print_buffer_status(int[:] buffer_status, int pad=4,
             buff += 'a'
         if i == 3:
             buff += 'p'
-    out = r'\n'.join(('{1}{2}{1}'.format(pad*border, len(buffer_status)*border),\
-                    '{1}{2}{3}{2}{1}'.format(border, ' '*pad-1, buff),\
-                    '{1}{2}{3}{2}{1}'.format(border, ' '*pad-1, base),\
-                     '{1}{2}{1}'.format(pad*border, len(buffer_status)*border)))
+    buff = buff[1:]
+    out = '\n'.join(('{0}{1}{0}'.format(pad*border, len(buffer_status)*border),
+                    '{0}{1}{2}{1}{0}'.format(border, ' '*(pad-0), buff),
+                    '{0}{1}{2}{1}{0}'.format(border, ' '*(pad-0), len(buffer_status)*base),
+                     '{0}{1}{0}'.format(pad*border, len(buffer_status)*border)))
     print(out)
 
 #needs to be c only!

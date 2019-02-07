@@ -5,7 +5,7 @@ import timeit
 import unittest
 
 debug = True
-from array_man import *
+from Cyarr import *
 
 def tst_arr():
     """

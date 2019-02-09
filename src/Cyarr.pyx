@@ -1,3 +1,4 @@
+# cython: profile = True
 import cython
 
 import array
@@ -12,8 +13,9 @@ cimport numpy as np
 
 #===================Rollers===========================
 #can automaticaly apply this decorator in unit tests????
-#@cython.boundscheck(False) saves you something like 3%
-cpdef int[:, :] roll_columns(int pol, int[:] dim, int[:, :] arr):
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef int[:, ::1] roll_columns(int pol, int[:] dim, int[:, ::1] arr):
     """
     Rolls along the columns axis (1)
 
@@ -22,16 +24,18 @@ cpdef int[:, :] roll_columns(int pol, int[:] dim, int[:, :] arr):
     :param arr:       (2D pointer) arr
     :return:            (2D pointer) new arr
     """
-    cdef int[:, :] arrout = np.empty_like(arr)
+    cdef int[:, ::1] arrout = np.empty_like(arr)
     if pol == -1:
-        arrout[:, -1] = arr[:, 0]
-        arrout[:, :-1] = arr[:, 1:]
+        arrout[:, dim[1] - 1] = arr[:, 0]
+        arrout[:, :dim[1]] = arr[:, 1:]
     elif pol == 1:
-        arrout[:, 0] = arr[:, -1]
-        arrout[:, 1:] = arr[:, :-1]
+        arrout[:, 0] = arr[:, dim[1] - 1]
+        arrout[:, 1:] = arr[:, :dim[1]]
     return arrout
 
-cpdef int[:, :] roll_rows(int pol, int[:] dim, int[:, :] arr):
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef int[:, ::1] roll_rows(int pol, int[:] dim, int[:, ::1] arr):
     """
     Rolls along the rows axis (0)
 
@@ -40,13 +44,13 @@ cpdef int[:, :] roll_rows(int pol, int[:] dim, int[:, :] arr):
     :param arr:       (2D pointer) arr
     :return:            (2D pointer) new arr
     """
-    cdef int[:, :] arrout = np.empty_like(arr)
+    cdef int[:, ::1] arrout = np.empty_like(arr)
     if pol == -1:
-        arrout[-1, :] = arr[0, :]
-        arrout[:-1, :] = arr[1:, :]
+        arrout[dim[0] - 1, :] = arr[0, :]
+        arrout[:dim[0], :] = arr[1:, :]
     elif pol == 1:
-        arrout[0, :] = arr[-1, :]
-        arrout[1:, :] = arr[:-1, :]
+        arrout[0, :] = arr[dim[0] - 1, :]
+        arrout[1:, :] = arr[:dim[0], :]
     return arrout
 
 cpdef roll_columns_pointer(int pol, int[:] dim, int[:, :] arr):
@@ -282,7 +286,7 @@ cpdef clear_bounds(int[:] dim, int[:, :] arr):
     clear_column(0,  arr)
     clear_column(-1, arr)
 
-cpdef fill_rows(int num, int width, int[:] dim, int[:, :] arr):
+cdef inline void fill_rows(int num, int width, int[:] dim, int[:, :] arr):
     """
     Fills rows of arr with 1s
 
@@ -296,7 +300,7 @@ cpdef fill_rows(int num, int width, int[:] dim, int[:, :] arr):
     for i in range(width):
         fill_row((num + i) % dim[0], arr)
 
-cpdef clear_rows(int num, int width, int[:] dim, int[:, :] arr):
+cdef inline void clear_rows(int num, int width, int[:] dim, int[:, :] arr):
     """
     Fills rows of arr with 0s
 
@@ -310,7 +314,7 @@ cpdef clear_rows(int num, int width, int[:] dim, int[:, :] arr):
     for i in range(width):
         clear_row((num + i) % dim[0], arr)
 
-cpdef replace_rows(int num, int width, int[:] nurow, int[:] dim, int[:, :] arr):
+cdef inline void replace_rows(int num, int width, int[:] nurow, int[:] dim, int[:, :] arr):
     """
     Fills rows of arr with another row
 
@@ -325,7 +329,7 @@ cpdef replace_rows(int num, int width, int[:] nurow, int[:] dim, int[:, :] arr):
     for i in range(width):
         replace_row((num + i) % dim[0], nurow, arr)
 
-cpdef fill_columns(int num, int width, int[:] dim, int[:, :] arr):
+cdef inline void fill_columns(int num, int width, int[:] dim, int[:, :] arr):
     """
     Fills columns of arr with 1s
 
@@ -339,7 +343,7 @@ cpdef fill_columns(int num, int width, int[:] dim, int[:, :] arr):
     for i in range(width):
         fill_column((num + i) % dim[1], arr)
 
-cpdef clear_columns(int num, int width, int[:] dim, int[:, :] arr):
+cdef inline void clear_columns(int num, int width, int[:] dim, int[:, :] arr):
     """
     Fills columns of arr with 0s
 
@@ -353,7 +357,7 @@ cpdef clear_columns(int num, int width, int[:] dim, int[:, :] arr):
     for i in range(width):
         clear_column((num + i) % dim[1], arr)
 
-cpdef replace_columns(int num, int width, int[:] nucol, int[:] dim, int[:, :] arr):
+cdef inline void replace_columns(int num, int width, int[:] nucol, int[:] dim, int[:, :] arr):
     """
     Fills columns of arr with new values
 
@@ -368,20 +372,20 @@ cpdef replace_columns(int num, int width, int[:] nucol, int[:] dim, int[:, :] ar
     for i in range(width):
         replace_column((num + i) % dim[1], nucol, arr)
 
-cdef fill_row(int num, int[:, :] arr):
+cdef inline void fill_row(int num, int[:, :] arr):
     arr[num, :] = 1
 
-cdef clear_row(int num, int[:, :] arr):
+cdef inline void clear_row(int num, int[:, :] arr):
     arr[num, :] = 0
 
-cdef replace_row(int num, int[:] nurow, int[:, :] arr):
+cdef inline void replace_row(int num, int[:] nurow, int[:, :] arr):
     arr[num, :] = nurow
 
-cdef fill_column(int num, int[:, :] arr):
+cdef inline void fill_column(int num, int[:, :] arr):
     arr[:, num] = 1
 
-cdef clear_column(int num, int[:, :] arr):
+cdef inline void clear_column(int num, int[:, :] arr):
     arr[:, num] = 0
 
-cdef replace_column(int num, int[:] nucol, int[:, :] arr):
+cdef inline void replace_column(int num, int[:] nucol, int[:, :] arr):
     arr[:, num] = nucol

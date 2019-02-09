@@ -27,14 +27,13 @@ cpdef int[:, ::1] roll_columns(int pol, int[:] dim, int[:, ::1] arr):
     cdef int[:, ::1] arrout = np.empty_like(arr)
     if pol == -1:
         arrout[:, dim[1] - 1] = arr[:, 0]
-        arrout[:, :dim[1]] = arr[:, 1:]
+        arrout[:, :dim[1] - 1] = arr[:, 1:]
     elif pol == 1:
         arrout[:, 0] = arr[:, dim[1] - 1]
-        arrout[:, 1:] = arr[:, :dim[1]]
+        arrout[:, 1:] = arr[:, :dim[1] - 1]
     return arrout
 
 @cython.boundscheck(False)
-@cython.wraparound(False)
 cpdef int[:, ::1] roll_rows(int pol, int[:] dim, int[:, ::1] arr):
     """
     Rolls along the rows axis (0)
@@ -47,10 +46,10 @@ cpdef int[:, ::1] roll_rows(int pol, int[:] dim, int[:, ::1] arr):
     cdef int[:, ::1] arrout = np.empty_like(arr)
     if pol == -1:
         arrout[dim[0] - 1, :] = arr[0, :]
-        arrout[:dim[0], :] = arr[1:, :]
+        arrout[:dim[0] - 1, :] = arr[1:, :]
     elif pol == 1:
         arrout[0, :] = arr[dim[0] - 1, :]
-        arrout[1:, :] = arr[:dim[0], :]
+        arrout[1:, :] = arr[:dim[0] - 1, :]
     return arrout
 
 cpdef roll_columns_pointer(int pol, int[:] dim, int[:, :] arr):

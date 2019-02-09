@@ -106,7 +106,7 @@ class BasicSuiteTestCase(unittest.TestCase):
             horizontal = array.array('i', [5, 1, 1, 1])
         )
         fill_bounds(self.dim, arr)
-        fill_rows(5, 1, self.dim, arr)
+        arr[5, :] = 1
         testing.assert_array_equal(arr, self.arr)
 
     def test_basic_update_on(self):

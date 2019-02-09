@@ -11,9 +11,8 @@ cimport numpy as np
 
 from Cyarr import (
     roll_rows, roll_columns, roll_rows_pointer, roll_columns_pointer,
-    check_rim, sum_rim, scroll_bars, set_bounds, fill_array, fill_bounds, fill_columns,
-    fill_rows, clear_array, clear_columns, clear_rows, clear_bounds, replace_array,
-    replace_columns, replace_rows
+    check_rim, sum_rim, scroll_bars, set_bounds, fill_array, fill_bounds,
+    clear_array, clear_bounds, replace_array,
 )
 
 #==================HI-LEVEL==================
@@ -91,7 +90,7 @@ cpdef tuple init(list dimensions):
             dim_t, arr_t, buf_v, dim_v, arr_v, buf_v
 
 
-cpdef basic_update(
+cpdef void basic_update(
     int updates, float beta,
     float threshold,
     int[:] rule, int[:] dim, int[:, :] arr,
@@ -120,7 +119,7 @@ cpdef basic_update(
     conway_process(rule, dim, arr)
 
 
-cpdef basic_print(
+cpdef void basic_print(
     int[:] dim, int[:, :] arr,
     int[:] bounds = array.array('i', [-1, -1, -1, -1]),
     int[:] horizontal = array.array('i', [0, 1, 1, 0, -1]),

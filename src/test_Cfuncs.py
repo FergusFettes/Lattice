@@ -6,7 +6,7 @@ import unittest
 from Cfuncs import *
 
 debug = False
-simple = True
+simple = False
 
 
 def tst_arr():
@@ -46,7 +46,7 @@ def tst_dimL():
 class BasicSuiteTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.head_pos, self.buf_siz, self.print_pos, self.analysis_pos,\
+        self.head_pos, self.print_pos, self.analysis_pos, self.buf_siz, self.buf_stat,\
             _, _, _, self.dim, self.arr, self.buf = init([50, 50])
         self.bounds = array.array('i', [1, 1, 1, 1])
         self.horizontal = array.array('i', [0, 1, 1, 1])
@@ -55,6 +55,10 @@ class BasicSuiteTestCase(unittest.TestCase):
         self.beta = 1/8
         self.threshold = 0.9
         self.rules = np.array([[2,5,4,6],[3,4,3,6]], np.intc)
+
+    def test_init_basic(self):
+        self.head_pos, self.print_pos, self.analysis_pos, self.buf_siz, self.buf_stat,\
+            _, _, _, self.dim, self.arr, self.buf = init([50, 50])
 
     def test_basic_print_defaults(self):
         basic_print(self.dim, self.arr)
@@ -134,7 +138,7 @@ class MiscTestCase(unittest.TestCase):
     def test_prepair_rule_fails_1D(self):
         print('PASSING: Cant get assertRaises to work')
         return
-        rules = np.array([[2,3,3,3]], np.intc)
+        rules = np.array([2,3,3,3], np.intc)
         self.assertRaises(TypeError, prepair_rule(rules, 1))
 
     def test_prepair_rule_passes_2D(self):
@@ -346,7 +350,7 @@ class IsingTestCase(unittest.TestCase):
 class ConwayTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.rule = array.array('i', [2,3,3,3])
+        self.rule = np.array([[2,3,3,3]], np.intc)
 
     def test_conway_process_off(self):
         arr = tst_arr()

@@ -47,9 +47,12 @@ cpdef tuple init(list dimensions):
         analysis_pos        (pointer) positions to be analysed
         buffer_length       (int) buffer length
         buffer_status       (pointer) list of array poistions in buffer
-        dim_v               (pointer) dimensions of array
-        arr_v               (2D pointer) array
-        buf_v               (3D pointer) buffer
+        dim                 (pointer) dimensions of array
+        arr                 (2D pointer) array
+        buf                 (3D pointer) buffer
+        dim                 (pointer) dimensions of array
+        arr                 (2D pointer) array
+        buf                 (3D pointer) buffer
     """
     cdef int buffer_length
     cdef int[:] head_posistion, print_position, anaylsis_position, buffer_status
@@ -70,12 +73,14 @@ cpdef tuple init(list dimensions):
     arr_t = buf_v[print_position[0] % buffer_length]
 
     clear_array(dim_v, arr_v)
-    advance_array(head_position, buffer_length, buf_v)
-    arr_v = update_array_positions(head_position, buffer_length, buffer_status, buf_v, 0)
+    advance_array(head_position[0], buffer_length, buf_v)
+    arr_v = update_array_positions(head_position, buffer_length, buffer_status,
+                                   buf_v, 0)
 
     randomize_center(7, dim_v, arr_v)
-    advance_array(head_position, buffer_length, buf_v)
-    arr_v = update_array_positions(head_position, buffer_length, buffer_status, buf_v, 0)
+    advance_array(head_position[0], buffer_length, buf_v)
+    arr_v = update_array_positions(head_position, buffer_length, buffer_status,
+                                   buf_v, 0)
 
     buffer_status[1] = 2 #placing the analysis and printer in their places
     buffer_status[0] = 3
@@ -272,7 +277,7 @@ cpdef scroll_instruction_update(int[:] horizontal, int[:] vertical, int[:] dim):
     vertical[0] = vertical[0] + vertical[2]
 
 
-cpdef int[:] prepair_rule(int[:, :] rules, int frame):
+cpdef int[:] prepair_rule(int[:, :] rules, int[:] frame):
     """
     Prepairs rule for this frame
 
@@ -280,7 +285,7 @@ cpdef int[:] prepair_rule(int[:, :] rules, int frame):
     :param frame:       (int) framnumber
     :return:            (pointer) current rule
     """
-    return array.array('i', rules[frame % len(rules)])
+    return array.array('i', rules[frame[0] % len(rules)])
 
 cpdef advance_array(int pos, int length, int[:, :, :] buf):
     """

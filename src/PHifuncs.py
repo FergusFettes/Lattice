@@ -2,7 +2,7 @@ import array
 import numpy as np
 
 from src.Cfuncs import *
-from src.cylib.array_man import *
+from src.Cyarr import *
 from src.Pfuncs import *
 
 def simple_run(dim_list):

@@ -4,8 +4,8 @@ from numpy import testing
 import timeit
 import unittest
 
-debug = True
-from Cyarr import *
+debug = False
+from CyarrOld import *
 
 def tst_arr():
     """
@@ -99,10 +99,10 @@ class ArrayCheckTestCase(unittest.TestCase):
 class ArrayEditTestCase(unittest.TestCase):
 
     def set_bounds(self):
-        print('WARNING: passing.')
+        arr = tst_arr()
+        set_bounds(1, 1, 1, 1, tst_dim(), arr)
 
-    def set_bounds_speed(self):
-        print('WARNING: passing.')
+        testing.assert_array_equal(arr, tst_arr())
 
     def test_create_box(self):
         arr = tst_arr()

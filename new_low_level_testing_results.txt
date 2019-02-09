@@ -1,0 +1,55 @@
+Old:
+1000x1000, 100 updates, noise bounds vert and hori all on:
+49.8 ms ± 367 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
+
+Inlineing the bottommost 'fill/clear' functions:
+50.2 ms ± 412 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
+
+Adding the word 'void' to all the functions:
+50.4 ms ± 141 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
+
+Turing on profiling:
+51.4 ms ± 114 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
+
+280 function calls in 0.050 seconds
+
+   Ordered by: standard name
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.050    0.050 <string>:2(<module>)
+        1    0.000    0.000    0.000    0.000 Cfuncs.pyx:281(prepair_rule (wrapper))
+        1    0.000    0.000    0.000    0.000 Cfuncs.pyx:281(prepair_rule)
+        1    0.017    0.017    0.019    0.019 Cfuncs.pyx:384(add_noise)
+        1    0.000    0.000    0.000    0.000 Cfuncs.pyx:404(ising_process)
+        1    0.016    0.016    0.031    0.031 Cfuncs.pyx:443(conway_process)
+        1    0.000    0.000    0.050    0.050 Cfuncs.pyx:94(basic_update (wrapper))
+        1    0.000    0.000    0.050    0.050 Cfuncs.pyx:94(basic_update)
+        1    0.000    0.000    0.000    0.000 Cyarr.pyx:143(scroll_bars (wrapper))
+        1    0.000    0.000    0.000    0.000 Cyarr.pyx:143(scroll_bars)
+        2    0.000    0.000    0.003    0.001 Cyarr.pyx:17(roll_columns (wrapper))
+        2    0.003    0.001    0.003    0.001 Cyarr.pyx:17(roll_columns)
+        1    0.000    0.000    0.000    0.000 Cyarr.pyx:170(set_bounds (wrapper))
+        1    0.000    0.000    0.000    0.000 Cyarr.pyx:170(set_bounds)
+        6    0.000    0.000    0.012    0.002 Cyarr.pyx:35(roll_rows (wrapper))
+        6    0.012    0.002    0.012    0.002 Cyarr.pyx:35(roll_rows)
+        1    0.000    0.000    0.001    0.001 numeric.py:469(asarray)
+       38    0.000    0.000    0.000    0.000 stringsource:345(__cinit__)
+       38    0.000    0.000    0.000    0.000 stringsource:372(__dealloc__)
+        7    0.000    0.000    0.000    0.000 stringsource:389(get_item_pointer)
+        7    0.000    0.000    0.000    0.000 stringsource:399(__getitem__)
+       16    0.000    0.000    0.000    0.000 stringsource:514(__getbuffer__)
+        8    0.000    0.000    0.000    0.000 stringsource:555(__get__)
+        2    0.000    0.000    0.000    0.000 stringsource:601(__len__)
+       13    0.000    0.000    0.000    0.000 stringsource:653(memoryview_cwrapper)
+       30    0.000    0.000    0.000    0.000 stringsource:659(memoryview_check)
+        7    0.000    0.000    0.000    0.000 stringsource:662(_unellipsify)
+        7    0.000    0.000    0.000    0.000 stringsource:906(pybuffer_index)
+       25    0.000    0.000    0.000    0.000 stringsource:972(__dealloc__)
+        6    0.000    0.000    0.000    0.000 stringsource:975(convert_item_to_object)
+       17    0.000    0.000    0.000    0.000 stringsource:988(__get__)
+       25    0.000    0.000    0.000    0.000 stringsource:995(memoryview_fromslice)
+        1    0.000    0.000    0.050    0.050 {built-in method Cfuncs.basic_update}
+        1    0.000    0.000    0.000    0.000 {built-in method Cfuncs.prepair_rule}
+        1    0.000    0.000    0.050    0.050 {built-in method builtins.exec}
+        1    0.001    0.001    0.001    0.001 {built-in method numpy.array}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}

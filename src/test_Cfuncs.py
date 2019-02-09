@@ -128,6 +128,9 @@ class BasicSuiteTestCase(unittest.TestCase):
 #==========Basic Tests=============
 class MiscTestCase(unittest.TestCase):
 
+    def setUp(self):
+        self.position = array.array('i', [1])
+
     def test_scroll_instruction_update(self):
         horizontal = array.array('i', [0, 1, 1, 0, -1])
         vertical = array.array('i', [0, 1, 1, 0, -1])
@@ -143,12 +146,12 @@ class MiscTestCase(unittest.TestCase):
 
     def test_prepair_rule_passes_2D(self):
         rules = np.array([[2,3,3,3]], np.intc)
-        rule = prepair_rule(rules, 1)
+        rule = prepair_rule(rules, self.position)
         testing.assert_array_equal(np.asarray(rule), np.array([2,3,3,3]))
 
     def test_prepair_rule_picks_rule(self):
         rules = np.array([[0, 0, 0, 0], [1, 1, 1, 1], [2, 2, 2, 2]], np.intc)
-        rule = prepair_rule(rules, 1)
+        rule = prepair_rule(rules, self.position)
         testing.assert_array_equal(np.asarray(rule), np.array([1,1,1,1]))
 
     def test_print_buffer_status_standard(self):
@@ -350,7 +353,7 @@ class IsingTestCase(unittest.TestCase):
 class ConwayTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.rule = np.array([[2,3,3,3]], np.intc)
+        self.rule = np.array([2,3,3,3], np.intc)
 
     def test_conway_process_off(self):
         arr = tst_arr()

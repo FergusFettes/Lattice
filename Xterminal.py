@@ -3,23 +3,24 @@ import array
 from src.Cfuncs import *
 from src.PHifuncs import *
 
-if __name__=="0_main__":
+if __name__=="__main__":
     dim_list = ([20,20])
     beta = 1/8
     updates = 5
     threshold = 1
-    rules = [[2,3,3,3],[2,3,3,3]]
+    rules = array.array('i', [[2,3,3,3],[2,3,3,3]])
 
-    head_position, buffer_length, print_position, analysis_position,\
+    head_position, print_position, analysis_position, buffer_length, buffer_status,\
         dim_t, arr_t, buf_t, dim_h, arr_h, buf_h = init(dim_list)
 
     basic_update(updates, beta, threshold,
                     prepair_rule(rules, head_position),
                     dim_h, arr_h,
                  )
-    advance_array(head_position % buffer_length, buffer_length, buf_h)
-    head_position += 1
-    arr_h = buf_h[head_position % buffer_length]
+    advance_array(head_position[0] % buffer_length, buffer_length, buf_h)
+    arr_h = update_array_positions(head_position, buffer_length, buffer_status, buf_h)
+
+    _ = update_array_positions(analysis_position, buffer_length, buffer_status, buf_h)
 
     changes = 0
     while True:
@@ -56,13 +57,13 @@ if __name__=="0_main__":
 
         time.sleep(0.3)
 
-if __name__ =="__main__":
+if __name__ =="r_main__":
     screendim1 = [38,149]
     screendim2 = [45,192]
     screendim3 = [57,268]
     screendim4 = [77,337]
-    head_pos, buf_siz, print_pos, analysis_pos, _, _, _, dim_v, arr_v, buf_v =\
-        init(screendim2)
+    head_pos, print_pos, analysis_pos, buf_siz, buffer_status,\
+        _, _, _, dim_v, arr_v, buf_v = init(screendim2)
     bounds = array.array('i', [1, 1, 1, 1])
     horizontal = array.array('i', [0, 7, 1, 1, 1])
     vertical = array.array('i', [0, 27, 66, 0, -1])

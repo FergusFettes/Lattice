@@ -17,16 +17,16 @@ from Cyarr import (
 
 #==================HI-LEVEL==================
 #============================================
-cpdef change_zoom_level(int head_pos, int buffer_length, int[:] dim, int[:, :, :] buf):
+cpdef change_zoom_level(int[:] head_pos, int buffer_length, int[:] dim, int[:, :, :] buf):
     """
     Checks the array edges, resizes if necessary.
 
     :param arr:
     :return:        (3D pointer) new buffer
     """
-    if check_rim(0, dim, buf[head_pos]) is True:
+    if check_rim(0, dim, buf[head_pos[0]]) is True:
         dim_v, buf_v = resize_array_buffer(dim, buffer_length)
-        change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v)
+        change_buffer(head_pos[0], buffer_length, dim, buf, dim_v, buf_v)
 #   else:   # if outer rim has nothing, check next one in
 #       if check_rim(1, dim_v, arr_v) is False and check _rim(2, dim_v, arr_v) is False:
 #           dim_v, buf_v = resize_array_buffer(dim, buffer_length, -1)
@@ -64,9 +64,9 @@ cpdef tuple init(list dimensions):
     buffer_length = 10
     buffer_status = np.zeros(buffer_length, np.intc)
     buffer_status[0] = 1
-    head_position = array.array('i', [0])
-    print_position = array.array('i', [0])
-    analysis_position = array.array('i', [0])
+    head_position = array.array('i', [0, 0])
+    print_position = array.array('i', [0, 0])
+    analysis_position = array.array('i', [0, 0])
 
     buf_v = init_array_buffer(dim_v, buffer_length)
     arr_v = buf_v[head_position[0] % buffer_length]
@@ -84,7 +84,6 @@ cpdef tuple init(list dimensions):
 
     buffer_status[1] = 2 #placing the analysis and printer in their places
     buffer_status[0] = 3
-    print_buffer_status(buffer_status, 5, '%', 'm')
 
     return head_position, print_position, analysis_position, buffer_length, buffer_status,\
             dim_t, arr_t, buf_v, dim_v, arr_v, buf_v
@@ -156,7 +155,7 @@ cpdef void basic_print(
 #==============MID-LEVEL========================
 #===============================================
 #replace memoryview with pointer when you change everything to c
-cpdef update_array_positions(int[:] position, int buffer_length, int[:] buffer_status,
+cpdef update_array_positions(int[:] position, int buffer_length, int[:, :] buffer_status,
                              int[:, :, :] buf, int display=1):
     """
     Updates the chosen array (switches the memoryview
@@ -174,7 +173,7 @@ cpdef update_array_positions(int[:] position, int buffer_length, int[:] buffer_s
 
     index = position[0] % buffer_length
     target = (index + 1) % buffer_length
-    if not buffer_status[target] == 0:
+    if not buffer_status[target, positon[1]] == 0:
         return None
     else:
         buffer_status[target] = buffer_status[index]

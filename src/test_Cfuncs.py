@@ -49,8 +49,8 @@ class BasicSuiteTestCase(unittest.TestCase):
         self.head_pos, self.print_pos, self.analysis_pos, self.buf_siz, self.buf_stat,\
             _, _, _, self.dim, self.arr, self.buf = init([50, 50])
         self.bounds = array.array('i', [1, 1, 1, 1])
-        self.horizontal = array.array('i', [0, 1, 1, 1])
-        self.vertical = array.array('i', [0, 1, 1, 1])
+        self.horizontal = array.array('i', [0, 1, 1, 0, 1])
+        self.vertical = array.array('i', [0, 1, 1, 0, 1])
         self.updates = 1000
         self.beta = 1/8
         self.threshold = 0.9

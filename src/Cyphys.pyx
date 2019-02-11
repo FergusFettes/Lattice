@@ -74,7 +74,7 @@ cpdef tuple center_of_mass_pop_living(int[:] dim, int[:, :] arr):
     for i in range(dim[0]):
         for j in range(dim[1]):
             if arr[i, j]:
-                living.append([i,j])
+                np.append(living, [i,j])
                 htot += 1
                 hsum += i
                 vtot += 1
@@ -118,6 +118,6 @@ cpdef double radius_of_gyration(float[:] com, int[:] dim, int[:, :] arr):
             if arr[i, j]:
                 Rg += (i - com[0])**2 + (j - com[1])**2
                 rtot += 1
-    if rtot == 0: return None
+    if rtot == 0: return 0.0
     Rg /= rtot
     return Rg**0.5

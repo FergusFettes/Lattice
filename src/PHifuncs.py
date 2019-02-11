@@ -5,59 +5,6 @@ from src.Cfuncs import *
 from src.Cyarr import *
 from src.Pfuncs import *
 
-def simple_run(dim_list):
-    """
-    Performs a run.
-    """
-    updates = 100
-    beta = 1/8
-    threshold = 0.9
-    rules = np.array([[2,3,3,3], [2,3,3,3]], np.intc)
-    horizontal = array.array('i', [0, 1, 2, 0, 1])
-    vertical = array.array('i', [0, 1, 1, 0, 1])
-    bounds = array.array('i', [1, 1, 1, 1])
-
-    head_position, buffer_length, print_position, analysis_position,\
-        dim_t, arr_t, buf_t, dim_h, arr_h, buf_h = init(dim_list)
-
-    basic_update(updates, beta, threshold,
-                    prepair_rule(rules, head_position),
-                    dim_h, arr_h)
-    advance_array(head_position % buffer_length, buffer_length, buf_h)
-    head_position += 1
-    arr_h = buf_h[head_position % buffer_length]
-
-    changes = 0
-    while True:
-        basic_print(dim_t, arr_t)
-        print_position += 1
-        arr_t = buf_t[print_position % buffer_length]
-
-        rule = prepair_rule(rules, head_position)
-        basic_update(updates, beta, threshold, rule, dim_h, arr_h)
-        advance_array(head_position % buffer_length, buffer_length, buf_h)
-
-        head_position += 1
-        arr_h = buf_h[head_position % buffer_length]
-
-        time.sleep(0.2)
-
-#       if check_rim(0, dim_h, arr_h) is True:
-#           dim_temp, buf_temp = resize_array_buffer(dim_h, buffer_length)
-#           change_buffer(head_position % buffer_length, buffer_length, dim_h, buf_h,\
-#                         dim_temp, buf_temp)
-#           dim_h = dim_temp
-#           buf_h = buf_temp
-
-#           change_location = head_position
-#           changes += 1
-
-#       if changes > 0:
-#           if print_position == change_location:
-#               dim_t = dim_h; buf_t = buf_h
-#               arr_t = buf_t[print_position % buffer_length]
-#               changes -= 1
-
 
 def recenter(com, dim, arr):
     """
@@ -75,17 +22,17 @@ def recenter(com, dim, arr):
     norm = np.sqrt(np.sum(offcenter**2))
     print('Offcenter norm: {}'.format(norm))
     if norm > 2:
-        if offcenter[0] < 0:
-            roll_rows_pointer(dim, arr)
+        if offcenter[0] > 0:
+            roll_rows_pointer(1, dim, arr)
             ver += 1
         else:
-            roll_rows_back_pointer(dim, arr)
+            roll_rows_pointer(-1, dim, arr)
             ver -= 1
-        if offcenter[1] < 0:
-            roll_columns_pointer(dim, arr)
+        if offcenter[1] > 0:
+            roll_columns_pointer(1, dim, arr)
             hor += 1
         else:
-            roll_columns_back_pointer(dim, arr)
+            roll_columns_pointer(-1, dim, arr)
             hor -= 1
 
     return ver, hor

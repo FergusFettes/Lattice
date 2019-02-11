@@ -57,16 +57,10 @@ class AnalysisSuiteTestCase(unittest.TestCase):
     def test_norm_345(self):
         self.assertEqual(5, norm(3,4))
 
-    def test_center_of_mass_returns_float(self):
-        arr = init_array(tst_dimL())
-        add_noise(0.2, tst_dimL(), arr)
-        com = center_of_mass(tst_dimL(), arr)
-        print(np.asarray(com))
-
     def test_center_of_mass_numpy(self):
         com = center_of_mass(tst_dimL(), self.arr)
         com_P = center_of_mass_P(np.argwhere(self.arr), len(np.argwhere(self.arr)))
-        #testing.assert_array_equal(com, com_P)
+        testing.assert_array_equal(com, com_P)
 
     def test_center_of_mass_pop_numpy(self):
         _, pop = center_of_mass_pop(tst_dimL(), self.arr)

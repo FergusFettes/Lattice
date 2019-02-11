@@ -26,7 +26,7 @@ cpdef change_zoom_level(int[:] head_pos, int buffer_length, int[:] dim, int[:, :
     """
     if check_rim(0, dim, buf[head_pos[0]]) is True:
         dim_v, buf_v = resize_array_buffer(dim, buffer_length)
-        change_buffer(head_pos[0], buffer_length, dim, buf, dim_v, buf_v)
+        change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v)
 #   else:   # if outer rim has nothing, check next one in
 #       if check_rim(1, dim_v, arr_v) is False and check _rim(2, dim_v, arr_v) is False:
 #           dim_v, buf_v = resize_array_buffer(dim, buffer_length, -1)
@@ -43,8 +43,7 @@ cpdef tuple init(list dimensions):
     :param rules:           (list) rules
     :return:
         head_pos            (pointer) position of head in buffer
-        print_pos           (pointer) position to be printed
-        analysis_pos        (pointer) positions to be analysed
+        tail_pos        (pointer) positions to be analysed
         buffer_length       (int) buffer length
         buffer_status       (pointer) list of array poistions in buffer
         dim                 (pointer) dimensions of array
@@ -55,38 +54,36 @@ cpdef tuple init(list dimensions):
         buf                 (3D pointer) buffer
     """
     cdef int buffer_length
-    cdef int[:] head_posistion, print_position, anaylsis_position, buffer_status
-    cdef int[:] dim_v = array.array('i', dimensions)
+    cdef int[:] head_posistion, tail_position, buffer_status
+    cdef int[:] dim_h = array.array('i', dimensions)
     cdef int[:] dim_t = array.array('i', dimensions)
-    cdef int[:, :] arr_v, arr_t
-    cdef int[:, :, :] buf_v
+    cdef int[:, :] arr_h, arr_t
+    cdef int[:, :, :] buf_h
 
     buffer_length = 10
     buffer_status = np.zeros(buffer_length, np.intc)
     buffer_status[0] = 1
     head_position = array.array('i', [0, 0])
-    print_position = array.array('i', [0, 0])
-    analysis_position = array.array('i', [0, 0])
+    tail_position = array.array('i', [0, 0])
 
-    buf_v = init_array_buffer(dim_v, buffer_length)
-    arr_v = buf_v[head_position[0] % buffer_length]
-    arr_t = buf_v[print_position[0] % buffer_length]
+    buf_h = init_array_buffer(dim_h, buffer_length)
+    arr_h = buf_h[head_position[0] % buffer_length]
+    arr_t = buf_h[tail_position[0] % buffer_length]
 
-    clear_array(dim_v, arr_v)
-    advance_array(head_position[0], buffer_length, buf_v)
-    arr_v = update_array_positions(head_position, buffer_length, buffer_status,
-                                   buf_v, 0)
+    clear_array(dim_h, arr_h)
+    advance_array(head_position, buffer_length, buf_h)
+    arr_h = update_array_positions(head_position, buffer_length, buffer_status,
+                                   buf_h, 0)
 
-    randomize_center(7, dim_v, arr_v)
-    advance_array(head_position[0], buffer_length, buf_v)
-    arr_v = update_array_positions(head_position, buffer_length, buffer_status,
-                                   buf_v, 0)
+    randomize_center(7, dim_h, arr_h)
+    advance_array(head_position, buffer_length, buf_h)
+    arr_h = update_array_positions(head_position, buffer_length, buffer_status,
+                                   buf_h, 0)
 
-    buffer_status[1] = 2 #placing the analysis and printer in their places
-    buffer_status[0] = 3
+    buffer_status[0] = 2 #placing the tail in place
 
-    return head_position, print_position, analysis_position, buffer_length, buffer_status,\
-            dim_t, arr_t, buf_v, dim_v, arr_v, buf_v
+    return head_position, tail_position, buffer_length, buffer_status,\
+            dim_t, arr_t, buf_h, dim_h, arr_h, buf_h
 
 
 cpdef void basic_update(
@@ -112,7 +109,7 @@ cpdef void basic_update(
     :return:            None
     """
     ising_process(updates, beta, dim, arr)
-    add_noise(threshold, dim, arr)
+    add_stochastic_noise(threshold, dim, arr)
     set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
     scroll_bars(dim, arr, horizontal, vertical)
     conway_process(rule, dim, arr)
@@ -155,7 +152,7 @@ cpdef void basic_print(
 #==============MID-LEVEL========================
 #===============================================
 #replace memoryview with pointer when you change everything to c
-cpdef update_array_positions(int[:] position, int buffer_length, int[:, :] buffer_status,
+cpdef update_array_positions(int[:] position, int buffer_length, int[:] buffer_status,
                              int[:, :, :] buf, int display=1):
     """
     Updates the chosen array (switches the memoryview
@@ -173,7 +170,7 @@ cpdef update_array_positions(int[:] position, int buffer_length, int[:, :] buffe
 
     index = position[0] % buffer_length
     target = (index + 1) % buffer_length
-    if not buffer_status[target, positon[1]] == 0:
+    if not buffer_status[target] == 0:
         return None
     else:
         buffer_status[target] = buffer_status[index]
@@ -194,10 +191,10 @@ cpdef print_buffer_status(int[:] buffer_status, int pad=4,
     """
     Outputs the array positions like so:
         ***************
-        *  h   p  a   *
+        *  h      t   *
         *  PPPPAAAH   *
         ***************
-        where h=head, p=print and a=analysis
+        where h=head, t=tail
     :param buffer_status:      (pointer) current state of buffer
     :param pad:                 (int) width of padding
     :param border:              (str) style of border
@@ -213,13 +210,11 @@ cpdef print_buffer_status(int[:] buffer_status, int pad=4,
         if i == 1:
             buff += 'h'
         if i == 2:
-            buff += 'a'
-        if i == 3:
-            buff += 'p'
+            buff += 't'
     buff = buff[1:]
     out = '\n'.join(('{0}{1}{0}'.format(pad*border, len(buffer_status)*border),
-                    '{0}{1}{2}{1}{0}'.format(border, ' '*(pad-0), buff),
-                    '{0}{1}{2}{1}{0}'.format(border, ' '*(pad-0), len(buffer_status)*base),
+                    '{0}{1}{2}{1}{0}'.format(border, ' '*(pad-1), buff),
+                    '{0}{1}{2}{1}{0}'.format(border, ' '*(pad-1), len(buffer_status)*base),
                      '{0}{1}{0}'.format(pad*border, len(buffer_status)*border)))
     print(out)
 
@@ -286,19 +281,19 @@ cpdef int[:] prepair_rule(int[:, :] rules, int[:] frame):
     """
     return array.array('i', rules[frame[0] % len(rules)])
 
-cpdef advance_array(int pos, int length, int[:, :, :] buf):
+cpdef advance_array(int[:] pos, int length, int[:, :, :] buf):
     """
     Copys the array into the next buffer position.
 
-    :param pos:         (int) index of array
+    :param pos:         (pointer) index of array
     :param length:      (int) length of buffer
     :param buf:         (3D pointer) buffer
     :return:            None
     """
-    buf[(pos + 1) % length] = buf[pos % length]
+    buf[(pos[0] + 1) % length] = buf[pos[0] % length]
 
 cpdef change_buffer(
-    int pos, int length, int[:] dim_old, int[:, :, :] buf_old,
+    int[:] pos, int length, int[:] dim_old, int[:, :, :] buf_old,
     int[:] dim_nu, int[:, :, :] buf_nu,
     int[:] offset=array.array('i', [1,1]), int[:] cut=array.array('i', [0,0])
 ):
@@ -315,10 +310,10 @@ cpdef change_buffer(
     :param cut:         (pointer) cut off sides of old buffer
     :return:            None
     """
-    clear_array(dim_nu, buf_nu[pos % length])
-    buf_nu[pos % length, offset[0]: offset[0] + dim_old[0] - cut[0] * 2,\
+    clear_array(dim_nu, buf_nu[pos[0] % length])
+    buf_nu[pos[0] % length, offset[0]: offset[0] + dim_old[0] - cut[0] * 2,\
                 offset[1]: offset[1] + dim_old[1] - cut[1] * 2] =\
-        buf_old[pos % length, cut[0]: dim_old[0] - cut[0],\
+        buf_old[pos[0] % length, cut[0]: dim_old[0] - cut[0],\
                      cut[1]: dim_old[1] - cut[1]]
 
 cpdef int[:, :, :] init_array_buffer(int[:] dim, int length):
@@ -332,10 +327,7 @@ cpdef int[:, :, :] init_array_buffer(int[:] dim, int length):
     """
     return np.empty([length, dim[0], dim[1]], np.intc)
 
-#TODO: s/rep every spare cpdef adding 'tuple' declaration
-#TODO: replace every cpdef with cdef
-#TODO: time the results of these two steps!
-cpdef resize_array_buffer(int[:] dim_old, int length, int add=1):
+cpdef tuple resize_array_buffer(int[:] dim_old, int length, int add=1):
     """
     Creates a new array buffer, larger than the last
     Buffer is uninitialized. This is essentially a (safe, easy) malloc.
@@ -373,13 +365,13 @@ cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, float threshold=0.2):
     dim_v = array.array('i', [siz, siz])
     arr_v = init_array(dim_v)
 
-    add_noise(threshold, dim_v, arr_v)
+    add_stochastic_noise(threshold, dim_v, arr_v)
 
     offset_v = array.array('i', [int((dim[0] - dim_v[0])/2), int((dim[1] - dim_v[1])/2)])
     replace_array(offset_v, dim_v, arr_v, dim, arr)
 
 #TODO: add function capabilities (also make more performant if you are going to do that..)
-cpdef add_noise(float threshold, int[:] dim, int[:, :] arr):
+cpdef add_global_noise(float threshold, int[:] dim, int[:, :] arr):
     """
     Adds simple noise to an array.
 
@@ -388,16 +380,52 @@ cpdef add_noise(float threshold, int[:] dim, int[:, :] arr):
     :param array:   (2D pointer) array
     :return: None
     """
-    if threshold == 1.0:
+    if threshold == 0.0:
         return
-    cdef int[:, :] narr = np.asarray(np.random.random(dim) > threshold, np.intc)
+    cdef Py_ssize_t i, j
+    for i in range(dim[0]):
+        for j in range(dim[1]):
+            if rand() / RAND_MAX < threshold:
+                array[i][j] = not array[i][j]
+
+cpdef add_global_noise_numpy(float threshold, int[:] dim, int[:, :] arr):
+    """
+    Adds simple noise to an array.
+
+    :param threshold: (float) Noise threshold (0-1)
+    :param dim:     (pointer) dimensions of array
+    :param array:   (2D pointer) array
+    :return: None
+    """
+    if threshold == 0.0:
+        return
+    cdef int[:, :] narr = np.asarray(np.random.random(dim) < threshold, np.intc)
     cdef Py_ssize_t i, j
     for i in range(dim[0]):
         for j in range(dim[1]):
             arr[i][j] = arr[i][j] ^ narr[i][j]
-            # To do this without numpy, remove first and add this. It's slower though.
-            # (might not be slower now ive changed the above...)
-            # array[x][y] = array[x][y] ^ (rand() % 2)
+
+cpdef add_stochastic_noise(float coverage, int[:] dim, int[:, :] arr, int polarity=0):
+    """
+    Adds simple noise to an array.
+
+    :param threshold: (float) Noise threshold (0-1)
+    :param dim:     (pointer) dimensions of array
+    :param array:   (2D pointer) array
+    :return: None
+    """
+    if coverage == 0.0:
+        return
+    cdef Py_ssize_t _
+    for _ in range(int(coverage * dim[0] * dim[1])):
+        x = rand() % dim[0]
+        y = rand() % dim[1] # check RAND_MAX isnt too small relative to 1000
+        if polarity == 1:
+            arr[x,y] = 1
+        elif polarity == -1:
+            arr[x,y] = 0
+        else:
+            arr[x,y] = not arr[x,y]
 
 cpdef ising_process(int updates, float beta, int[:] dim, int[:, :] arr):
     """

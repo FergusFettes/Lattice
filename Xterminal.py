@@ -46,7 +46,7 @@ if __name__ == "__main__":
     while True:
         # analysis here
         basic_print(dim_t, arr_t)
-        arr_t = update_array_positions(tail_position, buffer_length, buffer_status, buf_t)
+        arr_t = update_array_positions(tail_position, buffer_length, buffer_status, buf_t, 0)
 
         basic_update(updates, beta, threshold,
                         prepair_rule(rules, head_position),
@@ -59,8 +59,8 @@ if __name__ == "__main__":
             if head_position[1] == 1:
                 print('Growing too fast!')
                 break
-            dim_temp, buf_temp = resize_array_buffer(dim_h, buffer_length, 3)
-            offset = array.array('i', [3,3])
+            dim_temp, buf_temp = resize_array_buffer(dim_h, buffer_length, 2)
+            offset = array.array('i', [2,2])
             change_buffer(head_position, buffer_length, dim_h, buf_h,
                           dim_temp, buf_temp, offset)
             dim_h = dim_temp
@@ -80,4 +80,4 @@ if __name__ == "__main__":
         com = center_of_mass_P(np.argwhere(arr_h), len(np.argwhere(arr_h)))
         ver, hor = recenter(com, dim_h, arr_h)
 
-        time.sleep(0.5)
+        time.sleep(0.1)

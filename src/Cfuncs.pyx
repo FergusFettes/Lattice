@@ -255,16 +255,25 @@ cpdef scroll_instruction_update(int[:] horizontal, int[:] vertical, int[:] dim):
     :param dim:         (pointer) dimensions of array
     :return:            None
     """
+    # If bounce is on
     if horizontal[3]:
+        # If the step is positive
         if horizontal[2] > 0:
+            # If the next step takes it out of bounds
             if horizontal[0] + horizontal[1] + horizontal[2] > dim[0]:
+                # Turn it around
                 horizontal[2] = -horizontal[2]
-            elif horizontal[0] + horizontal[2] < dim[0]:
+        # If the step is negative
+        else:
+            # If the next step takes it out of bounds
+            if horizontal[0] + horizontal[2] < dim[0]:
+                # Turn it around
                 horizontal[2] = -horizontal[2]
         if vertical[2] > 0:
             if vertical[0] + vertical[1] + vertical[2] > dim[1]:
                 vertical[2] = -vertical[2]
-            elif vertical[0] + vertical[2] < dim[1]:
+        else:
+            if vertical[0] + vertical[2] < dim[1]:
                 vertical[2] = -vertical[2]
 
     horizontal[0] = horizontal[0] + horizontal[2]
@@ -350,6 +359,56 @@ cpdef int[:, :] init_array(int[:] dim_v):
     """
     return np.zeros(dim_v, np.intc)
 
+cpdef void scroll_update(
+    int[:] dim, int[:, :] arr,
+    int[:] hbar = array.array('i', [0, 5, 1, 0, 1]),
+    int[:] vbar = array.array('i', [0, 5, 1, 0, 1]),
+    str name = 'noise'
+):
+    """
+    Updates a region of the screen.
+
+    :param dim:
+    :param arr:
+    :param hbar:    [start, width, step, bounce, polarity (-2 is off)]
+    :param vbar:
+    :param name:    default is 'noise', 'ising' and 'conway' also work #TODO
+    :returns:       None
+    """
+    if hbar[-1] == -2 and vbar[-1] == -2:
+        return
+
+    cdef int[:] hdim = array.array('i', [dim[0], hbar[1]])
+    cdef int[:, :] harr = arr[:, hbar[0]: hbar[0] + hbar[1] + 1]
+    if str == 'noise':
+        if hbar[-1] == -2:
+            continue
+        add_stochastic_noise(0.2, hdim, harr, hbar[-1])
+    elif str == 'ising':
+        if hbar[-1] == -2:
+            continue
+        ising_process(0.1 * hdim[0] * hdim[1], 1, hdim, harr)
+    elif str == 'conway':
+        if hbar[-1] == -2:
+            continue
+        conway_process(np.array([2,3,3,3]), np.intc, harr, hdim)
+
+    cdef int[:] vdim = array.array('i', [dim[0], vbar[1]])
+    cdef int[:, :] varr = arr[:, vbar[0]: vbar[0] + vbar[1] + 1]
+    if str == 'noise':
+        if vbar[-1] == -2:
+            continue
+        add_stochastic_noise(0.2, vdim, varr, vbar[-1])
+    elif str == 'ising':
+        if vbar[-1] == -2:
+            continue
+        ising_process(0.1 * vdim[0] * vdim[1], 1, vdim, varr)
+    elif str == 'conway':
+        if vbar[-1] == -2:
+            continue
+        conway_process(np.array([2,3,3,3]), np.intc, varr, vdim)
+
+
 #===============FANTASTIC STOCHASTIC===============
 cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, float threshold=0.2):
     """
@@ -365,36 +424,20 @@ cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, float threshold=0.2):
     dim_v = array.array('i', [siz, siz])
     arr_v = init_array(dim_v)
 
-    add_stochastic_noise(threshold, dim_v, arr_v)
+    add_global_noise(threshold, dim_v, arr_v)
 
     offset_v = array.array('i', [int((dim[0] - dim_v[0])/2), int((dim[1] - dim_v[1])/2)])
     replace_array(offset_v, dim_v, arr_v, dim, arr)
 
-#TODO: add function capabilities (also make more performant if you are going to do that..)
-cpdef add_global_noise(float threshold, int[:] dim, int[:, :] arr):
+cpdef add_global_noise(float threshold, int[:] dim, int[:, :] arr, int polarity=0):
     """
     Adds simple noise to an array.
+    NB: This is faster than add_stochastic_noise for large noise levels.
 
     :param threshold: (float) Noise threshold (0-1)
     :param dim:     (pointer) dimensions of array
     :param array:   (2D pointer) array
-    :return: None
-    """
-    if threshold == 0.0:
-        return
-    cdef Py_ssize_t i, j
-    for i in range(dim[0]):
-        for j in range(dim[1]):
-            if rand() / RAND_MAX < threshold:
-                array[i][j] = not array[i][j]
-
-cpdef add_global_noise_numpy(float threshold, int[:] dim, int[:, :] arr):
-    """
-    Adds simple noise to an array.
-
-    :param threshold: (float) Noise threshold (0-1)
-    :param dim:     (pointer) dimensions of array
-    :param array:   (2D pointer) array
+    :param polarity: (int) 1 is additive, 0 is normal and -1 is subtractive
     :return: None
     """
     if threshold == 0.0:
@@ -403,29 +446,69 @@ cpdef add_global_noise_numpy(float threshold, int[:] dim, int[:, :] arr):
     cdef Py_ssize_t i, j
     for i in range(dim[0]):
         for j in range(dim[1]):
-            arr[i][j] = arr[i][j] ^ narr[i][j]
+            if polarity == 1:
+                arr[i][j] = arr[i][j] | narr[i][j]
+            elif polarity == -1:
+                arr[i][j] = ~(arr[i][j] & narr[i][j])
+            else:
+                arr[i][j] = arr[i][j] ^ narr[i][j]
 
 cpdef add_stochastic_noise(float coverage, int[:] dim, int[:, :] arr, int polarity=0):
     """
     Adds simple noise to an array.
+    NB: This is slower than add_global_noise for large noise levels.
+    Use the 'additive' setting to make the most of the speed if you want a fuller array.
 
     :param threshold: (float) Noise threshold (0-1)
     :param dim:     (pointer) dimensions of array
     :param array:   (2D pointer) array
+    :param polarity (int) 1 is additive, 0 is normal and -1 is subtractive
     :return: None
     """
     if coverage == 0.0:
         return
-    cdef Py_ssize_t _
-    for _ in range(int(coverage * dim[0] * dim[1])):
-        x = rand() % dim[0]
-        y = rand() % dim[1] # check RAND_MAX isnt too small relative to 1000
+    cdef int[:, :] vex = np.random.randint(0, dim[0], (int(coverage * dim[0] * dim[1]), 1),
+                                           np.intc)
+    cdef int[:, :] vey = np.random.randint(0, dim[1], (int(coverage * dim[0] * dim[1]), 1),
+                                           np.intc)
+    cdef int[:, :] vecs = np.concatenate((vex, vey), axis=1)
+    cdef Py_ssize_t i
+    cdef int a, b
+    for i in range(int(coverage * dim[0] * dim[1])):
+        a = vecs[i, 0]
+        b = vecs[i, 1]
         if polarity == 1:
-            arr[x,y] = 1
+            arr[a, b] = 1
         elif polarity == -1:
-            arr[x,y] = 0
+            arr[a, b] = 0
         else:
-            arr[x,y] = not arr[x,y]
+            arr[a, b] = 1 - arr[a, b]
+
+cpdef ising_process_moore(int updates, float beta, int[:] dim, int[:, :] arr):
+    """
+    Performs ising updates on the array.
+
+    :param updates: (int) Number of updates to perform
+    :param beta:    (float) Inverse temperature (>1/8 --> pure noise)
+    :param dim:     (pointer) dimensions of array
+    :param array:   (2D pointer) array
+    :return:        None
+    """
+    if updates == 0:
+        return
+    cdef float[:] cost = np.zeros(3, np.float32)
+    cost[1] = np.exp(-4 * beta)
+    cost[2] = cost[1] ** 2
+    cdef int N = dim[0]
+    cdef int D = dim[1]
+    cdef Py_ssize_t i
+    cdef int nb
+    cdef int[:] pos
+    for i in range(updates):
+        pos = array.array('i', [rand() % N, rand() % D])
+        nb = moore_neighbors_same(pos, dim, arr)
+        if nb - 2 <= 0 or (rand() / float(RAND_MAX)) < cost[nb - 2]:
+            arr[pos[0], pos[1]] = 1 - arr[pos[0], pos[1]]
 
 cpdef ising_process(int updates, float beta, int[:] dim, int[:, :] arr):
     """
@@ -461,8 +544,8 @@ cpdef ising_process(int updates, float beta, int[:] dim, int[:, :] arr):
             u = int(arr[a][b] == arr[a][(b + 1)])
             d = int(arr[a][b] == arr[a][(b - 1)])
             nb = l + u + d + r - 2
-        if nb <= 0 or (rand() / RAND_MAX) < cost[nb]:
-            arr[a][b] = not arr[a][b]
+        if nb <= 0 or (rand() / float(RAND_MAX)) < cost[nb]:
+            arr[a][b] = 1 - arr[a][b]
 
 #===================CONWAY=================
 #TODO: make more atomic, so you can do more testing. Also add different version, likewise.
@@ -499,3 +582,133 @@ cpdef conway_process(int[:] rule, int[:] dim, int[:, :] arr):
             else:
                 if rule[2] <= NB <= rule[3]:
                     arr[i][j] = 1
+
+#=====NEIGHBOR CALCULATIONS===========
+# for some reason this is faily slow, needs further testing
+cpdef int moore_neighbors_same(int[:] pos, int[:] dim, int[:, :] arr):
+    """
+    Calculates the number of Moore neighbors that share state with the position.
+
+    :param pos:         position to be checked
+    :param dim:         dimensions of array
+    :param arr:         array
+    :return:            neighbors
+    """
+    cdef int N = dim[0]
+    cdef int D = dim[1]
+    cdef int a = pos[0]
+    cdef int b = pos[1]
+    cdef int l, r, u, d, nb
+    if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
+        l = int(arr[a][b] == arr[(a + 1) % N][b])
+        r = int(arr[a][b] == arr[(a - 1) % N][b])
+        u = int(arr[a][b] == arr[a][(b + 1) % D])
+        d = int(arr[a][b] == arr[a][(b - 1) % D])
+        nb = l + u + d + r
+    else:
+        l = int(arr[a][b] == arr[(a + 1)][b])
+        r = int(arr[a][b] == arr[(a - 1)][b])
+        u = int(arr[a][b] == arr[a][(b + 1)])
+        d = int(arr[a][b] == arr[a][(b - 1)])
+        nb = l + u + d + r
+    return nb
+
+cpdef int moore_neighbors_sum(int[:] pos, int[:] dim, int[:, :] arr):
+    """
+    Calculated the population of the Moore neighborhood at position.
+
+    :param pos:         position to be checked
+    :param dim:         dimensions of array
+    :param arr:         array
+    :return:            neighbors
+    """
+    cdef int N = dim[0]
+    cdef int D = dim[1]
+    cdef int a = pos[0]
+    cdef int b = pos[1]
+    cdef int l, r, u, d, nb
+    if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
+        l = arr[(a + 1) % N][b]
+        r = arr[(a - 1) % N][b]
+        u = arr[a][(b + 1) % D]
+        d = arr[a][(b - 1) % D]
+        nb = l + u + d + r
+    else:
+        l = arr[(a + 1)][b]
+        r = arr[(a - 1)][b]
+        u = arr[a][(b + 1)]
+        d = arr[a][(b - 1)]
+        nb = l + u + d + r
+    return nb
+
+cpdef int neumann_neighbors_same(int[:] pos, int[:] dim, int[:, :] arr):
+    """
+    Calculates the number of Neumann neighbors that share state with the position.
+
+    :param pos:         position to be checked
+    :param dim:         dimensions of array
+    :param arr:         array
+    :return:            neighbors
+    """
+    cdef int N = dim[0]
+    cdef int D = dim[1]
+    cdef int a = pos[0]
+    cdef int b = pos[1]
+    cdef int l, r, u, d, ur, ul, dr, dl, nb
+    if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
+        l = int(arr[a][b] == arr[(a + 1) % N][b])
+        r = int(arr[a][b] == arr[(a - 1) % N][b])
+        ul = int(arr[a][b] == arr[(a + 1) % N][(b + 1) % D])
+        ur = int(arr[a][b] == arr[(a - 1) % N][(b + 1) % D])
+        dl = int(arr[a][b] == arr[(a + 1) % N][(b - 1) % D])
+        dr = int(arr[a][b] == arr[(a - 1) % N][(b - 1) % D])
+        u = int(arr[a][b] == arr[a][(b + 1) % D])
+        d = int(arr[a][b] == arr[a][(b - 1) % D])
+        nb = l + u + d + r + ul + ur + dl + dr
+    else:
+        l = int(arr[a][b] == arr[(a + 1)][b])
+        r = int(arr[a][b] == arr[(a - 1)][b])
+        ul = int(arr[a][b] == arr[(a + 1)][(b + 1)])
+        ur = int(arr[a][b] == arr[(a - 1)][(b + 1)])
+        dl = int(arr[a][b] == arr[(a + 1)][(b - 1)])
+        dr = int(arr[a][b] == arr[(a - 1)][(b - 1)])
+        u = int(arr[a][b] == arr[a][(b + 1)])
+        d = int(arr[a][b] == arr[a][(b - 1)])
+        nb = l + u + d + r + ul + ur + dl + dr
+    return nb
+
+cpdef int neumann_neighbors_sum(int[:] pos, int[:] dim, int[:, :] arr):
+    """
+    Calculated the population of the Neumann neighborhood at position.
+
+    :param pos:         position to be checked
+    :param dim:         dimensions of array
+    :param arr:         array
+    :return:            neighbors
+    """
+    cdef int N = dim[0]
+    cdef int D = dim[1]
+    cdef int a = pos[0]
+    cdef int b = pos[1]
+    cdef int l, r, u, d, ur, ul, dr, dl, nb
+    if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
+        l = arr[(a + 1) % N][b]
+        r = arr[(a - 1) % N][b]
+        ul = arr[(a + 1) % N][(b + 1) % D]
+        ur = arr[(a - 1) % N][(b + 1) % D]
+        dl = arr[(a + 1) % N][(b - 1) % D]
+        dr = arr[(a - 1) % N][(b - 1) % D]
+        u = arr[a][(b + 1) % D]
+        d = arr[a][(b - 1) % D]
+        nb = l + u + d + r + ul + ur + dl + dr
+    else:
+        l = arr[(a + 1)][b]
+        r = arr[(a - 1)][b]
+        ul = arr[(a + 1)][(b + 1)]
+        ur = arr[(a - 1)][(b + 1)]
+        dl = arr[(a + 1)][(b - 1)]
+        dr = arr[(a - 1)][(b - 1)]
+        u = arr[a][(b + 1)]
+        d = arr[a][(b - 1)]
+        nb = l + u + d + r + ul + ur + dl + dr
+    return nb

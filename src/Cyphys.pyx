@@ -29,8 +29,8 @@ cpdef float[:] center_of_mass(int[:] dim, int[:, :] arr):
                 vtot += 1
                 vsum += j
     if htot == 0: return None
-    cdef float hm = hsum / htot
-    cdef float vm = vsum / vtot
+    cdef float hm = float(hsum) / float(htot)
+    cdef float vm = float(vsum) / float(vtot)
     cdef float[:] com = array.array('f', [hm, vm])
     return com
 
@@ -54,8 +54,8 @@ cpdef tuple center_of_mass_pop(int[:] dim, int[:, :] arr):
                 vtot += 1
                 vsum += j
     if htot == 0: return None
-    cdef float hm = hsum / htot
-    cdef float vm = vsum / vtot
+    cdef float hm = float(hsum) / float(htot)
+    cdef float vm = float(vsum) / float(vtot)
     cdef float[:] com = array.array('f', [hm, vm])
     return com, vtot
 
@@ -69,19 +69,19 @@ cpdef tuple center_of_mass_pop_living(int[:] dim, int[:, :] arr):
     :return:        com, pop, living
     """
     cdef int vtot = 0, vsum = 0, htot = 0, hsum = 0
-    living = np.zeros((0,2), np.intc)
+    cdef int[:, :] living = np.zeros((dim[0] * dim[1],2), np.intc)
     cdef Py_ssize_t i, j
     for i in range(dim[0]):
         for j in range(dim[1]):
             if arr[i, j]:
-                np.append(living, [i,j])
+                living[htot, :] = [i, j]
                 htot += 1
                 hsum += i
                 vtot += 1
                 vsum += j
     if htot == 0: return None
-    cdef float hm = hsum / htot
-    cdef float vm = vsum / vtot
+    cdef float hm = float(hsum) / float(htot)
+    cdef float vm = float(vsum) / float(vtot)
     cdef float[:] com = array.array('f', [hm, vm])
     return com, vtot, living
 

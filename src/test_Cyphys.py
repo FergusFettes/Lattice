@@ -3,10 +3,10 @@ import numpy as np
 from numpy import testing
 import unittest
 
-from Cfuncs import add_noise, init_array
+from Cfuncs import add_global_noise, init_array
 from Cyphys import (
-    norm, center_of_mass, center_of_mass_pop, center_of_mass_pop_living, population,
-    radius_of_gyration
+    norm, center_of_mass, center_of_mass_pop, living, population,
+    radius_of_gyration, analysis_loop, polarization, neighbor_interaction, neighbor_interaction_moore
 )
 from Pfuncs import center_of_mass_P, radius_of_gyration_P
 
@@ -52,7 +52,7 @@ class AnalysisSuiteTestCase(unittest.TestCase):
 
     def setUp(self):
         self.arr = tst_arrL()
-        add_noise(0.5, tst_dimL(), self.arr)
+        add_global_noise(0.5, tst_dimL(), self.arr)
 
     def test_norm_345(self):
         self.assertEqual(5, norm(3,4))
@@ -60,7 +60,7 @@ class AnalysisSuiteTestCase(unittest.TestCase):
     def test_center_of_mass_numpy(self):
         com = center_of_mass(tst_dimL(), self.arr)
         com_P = center_of_mass_P(np.argwhere(self.arr), len(np.argwhere(self.arr)))
-        testing.assert_array_equal(com, com_P)
+        testing.assert_allclose(com, com_P)
 
     def test_center_of_mass_pop_numpy(self):
         _, pop = center_of_mass_pop(tst_dimL(), self.arr)
@@ -70,23 +70,55 @@ class AnalysisSuiteTestCase(unittest.TestCase):
         pop = population(tst_dimL(), self.arr)
         self.assertEqual(len(np.argwhere(self.arr)), pop)
 
-    def test_center_of_mass_pop_living_length_numpy(self):
-        _, _, living = center_of_mass_pop_living(tst_dimL(), self.arr)
+    def test_living_length_numpy(self):
+        live = living(tst_dimL(), self.arr)
         pos = np.argwhere(self.arr)
-        self.assertEqual(len(pos), len(living))
+        self.assertEqual(len(pos), len(live))
 
-    def test_center_of_mass_pop_living_content_numpy(self):
-        _, _, living = center_of_mass_pop_living(tst_dimL(), self.arr)
+    def test_live_content_numpy(self):
+        live = living(tst_dimL(), self.arr)
         pos = np.argwhere(self.arr)
-        testing.assert_array_equal(pos, np.sort(np.asarray(living)))
+        testing.assert_array_equal(pos, np.asarray(live))
 
     def test_radius_of_gyration_python(self):
         com = center_of_mass(tst_dimL(), self.arr)
         Rg = radius_of_gyration(com, tst_dimL(), self.arr)
         com_P = center_of_mass_P(np.argwhere(self.arr), len(np.argwhere(self.arr)))
         Rg_P = radius_of_gyration_P(com_P, np.argwhere(self.arr), len(np.argwhere(self.arr)))
-        self.assertEqual(Rg, Rg_P)
+        testing.assert_allclose(Rg, Rg_P, 1e-8, 1e-2)
 
+    def test_polarization_random(self):
+        self.assertAlmostEqual(0, polarization(tst_dimL(), self.arr), 2)
+
+    def test_polarization_zeros(self):
+        self.arr[:, :] = 0
+        self.assertEqual(1, polarization(tst_dimL(), self.arr))
+
+    def test_polarization_ones(self):
+        self.arr[:, :] = 1
+        self.assertEqual(1, polarization(tst_dimL(), self.arr))
+
+    def test_neighbor_interaction_moore(self):
+        e, e2 = neighbor_interaction_moore(tst_dimL(), self.arr)
+        self.assertAlmostEqual(e, -4, 1)
+        self.assertLess(e, e2)
+
+    def test_neighbor_interaction_random(self):
+        e, e2 = neighbor_interaction(tst_dimL(), self.arr)
+        self.assertAlmostEqual(e, -4, 1)
+        self.assertLess(e, e2)
+
+    def test_neighbor_interaction_zeros(self):
+        self.arr[:, :] = 0
+        e, e2 = neighbor_interaction(tst_dimL(), self.arr)
+        self.assertEqual(e, -8)
+        self.assertEqual(e2, 64)
+
+    def test_neighbor_interaction_ones(self):
+        self.arr[:, :] = 1
+        e, e2 = neighbor_interaction(tst_dimL(), self.arr)
+        self.assertEqual(e, -8)
+        self.assertEqual(e2, 64)
 
 analysis_suite = unittest.TestLoader().loadTestsFromTestCase(AnalysisSuiteTestCase)
 

@@ -52,7 +52,7 @@ if __name__ == "__main__":
                     )
 
         cf.scroll_update(dim_h, arr_h, hbar, vbar)
-        cf.scroll_instruction_update(hbar, vbar, dim_t)
+        cf.scroll_instruction_update_single(vbar, dim_t)
 
         cf.advance_array(head_position, buffer_length, buf_h)
         arr_h = cf.update_array_positions(head_position, buffer_length, buffer_status, buf_h)

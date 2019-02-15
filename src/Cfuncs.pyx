@@ -245,6 +245,28 @@ cdef void update_rules(
     vertical = array.array('i', [0, 1, 1, 0, 1])
     bounds = array.array('i', [1, 1, 1, 1])
 
+cpdef scroll_instruction_update_single(int[:] instructions, int[:] dim):
+    """
+    Updates the positons of the scrollbar.
+
+    :param instructions:  [start, width, step, axis, bounce, polarity (-1 is off)]
+    :param dim:         (pointer) dimensions of array
+    :return:            None
+    """
+    # If bounce is on
+    if instructions[4]:
+        # If the step is positive
+        if instructions[2] > 0:
+            # If the next step takes it out of bounds
+            if instructions[0] + instructions[1] + instructions[2] > dim[instructions[3]]:
+                # Turn it around
+                instructions[2] = -instructions[2]
+        # If the step is negative
+        else:
+            # If the next step takes it out of bounds
+            if instructions[0] + instructions[2] < 0:
+                # Turn it around
+                instructions[2] = -instructions[2]
 
 cpdef scroll_instruction_update(int[:] horizontal, int[:] vertical, int[:] dim):
     """
@@ -266,14 +288,16 @@ cpdef scroll_instruction_update(int[:] horizontal, int[:] vertical, int[:] dim):
         # If the step is negative
         else:
             # If the next step takes it out of bounds
-            if horizontal[0] + horizontal[2] < dim[0]:
+            if horizontal[0] + horizontal[2] < 0:
                 # Turn it around
                 horizontal[2] = -horizontal[2]
+
+    if vertical[3]:
         if vertical[2] > 0:
             if vertical[0] + vertical[1] + vertical[2] > dim[1]:
                 vertical[2] = -vertical[2]
         else:
-            if vertical[0] + vertical[2] < dim[1]:
+            if vertical[0] + vertical[2] < 0:
                 vertical[2] = -vertical[2]
 
     horizontal[0] = horizontal[0] + horizontal[2]
@@ -361,53 +385,57 @@ cpdef int[:, :] init_array(int[:] dim_v):
 
 cpdef void scroll_update(
     int[:] dim, int[:, :] arr,
-    int[:] hbar = array.array('i', [0, 5, 1, 0, 1]),
-    int[:] vbar = array.array('i', [0, 5, 1, 0, 1]),
-    str name = 'noise'
+    int[:] bar = array.array('i', [0, 5, 1, 0, 0, 1]),
+    int[:] rule = array.array('i', [2, 3, 3, 3]),
+    str name = 'noise',
 ):
     """
     Updates a region of the screen.
 
     :param dim:
     :param arr:
-    :param hbar:    [start, width, step, bounce, polarity (-2 is off)]
+    :param hbar:    [start, width, step, axis, bounce, polarity (-2 is off)]
     :param vbar:
     :param name:    default is 'noise', 'ising' and 'conway' also work #TODO
     :returns:       None
     """
-    if hbar[-1] == -2 and vbar[-1] == -2:
+    if bar[-1] == -2:
         return
 
-    cdef int[:] hdim = array.array('i', [dim[0], hbar[1]])
-    cdef int[:, :] harr = arr[:, hbar[0]: hbar[0] + hbar[1] + 1]
-    if str == 'noise':
-        if hbar[-1] == -2:
-            continue
-        add_stochastic_noise(0.2, hdim, harr, hbar[-1])
-    elif str == 'ising':
-        if hbar[-1] == -2:
-            continue
-        ising_process(0.1 * hdim[0] * hdim[1], 1, hdim, harr)
-    elif str == 'conway':
-        if hbar[-1] == -2:
-            continue
-        conway_process(np.array([2,3,3,3]), np.intc, harr, hdim)
+    if bar[3] == 0:
+        for i in range(bar[1]):
+            noise_row(bar[0], dim, arr, bar[-1])
+    if bar[3] == 1:
+            noise_column(bar[0], dim, arr, bar[-1])
 
-    cdef int[:] vdim = array.array('i', [dim[0], vbar[1]])
-    cdef int[:, :] varr = arr[:, vbar[0]: vbar[0] + vbar[1] + 1]
-    if str == 'noise':
-        if vbar[-1] == -2:
-            continue
-        add_stochastic_noise(0.2, vdim, varr, vbar[-1])
-    elif str == 'ising':
-        if vbar[-1] == -2:
-            continue
-        ising_process(0.1 * vdim[0] * vdim[1], 1, vdim, varr)
-    elif str == 'conway':
-        if vbar[-1] == -2:
-            continue
-        conway_process(np.array([2,3,3,3]), np.intc, varr, vdim)
 
+cdef void noise_row(int pos, int[:] dim, int[:, :] arr, int polarity = 0):
+    """
+    Noises a single row.
+
+    :param pos:     position (rownumber)
+    :param dim:
+    :param arr:
+    :returns:       None
+    """
+
+    cdef int[:] tdim = array.array('i', [dim[0], 1])
+    cdef int[:, :] tarr = arr[:, pos: (pos + 1)]
+    add_stochastic_noise(0.8, tdim, tarr, polarity)
+
+cdef void noise_column(int pos, int[:] dim, int[:, :] arr, int polarity = 0):
+    """
+    Noises a single column.
+
+    :param pos:     position (rownumber)
+    :param dim:
+    :param arr:
+    :returns:       None
+    """
+
+    cdef int[:] tdim = array.array('i', [1, dim[1]])
+    cdef int[:, :] tarr = arr[pos: pos + 1, :]
+    add_stochastic_noise(0.8, tdim, tarr, polarity)
 
 #===============FANTASTIC STOCHASTIC===============
 cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, float threshold=0.2):

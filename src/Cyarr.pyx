@@ -144,7 +144,7 @@ cpdef check_rim(int num, int[:] dim, int[:, :] arr):
 #TODO: allow for multiple bars
 cpdef scroll_bars(
     int[:] dim, int[:, :] arr,
-    int[:] horizontal = array.array('i', [0, 1, 1, 0, 1]),
+    int[:] bar = array.array('i', [0, 1, 1, 1, 0, 1]),
     int[:] vertical = array.array('i', [0, 1, 1, 0, 1]),
 ):
     """

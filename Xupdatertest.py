@@ -38,6 +38,8 @@ if __name__ == "__main__":
     cf.add_global_noise(0.5, dim_h, arr_h)
 
     changes = 0
+    frame_orig = array.array('i', [0])
+    frame = memoryview(frame_orig)
     while True:
         # analysis here
         cf.basic_print(dim_t, arr_t, bounds, horizontal, vertical)
@@ -45,14 +47,9 @@ if __name__ == "__main__":
         arr_t = cf.update_array_positions(tail_position, buffer_length, buffer_status, buf_t, 0)
         time.sleep(0.1)
 
-        cf.basic_update(updates, beta, threshold,
-                        cf.prepair_rule(rules, head_position),
-                        dim_h, arr_h,
-                        bounds, horizontal, vertical,
-                    )
-
-        cf.scroll_update(dim_h, arr_h, hbar, vbar)
-        cf.scroll_instruction_update_single(vbar, dim_t)
+        cf.conway_process(cf.prepair_rule(rules, frame), dim_h, arr_h)
 
         cf.advance_array(head_position, buffer_length, buf_h)
         arr_h = cf.update_array_positions(head_position, buffer_length, buffer_status, buf_h)
+
+        frame[0] += 1

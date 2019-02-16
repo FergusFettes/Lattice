@@ -98,11 +98,63 @@ class ArrayCheckTestCase(unittest.TestCase):
 
 class ArrayEditTestCase(unittest.TestCase):
 
-    def set_bounds(self):
+    def test_scroll_bars_basic(self):
+        bars = np.array([[0, 1, 1, 0, 0, 1]], np.intc)
+        arr = tst_arrL()
+
+        scroll_bars(tst_dimL(), arr, bars)
+
+        arr2 = tst_arrL()
+        arr2[0, :] = 1
+        testing.assert_array_equal(arr, arr2)
+
+    def test_scroll_bars_axis(self):
+        bars = np.array([[0, 1, 1, 1, 0, 1]], np.intc)
+        arr = tst_arrL()
+
+        scroll_bars(tst_dimL(), arr, bars)
+
+        arr2 = tst_arrL()
+        arr2[:, 0] = 1
+        testing.assert_array_equal(arr, arr2)
+
+    def test_scroll_bars_width(self):
+        bars = np.array([[0, 5, 1, 1, 0, 1]], np.intc)
+        arr = tst_arrL()
+
+        scroll_bars(tst_dimL(), arr, bars)
+
+        arr2 = tst_arrL()
+        arr2[:, :5] = 1
+        testing.assert_array_equal(arr, arr2)
+
+    def test_scroll_bars_multi(self):
+        bars = np.array([
+            [10, 1, 1, 0, 0, 1],
+            [0, 1, 1, 1, 0, 1],
+            [1, 1, 1, 1, 0, 1],
+        ], np.intc)
+        arr = tst_arrL()
+
+        scroll_bars(tst_dimL(), arr, bars)
+
+        arr2 = tst_arrL()
+        arr2[10, :] = 1
+        arr2[:, 0] = 1
+        arr2[:, 1] = 1
+        testing.assert_array_equal(arr, arr2)
+
+    def test_set_bounds(self):
         arr = tst_arr()
         set_bounds(1, 1, 1, 1, tst_dim(), arr)
 
-        testing.assert_array_equal(arr, tst_arr())
+        arr2 = tst_arr()
+        arr2[0] = 1
+        arr2[:, 0] = 1
+        arr2[tst_dim()[0] - 1] = 1
+        arr2[:, tst_dim()[1] - 1] = 1
+
+        testing.assert_array_equal(arr, arr2)
 
     def test_create_box(self):
         arr = tst_arr()
@@ -148,37 +200,37 @@ class ArrayEditTestCase(unittest.TestCase):
 
         testing.assert_array_equal(arr2, arr)
 
-    def test_fill_columns(self):
-        arr = tst_arr()
-        fill_columns(0, 5, tst_dim(), arr)
-        testing.assert_array_equal(np.ones_like(tst_arr()), arr)
+#   def test_fill_columns(self):
+#       arr = tst_arr()
+#       fill_columns(0, 5, tst_dim(), arr)
+#       testing.assert_array_equal(np.ones_like(tst_arr()), arr)
 
-    def test_clear_columns(self):
-        arr = tst_arr()
-        clear_columns(0, 5, tst_dim(), arr)
-        testing.assert_array_equal(np.zeros_like(tst_arr()), arr)
+#   def test_clear_columns(self):
+#       arr = tst_arr()
+#       clear_columns(0, 5, tst_dim(), arr)
+#       testing.assert_array_equal(np.zeros_like(tst_arr()), arr)
 
-    def test_fill_rows(self):
-        arr = tst_arr()
-        fill_rows(0, 5, tst_dim(), arr)
-        testing.assert_array_equal(np.ones_like(tst_arr()), arr)
+#   def test_fill_rows(self):
+#       arr = tst_arr()
+#       fill_rows(0, 5, tst_dim(), arr)
+#       testing.assert_array_equal(np.ones_like(tst_arr()), arr)
 
-    def test_clear_rows(self):
-        arr = tst_arr()
-        clear_rows(0, 5, tst_dim(), arr)
-        testing.assert_array_equal(np.zeros_like(tst_arr()), arr)
+#   def test_clear_rows(self):
+#       arr = tst_arr()
+#       clear_rows(0, 5, tst_dim(), arr)
+#       testing.assert_array_equal(np.zeros_like(tst_arr()), arr)
 
-    def test_replace_rows(self):
-        arr = tst_arr()
-        nu = np.ones(5, np.intc)
-        replace_rows(0, 5, nu, tst_dim(), arr)
-        testing.assert_array_equal(np.ones_like(tst_arr()), arr)
+#   def test_replace_rows(self):
+#       arr = tst_arr()
+#       nu = np.ones(5, np.intc)
+#       replace_rows(0, 5, nu, tst_dim(), arr)
+#       testing.assert_array_equal(np.ones_like(tst_arr()), arr)
 
-    def test_replace_columns(self):
-        arr = tst_arr()
-        nu = np.ones(5, np.intc)
-        replace_columns(0, 5, nu, tst_dim(), arr)
-        testing.assert_array_equal(np.ones_like(tst_arr()), arr)
+#   def test_replace_columns(self):
+#       arr = tst_arr()
+#       nu = np.ones(5, np.intc)
+#       replace_columns(0, 5, nu, tst_dim(), arr)
+#       testing.assert_array_equal(np.ones_like(tst_arr()), arr)
 
 
 arrayedit = unittest.TestLoader().loadTestsFromTestCase(ArrayEditTestCase)

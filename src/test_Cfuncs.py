@@ -4,6 +4,8 @@ from numpy import testing
 import unittest
 
 from Cfuncs import *
+import Cyarr as cy
+import Cyphys as cyphys
 
 debug = False
 simple = False
@@ -49,8 +51,7 @@ class BasicSuiteTestCase(unittest.TestCase):
         self.head_pos, self.tail_pos, self.buf_siz, self.buf_stat,\
             _, _, _, self.dim, self.arr, self.buf = init([50, 50])
         self.bounds = array.array('i', [1, 1, 1, 1])
-        self.horizontal = array.array('i', [0, 1, 1, 0, 1])
-        self.vertical = array.array('i', [0, 1, 1, 0, 1])
+        self.bars = np.array([[0, 1, 1, 0, 0, 1]], np.intc)
         self.updates = 1000
         self.beta = 1/8
         self.threshold = 0.9
@@ -65,7 +66,7 @@ class BasicSuiteTestCase(unittest.TestCase):
 
     def test_basic_print_bounds_scroll(self):
         basic_print(self.dim, self.arr,
-                    self.bounds, self.horizontal, self.vertical)
+                    self.bounds, self.bars)
 
     def test_basic_update_off(self):
         arr = np.copy(self.arr)
@@ -90,7 +91,7 @@ class BasicSuiteTestCase(unittest.TestCase):
             self.arr,
             self.bounds,
         )
-        fill_bounds(self.dim, arr)
+        cy.fill_bounds(self.dim, arr)
         testing.assert_array_equal(arr, self.arr)
 
     def test_basic_update_scroll(self):
@@ -103,10 +104,10 @@ class BasicSuiteTestCase(unittest.TestCase):
             self.dim,
             self.arr,
             self.bounds,
-            horizontal = array.array('i', [5, 1, 1, 1])
+            bars = np.array([[1, 1, 1, 0, 0, 1]], np.intc),
         )
-        fill_bounds(self.dim, arr)
-        arr[5, :] = 1
+        cy.fill_bounds(self.dim, arr)
+        arr[1, :] = 1
         testing.assert_array_equal(arr, self.arr)
 
     def test_basic_update_on(self):
@@ -115,12 +116,11 @@ class BasicSuiteTestCase(unittest.TestCase):
             self.updates,
             self.beta,
             self.threshold,
-            prepair_rule(self.rules, self.head_pos),
+            prepair_rule(np.array([[-1,0,0,0]], np.intc), self.head_pos),
             self.dim,
             self.arr,
             self.bounds,
-            self.horizontal,
-            self.vertical
+            self.bars
         )
         testing.assert_equal(np.any(np.not_equal(arr, self.arr)), True)
 
@@ -132,11 +132,20 @@ class MiscTestCase(unittest.TestCase):
         self.position = array.array('i', [1])
 
     def test_scroll_instruction_update(self):
-        horizontal = array.array('i', [0, 1, 1, 0, -1])
-        vertical = array.array('i', [0, 1, 1, 0, -1])
-        scroll_instruction_update(horizontal, vertical, tst_dim())
-        self.assertEqual(horizontal[0], 1)
-        self.assertEqual(vertical[0], 1)
+        bars = np.array([
+            [0, 1, 1, 0, 0, 1],
+            [5, 1, 1, 1, 0, 1],
+        ], np.intc)
+        scroll_instruction_update(bars, tst_dim())
+        self.assertEqual(bars[0][0], 1)
+        self.assertEqual(bars[1][0], 6)
+
+    def test_noise_rows_off(self):
+        bars = np.array([
+            [0, 1, 1, 0, 0, -2],
+            [5, 1, 1, 1, 0, -2],
+        ], np.intc)
+
 
     def test_prepair_rule_fails_1D(self):
         print('PASSING: Cant get assertRaises to work')
@@ -243,8 +252,8 @@ class BufferHandlingTestCase(unittest.TestCase):
         # Adds the old buffer, which should fill the whole middle with 1s
         change_buffer(self.position, self.buf_len, self.dim, buf, dim_nu, buf_nu)
         # Check the new buffer has empty rim, but full after.
-        self.assertFalse(check_rim(0, dim_nu, buf_nu[0]))
-        self.assertTrue(check_rim(1, dim_nu, buf_nu[0]))
+        self.assertFalse(cy.check_rim(0, dim_nu, buf_nu[0]))
+        self.assertTrue(cy.check_rim(1, dim_nu, buf_nu[0]))
 
     def test_change_buffer_manual_fill_cut_and_gap(self):
         buf = self.buf
@@ -260,9 +269,9 @@ class BufferHandlingTestCase(unittest.TestCase):
         change_buffer(self.position, self.buf_len, self.dim, buf, dim_nu, buf_nu, offset, cut)
         # Check the new buffer has a gap all the way around, one step in from the
         # outside.
-        self.assertFalse(check_rim(0, dim_nu, buf_nu[0]))
-        self.assertFalse(check_rim(1, dim_nu, buf_nu[0]))
-        self.assertTrue(check_rim(2, dim_nu, buf_nu[0]))
+        self.assertFalse(cy.check_rim(0, dim_nu, buf_nu[0]))
+        self.assertFalse(cy.check_rim(1, dim_nu, buf_nu[0]))
+        self.assertTrue(cy.check_rim(2, dim_nu, buf_nu[0]))
 
     def test_advance_array_has_dimensions(self):
         buf = self.buf
@@ -349,6 +358,9 @@ class NeighborTestCase(unittest.TestCase):
     def test_moore_neighbors_sum_manual(self):
         self.assertEqual(3, moore_neighbors_sum(self.pos, self.dim, self.arr))
 
+    def test_moore_neighbors_sum_manual2(self):
+        self.assertEqual(2, moore_neighbors_sum(self.pos, tst_dim(), tst_arr()))
+
     def test_moore_neighbors_sum_manual_wraps(self):
         self.pos[0] = 0
         self.pos[1] = 0
@@ -356,6 +368,9 @@ class NeighborTestCase(unittest.TestCase):
 
     def test_moore_neighbors_same_manual(self):
         self.assertEqual(1, moore_neighbors_same(self.pos, self.dim, self.arr))
+
+    def test_moore_neighbors_same_manual2(self):
+        self.assertEqual(2, moore_neighbors_same(self.pos, tst_dim(), tst_arr()))
 
     def test_moore_neighbors_same_manual_wraps(self):
         self.pos[0] = 0
@@ -365,6 +380,9 @@ class NeighborTestCase(unittest.TestCase):
     def test_neumann_neighbors_sum_manual(self):
         self.assertEqual(4, neumann_neighbors_sum(self.pos, self.dim, self.arr))
 
+    def test_neumann_neighbors_sum_manual2(self):
+        self.assertEqual(3, neumann_neighbors_sum(self.pos, tst_dim(), tst_arr()))
+
     def test_neumann_neighbors_sum_manual_wraps(self):
         self.pos[0] = 0
         self.pos[1] = 0
@@ -372,6 +390,9 @@ class NeighborTestCase(unittest.TestCase):
 
     def test_neumann_neighbors_same_manual(self):
         self.assertEqual(4, neumann_neighbors_same(self.pos, self.dim, self.arr))
+
+    def test_neumann_neighbors_same_manual2(self):
+        self.assertEqual(3, neumann_neighbors_same(self.pos, tst_dim(), tst_arr()))
 
     def test_neumann_neighbors_same_manual_wraps(self):
         self.pos[0] = 0
@@ -389,6 +410,26 @@ class IsingTestCase(unittest.TestCase):
         arr = tst_arr()
         ising_process(10, 1/8, tst_dim(), arr)
         self.assertIs(arr.dtype, tst_arr().dtype)
+
+    def test_ising_process_high_temp(self):
+        arr = tst_arrL()
+        arr[:, :] = 0
+        polinit = cyphys.polarization(tst_dimL(), arr)
+        self.assertEqual(1, polinit)
+
+        ising_process(1000000, 0.01, tst_dimL(), arr)
+        polfin = cyphys.polarization(tst_dimL(), arr)
+        self.assertAlmostEqual(0, polfin, 2)
+
+    def test_ising_process_low_temp(self):
+        arr = tst_arrL()
+        arr[:, :] = 0
+        polinit = cyphys.polarization(tst_dimL(), arr)
+        self.assertEqual(1, polinit)
+
+        ising_process(100000, 10, tst_dimL(), arr)
+        polfin = cyphys.polarization(tst_dimL(), arr)
+        self.assertAlmostEqual(1, polfin)
 
     def test_ising_process_random(self):
         """

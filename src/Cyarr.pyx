@@ -141,33 +141,39 @@ cpdef check_rim(int num, int[:] dim, int[:, :] arr):
 
 
 #=========Array editing=============
-#TODO: allow for multiple bars
-cpdef scroll_bars(
+cpdef void scroll_bars(
     int[:] dim, int[:, :] arr,
-    int[:] bar = array.array('i', [0, 1, 1, 1, 0, 1]),
-    int[:] vertical = array.array('i', [0, 1, 1, 0, 1]),
+    int[:, :] bars = np.array([[0, 1, 1, 1, 0, 1]], np.intc),
 ):
     """
     Controls the vertical and horizontal scroll bars.
 
-    :param horizontal:  [start, width, step, bounce, polarity (-1 is off)]
-    :param vertical:    [start, width, step, bounce, polarity (-1 is off)]
+    :param bars:        [start, width, step, axis, bounce, polarity (-1 is off)]
     :param dim:         (pointer) dimensions
     :param arr:         (2D pointer) array
     :return:            None
     """
-    if horizontal[-1] == -1 and vertical[-1] == -1:
-        return
+    cdef int[:] bar
+    cdef Py_ssize_t i
+    for i in range(len(bars)):
+        bar = bars[i]
+        if bar[-1] == -1: continue
 
-    if horizontal[-1] == 1:
-        fill_rows(horizontal[0], horizontal[1], dim, arr)
-    elif horizontal[-1] == 0:
-        clear_rows(horizontal[0], horizontal[1], dim, arr)
+        # If axis == 0
+        if bar[3] == 0:
+            # Fill/ clear columns accordingly
+            if bar[-1] == 1:
+                fill_rows(bar[0], bar[1], dim, arr)
+            elif bar[-1] == 0:
+                clear_rows(bar[0], bar[1], dim, arr)
+        # If axis == 1
+        elif bar[3] == 1:
+            # Do rows
+            if bar[-1] == 1:
+                fill_columns(bar[0], bar[1], dim, arr)
+            elif bar[-1] == 0:
+                clear_columns(bar[0], bar[1], dim, arr)
 
-    if vertical[-1] == 1:
-        fill_columns(vertical[0], vertical[1], dim, arr)
-    elif vertical[-1] == 0:
-        clear_columns(vertical[0], vertical[1], dim, arr)
 
 cpdef set_bounds(int ub, int rb, int db, int lb, int[:] dim, int[:, :] arr):
     """

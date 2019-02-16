@@ -9,11 +9,7 @@ from libc.stdlib cimport rand, RAND_MAX
 from cpython cimport array
 cimport numpy as np
 
-from Cyarr import (
-    roll_rows, roll_columns, roll_rows_pointer, roll_columns_pointer,
-    check_rim, sum_rim, scroll_bars, set_bounds, fill_array, fill_bounds,
-    clear_array, clear_bounds, replace_array,
-)
+import Cyarr as cyarr
 
 #==================HI-LEVEL==================
 #============================================
@@ -24,11 +20,11 @@ cpdef change_zoom_level(int[:] head_pos, int buffer_length, int[:] dim, int[:, :
     :param arr:
     :return:        (3D pointer) new buffer
     """
-    if check_rim(0, dim, buf[head_pos[0]]) is True:
+    if cyarr.check_rim(0, dim, buf[head_pos[0]]) is True:
         dim_v, buf_v = resize_array_buffer(dim, buffer_length)
         change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v)
 #   else:   # if outer rim has nothing, check next one in
-#       if check_rim(1, dim_v, arr_v) is False and check _rim(2, dim_v, arr_v) is False:
+#       if cyarr.check_rim(1, dim_v, arr_v) is False and check _rim(2, dim_v, arr_v) is False:
 #           dim_v, buf_v = resize_array_buffer(dim, buffer_length, -1)
 #           change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v,
 #                         array.array('i', [1,1]), array.array('i', [2, 2]))
@@ -70,7 +66,7 @@ cpdef tuple init(list dimensions):
     arr_h = buf_h[head_position[0] % buffer_length]
     arr_t = buf_h[tail_position[0] % buffer_length]
 
-    clear_array(dim_h, arr_h)
+    cyarr.clear_array(dim_h, arr_h)
     advance_array(head_position, buffer_length, buf_h)
     arr_h = update_array_positions(head_position, buffer_length, buffer_status,
                                    buf_h, 0)
@@ -91,8 +87,7 @@ cpdef void basic_update(
     float threshold,
     int[:] rule, int[:] dim, int[:, :] arr,
     int[:] bounds = array.array('i', [-1, -1, -1, -1]),
-    int[:] horizontal = array.array('i', [0, 1, 1, 0, -1]),
-    int[:] vertical = array.array('i', [0, 1, 1, 0, -1]),
+    int[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.intc),
 ):
     """
     Performs the basic update
@@ -103,23 +98,21 @@ cpdef void basic_update(
     :param bounds:      (pointer) boundary values   (-1 is off)
     :param rule:        (pointer) conway rule       (rule[0] == -1 is off)
     :param dim:         (pointer) arr dimensions
-    :param arr:       (2D pointer) array
-    :param horizontal:  [start, width, step, bounce, polarity (-1 is off)]
-    :param vertical:    [start, width, step, bounce, polarity (-1 is off)]
+    :param arr:         (2D pointer) array
+    :param bars:        [start, width, step, axis, bounce, polarity (-1 is off)]
     :return:            None
     """
     ising_process(updates, beta, dim, arr)
     add_stochastic_noise(threshold, dim, arr)
-    set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
-    scroll_bars(dim, arr, horizontal, vertical)
+    cyarr.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
+    cyarr.scroll_bars(dim, arr, bars)
     conway_process(rule, dim, arr)
 
 
 cpdef void basic_print(
     int[:] dim, int[:, :] arr,
     int[:] bounds = array.array('i', [-1, -1, -1, -1]),
-    int[:] horizontal = array.array('i', [0, 1, 1, 0, -1]),
-    int[:] vertical = array.array('i', [0, 1, 1, 0, -1]),
+    int[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.intc),
 ):
     """
     Performs a basic print after adding back the bars etc. as reference.
@@ -128,12 +121,11 @@ cpdef void basic_print(
     :param dim:         (pointer) arr dimensions
     :param arr:         (2D pointer) array
     :param bounds:      (pointer) boundary values   (-1 is off)
-    :param horizontal:  [start, width, step, bounce, polarity (-1 is off)]
-    :param vertical:    [start, width, step, bounce, polarity (-1 is off)]
+    :param bars:        [start, width, step, axis, bounce, polarity (-1 is off)]
     :return:            None
     """
-    set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
-    scroll_bars(dim, arr, horizontal, vertical)
+    cyarr.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
+    cyarr.scroll_bars(dim, arr, bars)
 
     temp = np.empty_like(arr, str)
     out = []
@@ -222,7 +214,7 @@ cpdef print_buffer_status(int[:] buffer_status, int pad=4,
 cdef void update_rules(
     int* updates,
     float* beta, float* threshold,
-    int[:] horizontal, int[:] vertical, int[:] bounds,
+    int[:, :] bars, int[:] bounds,
     int[:, :] rules
 ):
     """
@@ -241,67 +233,37 @@ cdef void update_rules(
     beta[0] = 1/8
     threshold[0] = 0.9
     rules = np.array([[2,3,3,3],[2,3,3,3]], np.intc)
-    horizontal = array.array('i', [0, 1, 2, 0, 1])
-    vertical = array.array('i', [0, 1, 1, 0, 1])
+    bars = array.array('i', [0, 1, 2, 0, 0, 1])
     bounds = array.array('i', [1, 1, 1, 1])
 
-cpdef scroll_instruction_update_single(int[:] instructions, int[:] dim):
+cpdef scroll_instruction_update(int[:, :] bars, int[:] dim):
     """
     Updates the positons of the scrollbar.
 
-    :param instructions:  [start, width, step, axis, bounce, polarity (-1 is off)]
+    :param bars:        [start, width, step, axis, bounce, polarity (-1 is off)]
     :param dim:         (pointer) dimensions of array
     :return:            None
     """
-    # If bounce is on
-    if instructions[4]:
-        # If the step is positive
-        if instructions[2] > 0:
-            # If the next step takes it out of bounds
-            if instructions[0] + instructions[1] + instructions[2] > dim[instructions[3]]:
-                # Turn it around
-                instructions[2] = -instructions[2]
-        # If the step is negative
-        else:
-            # If the next step takes it out of bounds
-            if instructions[0] + instructions[2] < 0:
-                # Turn it around
-                instructions[2] = -instructions[2]
+    cdef int[:] bar
+    cdef Py_ssize_t i
+    for i in range(len(bars)):
+        bar = bars[i]
+        # If bounce is on
+        if bar[3]:
+            # If the step is positive
+            if bar[2] > 0:
+                # If the next step takes it out of bounds
+                if bar[0] + bar[1] + bar[2] > dim[0]:
+                    # Turn it around
+                    bar[2] = -bar[2]
+            # If the step is negative
+            else:
+                # If the next step takes it out of bounds
+                if bar[0] + bar[2] < 0:
+                    # Turn it around
+                    bar[2] = -bar[2]
 
-cpdef scroll_instruction_update(int[:] horizontal, int[:] vertical, int[:] dim):
-    """
-    Updates the positons of the scrollbar.
-
-    :param horizontal:  [start, width, step, bounce, polarity (-1 is off)]
-    :param vertical:    [start, width, step, bounce, polarity (-1 is off)]
-    :param dim:         (pointer) dimensions of array
-    :return:            None
-    """
-    # If bounce is on
-    if horizontal[3]:
-        # If the step is positive
-        if horizontal[2] > 0:
-            # If the next step takes it out of bounds
-            if horizontal[0] + horizontal[1] + horizontal[2] > dim[0]:
-                # Turn it around
-                horizontal[2] = -horizontal[2]
-        # If the step is negative
-        else:
-            # If the next step takes it out of bounds
-            if horizontal[0] + horizontal[2] < 0:
-                # Turn it around
-                horizontal[2] = -horizontal[2]
-
-    if vertical[3]:
-        if vertical[2] > 0:
-            if vertical[0] + vertical[1] + vertical[2] > dim[1]:
-                vertical[2] = -vertical[2]
-        else:
-            if vertical[0] + vertical[2] < 0:
-                vertical[2] = -vertical[2]
-
-    horizontal[0] = horizontal[0] + horizontal[2]
-    vertical[0] = vertical[0] + vertical[2]
+        bar[0] = bar[0] + bar[2]
 
 
 cpdef int[:] prepair_rule(int[:, :] rules, int[:] frame):
@@ -314,6 +276,7 @@ cpdef int[:] prepair_rule(int[:, :] rules, int[:] frame):
     """
     return array.array('i', rules[frame[0] % len(rules)])
 
+
 cpdef advance_array(int[:] pos, int length, int[:, :, :] buf):
     """
     Copys the array into the next buffer position.
@@ -324,6 +287,7 @@ cpdef advance_array(int[:] pos, int length, int[:, :, :] buf):
     :return:            None
     """
     buf[(pos[0] + 1) % length] = buf[pos[0] % length]
+
 
 cpdef change_buffer(
     int[:] pos, int length, int[:] dim_old, int[:, :, :] buf_old,
@@ -343,11 +307,12 @@ cpdef change_buffer(
     :param cut:         (pointer) cut off sides of old buffer
     :return:            None
     """
-    clear_array(dim_nu, buf_nu[pos[0] % length])
+    cyarr.clear_array(dim_nu, buf_nu[pos[0] % length])
     buf_nu[pos[0] % length, offset[0]: offset[0] + dim_old[0] - cut[0] * 2,\
                 offset[1]: offset[1] + dim_old[1] - cut[1] * 2] =\
         buf_old[pos[0] % length, cut[0]: dim_old[0] - cut[0],\
                      cut[1]: dim_old[1] - cut[1]]
+
 
 cpdef int[:, :, :] init_array_buffer(int[:] dim, int length):
     """
@@ -359,6 +324,7 @@ cpdef int[:, :, :] init_array_buffer(int[:] dim, int length):
     :return:        (3D pointer) new array buffer
     """
     return np.empty([length, dim[0], dim[1]], np.intc)
+
 
 cpdef tuple resize_array_buffer(int[:] dim_old, int length, int add=1):
     """
@@ -374,6 +340,7 @@ cpdef tuple resize_array_buffer(int[:] dim_old, int length, int add=1):
     cdef int[:, :, :] buf_v = init_array_buffer(dim_v, length)
     return dim_v, buf_v
 
+
 cpdef int[:, :] init_array(int[:] dim_v):
     """
     Creates a little array.
@@ -383,10 +350,10 @@ cpdef int[:, :] init_array(int[:] dim_v):
     """
     return np.zeros(dim_v, np.intc)
 
-cpdef void scroll_update(
+
+cpdef void scroll_noise(
     int[:] dim, int[:, :] arr,
-    int[:] bar = array.array('i', [0, 5, 1, 0, 0, 1]),
-    int[:] rule = array.array('i', [2, 3, 3, 3]),
+    int[:] bars = array.array('i', [0, 5, 1, 0, 0, 1]),
     str name = 'noise',
 ):
     """
@@ -394,19 +361,36 @@ cpdef void scroll_update(
 
     :param dim:
     :param arr:
-    :param hbar:    [start, width, step, axis, bounce, polarity (-2 is off)]
-    :param vbar:
-    :param name:    default is 'noise', 'ising' and 'conway' also work #TODO
+    :param bar:     [start, width, step, axis, bounce, polarity (-2 is off)]
     :returns:       None
     """
-    if bar[-1] == -2:
-        return
 
-    if bar[3] == 0:
-        for i in range(bar[1]):
-            noise_row(bar[0], dim, arr, bar[-1])
-    if bar[3] == 1:
-            noise_column(bar[0], dim, arr, bar[-1])
+    cdef int[:] bar
+    cdef Py_ssize_t i
+    for i in range(len(bars)):
+        bar = bars[i]
+        if bar[-1] == -2: continue
+
+        if bar[3] == 0:
+            noise_rows(bar[0], bar[1], dim, arr, bar[-1])
+        if bar[3] == 1:
+            noise_columns(bar[0], bar[1], dim, arr, bar[-1])
+
+
+cpdef inline void noise_rows(int num, int width, int[:] dim, int[:, :] arr, int pol):
+    """
+    Fills rows of arr with noise
+
+    :param num:     (int) index of starting row
+    :param width:   (int) number of rows to fill
+    :param dim:     (pointer) dimensions of arr
+    :param arr:   (2D pointer) arr
+    :param polarity:    polarity of noise (1 additive, 0 normal, -1 subtractive)
+    :return:        None
+    """
+    cdef Py_ssize_t i
+    for i in range(width):
+        noise_row((num + i) % dim[0], dim, arr, pol)
 
 
 cdef void noise_row(int pos, int[:] dim, int[:, :] arr, int polarity = 0):
@@ -416,12 +400,30 @@ cdef void noise_row(int pos, int[:] dim, int[:, :] arr, int polarity = 0):
     :param pos:     position (rownumber)
     :param dim:
     :param arr:
+    :param polarity:    polarity of noise (1 additive, 0 normal, -1 subtractive)
     :returns:       None
     """
 
     cdef int[:] tdim = array.array('i', [dim[0], 1])
     cdef int[:, :] tarr = arr[:, pos: (pos + 1)]
     add_stochastic_noise(0.8, tdim, tarr, polarity)
+
+
+cpdef inline void noise_columns(int num, int width, int[:] dim, int[:, :] arr, int pol):
+    """
+    Fills columns of arr with noise
+
+    :param num:     (int) index of starting column
+    :param width:   (int) number of columns to fill
+    :param dim:     (pointer) dimensions of arr
+    :param arr:   (2D pointer) arr
+    :param polarity:    polarity of noise (1 additive, 0 normal, -1 subtractive)
+    :return:        None
+    """
+    cdef Py_ssize_t i
+    for i in range(width):
+        noise_column((num + i) % dim[1], dim, arr, pol)
+
 
 cdef void noise_column(int pos, int[:] dim, int[:, :] arr, int polarity = 0):
     """
@@ -455,7 +457,7 @@ cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, float threshold=0.2):
     add_global_noise(threshold, dim_v, arr_v)
 
     offset_v = array.array('i', [int((dim[0] - dim_v[0])/2), int((dim[1] - dim_v[1])/2)])
-    replace_array(offset_v, dim_v, arr_v, dim, arr)
+    cyarr.replace_array(offset_v, dim_v, arr_v, dim, arr)
 
 cpdef add_global_noise(float threshold, int[:] dim, int[:, :] arr, int polarity=0):
     """
@@ -577,7 +579,7 @@ cpdef ising_process(int updates, float beta, int[:] dim, int[:, :] arr):
 
 #===================CONWAY=================
 #TODO: make more atomic, so you can do more testing. Also add different version, likewise.
-cpdef conway_process(int[:] rule, int[:] dim, int[:, :] arr):
+cpdef void conway_process(int[:] rule, int[:] dim, int[:, :] arr):
     """
     Performs conway update on the array.
 
@@ -589,14 +591,14 @@ cpdef conway_process(int[:] rule, int[:] dim, int[:, :] arr):
     if rule[0] == -1:
         return
     cdef int[:, :] l, r, u, d, ul, dl, ur, dr
-    l = roll_columns(1, dim, arr)
-    r = roll_columns(-1, dim, arr)
-    u = roll_rows(1, dim, arr)
-    d = roll_rows(-1, dim, arr)
-    ul = roll_rows(1, dim, l)
-    dl = roll_rows(-1, dim, l)
-    ur = roll_rows(1, dim, r)
-    dr = roll_rows(-1, dim, r)
+    l = cyarr.roll_columns(1, dim, arr)
+    r = cyarr.roll_columns(-1, dim, arr)
+    u = cyarr.roll_rows(1, dim, arr)
+    d = cyarr.roll_rows(-1, dim, arr)
+    ul = cyarr.roll_rows(1, dim, l)
+    dl = cyarr.roll_rows(-1, dim, l)
+    ur = cyarr.roll_rows(1, dim, r)
+    dr = cyarr.roll_rows(-1, dim, r)
     cdef int NB
     cdef Py_ssize_t i, j
     for i in range(dim[0]):
@@ -604,12 +606,94 @@ cpdef conway_process(int[:] rule, int[:] dim, int[:, :] arr):
             NB = 0
             NB = l[i][j] + r[i][j] + u[i][j] + d[i][j] + ul[i][j] + ur[i][j]\
                 + dl[i][j] + dr[i][j]
-            if arr[i][j] is 1:
+            if arr[i][j] == 1:
                 if not rule[0] <= NB <= rule[1]:
                     arr[i][j] = 0
             else:
                 if rule[2] <= NB <= rule[3]:
                     arr[i][j] = 1
+
+cpdef void neumann_conway(int[:] rule, int[:] dim, int[:, :] arr):
+    """
+    Performs conway updates at random positions in the array.
+
+    :param rule:    (pointer) update rule for this frame
+    :param dim:     (pointer) dimensions of array
+    :param array:   (2D pointer) array
+    :return:        None
+    """
+    cdef int a, b, nb
+    cdef int[:] pos = array.array('i', [0, 0])
+    cdef Py_ssize_t i, j
+    for i in range(dim[0]):
+        for j in range(dim[1]):
+            pos = array.array('i', [i, j])
+            nb = neumann_neighbors_sum(pos, dim, arr)
+            if arr[i, j] == 1:
+                if not rule[0] <= nb <= rule[1]:
+                    arr[i, j] = 0
+            else:
+                if rule[2] <= nb <= rule[3]:
+                    arr[i, j] = 1
+
+cpdef void stochastic_conway(float coverage, int[:] rule, int[:] dim, int[:, :] arr):
+    """
+    Performs conway updates at random positions in the array.
+
+    :param coverage:(float) percentage of the array to cover
+    :param rule:    (pointer) update rule for this frame
+    :param dim:     (pointer) dimensions of array
+    :param array:   (2D pointer) array
+    :return:        None
+    """
+    if coverage == 0.0:
+        return
+    cdef int[:, :] vex = np.random.randint(0, dim[0], (int(coverage * dim[0] * dim[1]), 1),
+                                           np.intc)
+    cdef int[:, :] vey = np.random.randint(0, dim[1], (int(coverage * dim[0] * dim[1]), 1),
+                                           np.intc)
+    cdef int[:, :] vecs = np.concatenate((vex, vey), axis=1)
+    cdef int[:] pos = array.array('i', [0, 0])
+    cdef Py_ssize_t i
+    cdef int a, b, nb
+    for i in range(int(coverage * dim[0] * dim[1])):
+        pos = array.array('i', [vecs[i, 0], vecs[i, 1]])
+        nb = neumann_neighbors_sum(pos, dim, arr)
+        a = vecs[i, 0]
+        b = vecs[i, 1]
+        if arr[a, b] == 1:
+            if not rule[0] <= nb <= rule[1]:
+                arr[a, b] = 0
+        else:
+            if rule[2] <= nb <= rule[3]:
+                arr[a, b] = 1
+
+cpdef void stochastic_conway_rand(float coverage, int[:] rule, int[:] dim, int[:, :] arr):
+    """
+    Performs conway updates at random positions in the array.
+
+    :param coverage:(float) percentage of the array to cover
+    :param rule:    (pointer) update rule for this frame
+    :param dim:     (pointer) dimensions of array
+    :param array:   (2D pointer) array
+    :return:        None
+    """
+    if coverage == 0.0:
+        return
+    cdef int[:] pos = array.array('i', [0, 0])
+    cdef Py_ssize_t _
+    cdef int a, b, nb
+    for _ in range(int(coverage * dim[0] * dim[1])):
+        pos = array.array('i', [rand() % dim[0], rand() % dim[1]])
+        nb = neumann_neighbors_sum(pos, dim, arr)
+        a = pos[0]
+        b = pos[1]
+        if arr[a, b] == 1:
+            if not rule[0] <= nb <= rule[1]:
+                arr[a, b] = 0
+        else:
+            if rule[2] <= nb <= rule[3]:
+                arr[a, b] = 1
 
 #=====NEIGHBOR CALCULATIONS===========
 # for some reason this is faily slow, needs further testing

@@ -84,7 +84,7 @@ cpdef tuple init(list dimensions):
 
 cpdef void basic_update(
     int updates, float beta,
-    float threshold,
+    float threshold, float coverage,
     int[:] rule, int[:] dim, int[:, :] arr,
     int[:] bounds = array.array('i', [-1, -1, -1, -1]),
     int[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.intc),
@@ -95,6 +95,7 @@ cpdef void basic_update(
     :param updates:     (int) ising updates         (0 is off)
     :param beta:        (float) inverse temperature
     :param threshold:   (float) noise threshold     (1 is off)
+    :param coverage:    (float) fuzz noise coverage (0 is off)
     :param bounds:      (pointer) boundary values   (-1 is off)
     :param rule:        (pointer) conway rule       (rule[0] == -1 is off)
     :param dim:         (pointer) arr dimensions
@@ -109,10 +110,52 @@ cpdef void basic_update(
     conway_process(rule, dim, arr)
 
 
-cpdef void basic_print(
-    int[:] dim, int[:, :] arr,
+# A real hero would make this a decorator
+# Same for all the other small changes!
+cpdef void basic_update_buffer(
+    int updates, float beta,
+    float threshold, float coverage,
+    int[:, :] rules, int[:] frame, int buffer_length,
+    int[:] dim, int[:, :] arr, int[:, :, :] buf,
     int[:] bounds = array.array('i', [-1, -1, -1, -1]),
     int[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.intc),
+    int[:, :] fuzz = np.array([[0, 1, 1, 0, 0, -2]], np.intc),
+):
+    """
+    Performs the basic update, including advancing the array in the buffer.
+    Doesnt update your pointers though.
+
+    :param updates:     (int) ising updates         (0 is off)
+    :param beta:        (float) inverse temperature
+    :param threshold:   (float) noise threshold     (1 is off)
+    :param coverage:    (float) fuzz noise coverage (0 is off)
+    :param rule:        (pointer) conway rule       (rule[0] == -1 is off)
+    :param frame:
+    :param buffer_length:
+    :param dim:         (pointer) arr dimensions
+    :param arr:         (2D pointer) array
+    :param buf:         (3D pointer) array buffer
+    :param bounds:      (pointer) boundary values   (-1 is off)
+    :param bars:        [start, width, step, axis, bounce, polarity (-1 is off)]
+    :param fuzz:        [start, width, step, axis, bounce, polarity (-2 is off)]
+    :return:            None
+    """
+    ising_process(updates, beta, dim, arr)
+    add_stochastic_noise(threshold, dim, arr)
+    cyarr.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
+    cyarr.scroll_bars(dim, arr, bars)
+    scroll_noise(dim, arr, fuzz, coverage)
+    conway_process(prepair_rule(rules, frame), dim, arr)
+
+    advance_array(frame, buffer_length, buf)
+
+
+cpdef void basic_print(
+    int[:] dim, int[:, :] arr,
+    float coverage = 0,
+    int[:] bounds = array.array('i', [-1, -1, -1, -1]),
+    int[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.intc),
+    int[:, :] fuzz = np.array([[0, 1, 1, 0, 0, -2]], np.intc),
 ):
     """
     Performs a basic print after adding back the bars etc. as reference.
@@ -120,12 +163,15 @@ cpdef void basic_print(
 
     :param dim:         (pointer) arr dimensions
     :param arr:         (2D pointer) array
+    :param coverage:    (float) fuzz noise coverage (0 is off)
     :param bounds:      (pointer) boundary values   (-1 is off)
     :param bars:        [start, width, step, axis, bounce, polarity (-1 is off)]
+    :param fuzz:        [start, width, step, axis, bounce, polarity (-2 is off)]
     :return:            None
     """
     cyarr.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
     cyarr.scroll_bars(dim, arr, bars)
+    scroll_noise(dim, arr, fuzz, coverage)
 
     temp = np.empty_like(arr, str)
     out = []
@@ -249,11 +295,11 @@ cpdef scroll_instruction_update(int[:, :] bars, int[:] dim):
     for i in range(len(bars)):
         bar = bars[i]
         # If bounce is on
-        if bar[3]:
+        if bar[4]:
             # If the step is positive
             if bar[2] > 0:
                 # If the next step takes it out of bounds
-                if bar[0] + bar[1] + bar[2] > dim[0]:
+                if bar[0] + bar[1] + bar[2] >= dim[bar[3]]:
                     # Turn it around
                     bar[2] = -bar[2]
             # If the step is negative
@@ -353,8 +399,8 @@ cpdef int[:, :] init_array(int[:] dim_v):
 
 cpdef void scroll_noise(
     int[:] dim, int[:, :] arr,
-    int[:] bars = array.array('i', [0, 5, 1, 0, 0, 1]),
-    str name = 'noise',
+    int[:, :] bars = np.array([[0, 5, 1, 0, 0, 1]], np.intc),
+    float coverage = 0.8
 ):
     """
     Updates a region of the screen.
@@ -362,6 +408,7 @@ cpdef void scroll_noise(
     :param dim:
     :param arr:
     :param bar:     [start, width, step, axis, bounce, polarity (-2 is off)]
+    :param coverage:    coverage of the line
     :returns:       None
     """
 
@@ -372,12 +419,13 @@ cpdef void scroll_noise(
         if bar[-1] == -2: continue
 
         if bar[3] == 0:
-            noise_rows(bar[0], bar[1], dim, arr, bar[-1])
+            noise_rows(bar[0], bar[1], dim, arr, bar[-1], coverage)
         if bar[3] == 1:
-            noise_columns(bar[0], bar[1], dim, arr, bar[-1])
+            noise_columns(bar[0], bar[1], dim, arr, bar[-1], coverage)
 
 
-cpdef inline void noise_rows(int num, int width, int[:] dim, int[:, :] arr, int pol):
+cpdef void noise_rows(int num, int width, int[:] dim, int[:, :] arr,
+                                int pol = 1, float cov = 0.8):
     """
     Fills rows of arr with noise
 
@@ -386,30 +434,22 @@ cpdef inline void noise_rows(int num, int width, int[:] dim, int[:, :] arr, int 
     :param dim:     (pointer) dimensions of arr
     :param arr:   (2D pointer) arr
     :param polarity:    polarity of noise (1 additive, 0 normal, -1 subtractive)
+    :param coverage:    coverage of the line
     :return:        None
     """
     cdef Py_ssize_t i
     for i in range(width):
-        noise_row((num + i) % dim[0], dim, arr, pol)
+        noise_row((num + i) % dim[0], dim, arr, pol, cov)
 
 
-cdef void noise_row(int pos, int[:] dim, int[:, :] arr, int polarity = 0):
-    """
-    Noises a single row.
-
-    :param pos:     position (rownumber)
-    :param dim:
-    :param arr:
-    :param polarity:    polarity of noise (1 additive, 0 normal, -1 subtractive)
-    :returns:       None
-    """
-
-    cdef int[:] tdim = array.array('i', [dim[0], 1])
-    cdef int[:, :] tarr = arr[:, pos: (pos + 1)]
-    add_stochastic_noise(0.8, tdim, tarr, polarity)
+cpdef void noise_row(int pos, int[:] dim, int[:, :] arr, int polarity, float coverage):
+    cdef int[:] tdim = array.array('i', [1, dim[1]])
+    cdef int[:, :] tarr = arr[pos: pos + 1, :]
+    add_stochastic_noise(coverage, tdim, tarr, polarity)
 
 
-cpdef inline void noise_columns(int num, int width, int[:] dim, int[:, :] arr, int pol):
+cpdef void noise_columns(int num, int width, int[:] dim, int[:, :] arr,
+                                int pol = 1, float cov = 0.8):
     """
     Fills columns of arr with noise
 
@@ -418,26 +458,18 @@ cpdef inline void noise_columns(int num, int width, int[:] dim, int[:, :] arr, i
     :param dim:     (pointer) dimensions of arr
     :param arr:   (2D pointer) arr
     :param polarity:    polarity of noise (1 additive, 0 normal, -1 subtractive)
+    :param coverage:    coverage of the line
     :return:        None
     """
     cdef Py_ssize_t i
     for i in range(width):
-        noise_column((num + i) % dim[1], dim, arr, pol)
+        noise_column((num + i) % dim[1], dim, arr, pol, cov)
 
 
-cdef void noise_column(int pos, int[:] dim, int[:, :] arr, int polarity = 0):
-    """
-    Noises a single column.
-
-    :param pos:     position (rownumber)
-    :param dim:
-    :param arr:
-    :returns:       None
-    """
-
-    cdef int[:] tdim = array.array('i', [1, dim[1]])
-    cdef int[:, :] tarr = arr[pos: pos + 1, :]
-    add_stochastic_noise(0.8, tdim, tarr, polarity)
+cpdef void noise_column(int pos, int[:] dim, int[:, :] arr, int polarity, float coverage):
+    cdef int[:] tdim = array.array('i', [dim[0], 1])
+    cdef int[:, :] tarr = arr[:, pos: pos + 1]
+    add_stochastic_noise(coverage, tdim, tarr, polarity)
 
 #===============FANTASTIC STOCHASTIC===============
 cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, float threshold=0.2):

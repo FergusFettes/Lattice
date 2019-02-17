@@ -21,35 +21,55 @@ updates = 100
 threshold = 0
 rules = np.array([[2, 3, 3, 3], [2, 3, 3, 3]], np.intc)
 bounds = array.array('i', [1, 1, 1, 1])
-horizontal = array.array('i', [0, 9, 4, 0, -1])
-vertical = array.array('i', [0, 4, 1, 1, -1])
-hbar = array.array('i', [90, 5, 1, 0, 1])
-vbar = array.array('i', [90, 5, 1, 0, 1])
-
+bars = np.array([
+                [0, 4, 1, 0, 1, -1],
+                [0, 4, 1, 1, 1, -1],
+                ], np.intc)
+fuzz = np.array([
+                [0, 4, 1, 0, 1, -2],
+                [0, 4, 1, 1, 1, -2],
+                ], np.intc)
 
 if __name__ == "__main__":
 
     head_position, tail_position, buffer_length, buffer_status,\
         dim_t, arr_t, buf_t, dim_h, arr_h, buf_h = cf.init(screendim2)
 
-    cf.advance_array(head_position, buffer_length, buf_h)
+    cov = 0.3
+    cf.basic_update_buffer(
+                    updates, beta, threshold, cov,
+                    rules, head_position,
+                    buffer_length,
+                    dim_h, arr_h, buf_h,
+                    bounds, bars, fuzz,
+                 )
     arr_h = cf.update_array_positions(head_position, buffer_length, buffer_status, buf_h, 0)
 
-    cf.add_global_noise(0.5, dim_h, arr_h)
+    fuzz = np.array([
+                    [0, 4, 1, 0, 1, -1],
+                    [0, 4, 1, 1, 1, -1],
+                    [10, 4, 1, 0, 1, 1],
+                    [10, 4, 1, 1, 1, 1],
+                    ], np.intc)
 
     changes = 0
     frame_orig = array.array('i', [0])
     frame = memoryview(frame_orig)
     while True:
         # analysis here
-        cf.basic_print(dim_t, arr_t, bounds, horizontal, vertical)
-        cf.scroll_instruction_update(horizontal, vertical, dim_t)
-        arr_t = cf.update_array_positions(tail_position, buffer_length, buffer_status, buf_t, 0)
+        cf.basic_print(dim_t, arr_t, cov, bounds, bars, fuzz)
+        cf.scroll_instruction_update(bars, dim_t)
+        arr_t = cf.update_array_positions(tail_position, buffer_length, buffer_status,
+                                          buf_t, 0)
         time.sleep(0.1)
 
-        cf.conway_process(cf.prepair_rule(rules, frame), dim_h, arr_h)
-
-        cf.advance_array(head_position, buffer_length, buf_h)
-        arr_h = cf.update_array_positions(head_position, buffer_length, buffer_status, buf_h)
-
+        cf.basic_update_buffer(
+                        updates, beta, threshold, cov,
+                        rules, head_position,
+                        buffer_length,
+                        dim_h, arr_h, buf_h,
+                        bounds, bars, fuzz
+                    )
+        arr_h = cf.update_array_positions(head_position, buffer_length, buffer_status, buf_h, 1)
+        cf.scroll_instruction_update(fuzz, dim_t)
         frame[0] += 1

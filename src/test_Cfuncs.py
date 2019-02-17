@@ -74,6 +74,7 @@ class BasicSuiteTestCase(unittest.TestCase):
             0,
             self.beta,
             0,
+            0,
             prepair_rule(np.array([[-1,0,0,0]], np.intc), self.head_pos),
             self.dim,
             self.arr,
@@ -85,6 +86,7 @@ class BasicSuiteTestCase(unittest.TestCase):
         basic_update(
             0,
             self.beta,
+            0,
             0,
             prepair_rule(np.array([[-1,0,0,0]], np.intc), self.head_pos),
             self.dim,
@@ -99,6 +101,7 @@ class BasicSuiteTestCase(unittest.TestCase):
         basic_update(
             0,
             self.beta,
+            0,
             0,
             prepair_rule(np.array([[-1,0,0,0]], np.intc), self.head_pos),
             self.dim,
@@ -115,6 +118,7 @@ class BasicSuiteTestCase(unittest.TestCase):
         basic_update(
             self.updates,
             self.beta,
+            self.threshold,
             self.threshold,
             prepair_rule(np.array([[-1,0,0,0]], np.intc), self.head_pos),
             self.dim,
@@ -134,18 +138,86 @@ class MiscTestCase(unittest.TestCase):
     def test_scroll_instruction_update(self):
         bars = np.array([
             [0, 1, 1, 0, 0, 1],
-            [5, 1, 1, 1, 0, 1],
+            [3, 1, 1, 1, 0, 1],
         ], np.intc)
         scroll_instruction_update(bars, tst_dim())
         self.assertEqual(bars[0][0], 1)
-        self.assertEqual(bars[1][0], 6)
+        self.assertEqual(bars[1][0], 4)
 
-    def test_noise_rows_off(self):
+    def test_noise_rows_fill(self):
+        arr = tst_arrL()
+        arr[:] = 0
+        noise_rows(0, 1, tst_dimL(), arr, 1, 5)
+        self.assertAlmostEqual(1, np.asarray(arr[0, :]).mean(), 1)
+
+    def test_noise_rows_clear(self):
+        arr = tst_arrL()
+        arr[:] = 1
+        noise_rows(0, 1, tst_dimL(), arr, -1, 5)
+        self.assertAlmostEqual(0, np.asarray(arr[0, :]).mean(), 1)
+
+    def test_noise_columns_fill(self):
+        arr = tst_arrL()
+        arr[:] = 0
+        noise_columns(0, 1, tst_dimL(), arr, 1, 5)
+        self.assertAlmostEqual(1, np.asarray(arr[:, 0]).mean(), 1)
+
+    def test_noise_columns_clear(self):
+        arr = tst_arrL()
+        arr[:] = 1
+        noise_columns(0, 1, tst_dimL(), arr, -1, 5)
+        self.assertAlmostEqual(0, np.asarray(arr[:, 0]).mean(), 1)
+
+    def test_scroll_noise_off(self):
+        arr = tst_arrL()
         bars = np.array([
             [0, 1, 1, 0, 0, -2],
             [5, 1, 1, 1, 0, -2],
         ], np.intc)
+        scroll_noise(tst_dimL(), arr, bars)
+        testing.assert_array_equal(arr, tst_arrL())
 
+    def test_scroll_noise_random(self):
+        arr = tst_arrL()
+        bars = np.array([
+            [0, tst_dimL()[0], 0, 0, 0, 0],
+        ], np.intc)
+        scroll_noise(tst_dimL(), arr, bars, 5)
+
+        arr2 = tst_arrL()
+        add_stochastic_noise(5, tst_dimL(), arr2)
+        self.assertAlmostEqual(np.asarray(arr).mean(), np.asarray(arr2).mean(), 2)
+
+    def test_scroll_noise_fill(self):
+        arr = tst_arrL()
+        arr[:] = 0
+        bars = np.array([
+            [0, tst_dimL()[0], 0, 0, 0, 1],
+        ], np.intc)
+        scroll_noise(tst_dimL(), arr, bars, 5)
+
+        self.assertAlmostEqual(1, np.asarray(arr).mean(), 1)
+
+    def test_scroll_noise_clear(self):
+        arr = tst_arrL()
+        arr[:] = 1
+        bars = np.array([
+            [0, tst_dimL()[0], 0, 0, 0, -1],
+        ], np.intc)
+        scroll_noise(tst_dimL(), arr, bars, 5)
+
+        self.assertAlmostEqual(0, np.asarray(arr).mean(), 1)
+
+    def test_scroll_noise_random_wraps(self):
+        arr = tst_arrL()
+        bars = np.array([
+            [100, tst_dimL()[0], 0, 0, 0, 0],
+        ], np.intc)
+        scroll_noise(tst_dimL(), arr, bars, 5)
+
+        arr2 = tst_arrL()
+        add_stochastic_noise(5, tst_dimL(), arr2)
+        self.assertAlmostEqual(np.asarray(arr).mean(), np.asarray(arr2).mean(), 2)
 
     def test_prepair_rule_fails_1D(self):
         print('PASSING: Cant get assertRaises to work')

@@ -35,6 +35,7 @@ defaults:       &DEFAULTS
                 dim:                            # Screen dimensions (widthxheight)
                         - 300
                         - 200
+                
                 scale: 2
                 fullscreen: False
                 record: False
@@ -44,6 +45,15 @@ defaults:       &DEFAULTS
                 right: -1
                 lower: -1
                 left: -1
+
+        scroll:
+                bars:                                   # [start, width, step, axis, bounce, polarity (-1 is off)]
+                        - [0, 1, 1, 0, 1, -1]          
+                        - [0, 1, 1, 1, 1, -1]           
+                fuzz:                                   # [start, width, step, axis, bounce, polarity (-2 is off)]
+                        - [0, 1, 1, 0, 1, 1]            
+                        - [0, 1, 1, 0, 1, 1]           
+                coverage: 1                             # number of updates, as N x total_pixel_count
 
         wolfram:
                 rule: 90

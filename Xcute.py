@@ -22,7 +22,7 @@ class MainWindow(QMainWindow):
         self.canvas.colorList = []
         self.canvas.setPixmap(QPixmap(self.st.canvas.dim[0] * self.st.canvas.scale,
                                 self.st.canvas.dim[1] * self.st.canvas.scale))
-        self.canvas.pixmap().fill(self.primaryColor)
+        self.canvas.pixmap().fill(self.canvas.primaryColor)
 
 #========================================================CanvasDock
         #Wrap that all up in a DockWidget
@@ -39,6 +39,10 @@ class MainWindow(QMainWindow):
         self.canvas.setPixmap(image)
         self.canvas.repaint()
 
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key_Escape:
+            QCoreApplication.instance().quit()
+            print('Threads shutting down and powering off')
 
 if __name__ == '__main__':
     colHex1 = int(ra.random() * int('0xffffffff', 16))
@@ -55,8 +59,7 @@ if __name__ == '__main__':
         st = munchify(yaml['defaults'])
 
 
-    canvas = Canvas()
-    canvas.colorlist[0:4] = [colHex1, colHex2, colHex3, colHex4]
+    st.canvas.colorlist[0:4] = [colHex1, colHex2, colHex3, colHex4]
     app = QApplication([])
     w = MainWindow(st)
     app.exec()

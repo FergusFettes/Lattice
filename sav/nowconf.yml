@@ -31,7 +31,7 @@ lastsave:
                         - 300
                         - 200
                 
-                scale: 2
+                scale: 3
                 fullscreen: False
                 record: False
 
@@ -46,8 +46,10 @@ lastsave:
                         - [0, 1, 1, 0, 1, -1]          
                         - [0, 1, 1, 1, 1, -1]           
                 fuzz:   # [start, width, step, axis, bounce, polarity (-2 is off)]
-                        - [0, 1, 1, 0, 1, 1]            
-                        - [0, 1, 1, 0, 1, 1]           
+                        - [0, 5, 1, 1, 1, -1]            
+                        - [0, 5, 1, 0, 1, -1]           
+                        - [10, 5, 1, 1, 1, 1]            
+                        - [10, 5, 1, 0, 1, 1]           
                 coverage: 1        # number of updates, as N x total_pixel_count
 
         wolfram:
@@ -57,17 +59,14 @@ lastsave:
                 polarity: 1
 
         noise:
-                threshold: 0.9
+                threshold: 1
 
         conway:
                 rules:
-                        - [3,6,2,2]
-                        - [3,6,3,3]
-                        - [3,4,3,3]
-                        - [3,4,2,2]
+                        - [2,3,3,3]
 
         ising:
                 beta: 0.125
                 degree: 2
-                updates: 1000                   #Updates / frame
+                updates: 0                   #Updates / frame
                 equilibrate: 10000              #Updates in a longer run

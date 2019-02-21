@@ -30,11 +30,11 @@ class MainWindow(QMainWindow):
         self.canvas = QLabel()
         self.canvas.primaryColor = QColor(st.canvas.colorlist[0])
         self.canvas.colorList = st.canvas.colorlist
-        self.canvas.setPixmap(QPixmap(self.st.canvas.dim[0] * self.st.canvas.scale,
-                                self.st.canvas.dim[1] * self.st.canvas.scale))
+        self.canvas.setPixmap(QPixmap(st.canvas.dim[0] * st.canvas.scale,
+                                st.canvas.dim[1] * st.canvas.scale))
         self.canvas.pixmap().fill(self.canvas.primaryColor)
 
-        self.initialize_image(self.st.canvas.dim)
+        self.initialize_image(st.canvas.dim)
 
         # Create the canvas DockWidget and place it in the window, then show the window.
         self.CanvasDock = QDockWidget()
@@ -42,15 +42,10 @@ class MainWindow(QMainWindow):
         self.CanvasDock.setWidget(self.canvas)
         self.setCentralWidget(self.CanvasDock)
 
-
-        # Initialize the array
-        self.dim = array.array('i', [st.canvas.dim[0], st.canvas.dim[1]])
-        self.arr = cf.init_array(self.dim)
-
         self.show()
         self.setWindowRole('popup')
 
-        # Run a little simulation
+        # Prepair rules for a little simulation
         self.bounds = array.array('i', [st.bounds.upper, st.bounds.right,
                                         st.bounds.lower, st.bounds.left])
         self.bars = np.array(st.scroll.bars, np.intc)
@@ -58,54 +53,54 @@ class MainWindow(QMainWindow):
         self.rules = np.array(st.conway.rules, np.intc)
 
     def smolrun(self):
+        self.dim = array.array('i', [st.canvas.dim[0], st.canvas.dim[1]])
+        self.arr = cf.init_array(self.dim)
+        cf.add_global_noise(0.5, self.dim, self.arr)
+        frame = memoryview(array.array('i', [0]))
         while True:
-            cf.add_global_noise(0.5, self.dim, self.arr)
+            cf.conway_process(cf.prepair_rule(self.rules, frame), self.dim, self.arr)
             self.export_array(self.arr, 0)
             self.send_image(self.image)
             time.sleep(0.1)
-
-
+            frame[0] += 1
 
     def run(self):
         head_position, tail_position, buffer_length, buffer_status,\
-            dim_t, arr_t, buf_t, dim_h, arr_h, buf_h = cf.init([st.canvas.dim[0],
-                                                                st.canvas.dim[1]])
-        cf.add_global_noise(0.5, self.dim, self.arr)
+            dim_t, arr_t, buf_t, dim_h, arr_h, buf_h = cf.init([self.st.canvas.dim[0],
+                                                                self.st.canvas.dim[1]])
+
         cf.basic_update_buffer(
                         self.st.ising.updates, self.st.ising.beta,
                         self.st.noise.threshold, self.st.scroll.coverage,
                         self.rules, head_position,
                         buffer_length,
                         dim_h, arr_h, buf_h,
-                        self.bounds, self.bars, self.fuzz,
+                        #self.bounds, self.bars, self.fuzz,
                     )
         arr_h = cf.update_array_positions(head_position, buffer_length, buffer_status,
                                           buf_h, 0)
 
         changes = 0
-        frame = memoryview(array.array('i', [0]))
         while True:
             # analysis here
             self.export_array(arr_t, 0)
             self.send_image(self.image)
-            time.sleep(0.1)
             arr_t = cf.update_array_positions(tail_position, buffer_length, buffer_status,
                                             buf_t, 0)
+            cf.scroll_instruction_update(self.bars, dim_t)
+            cf.scroll_instruction_update(self.fuzz, dim_t)
 
             cf.basic_update_buffer(
-                            self.st.ising.updates, self.st.ising.beta,
-                            self.st.noise.threshold, self.st.scroll.coverage,
+                            0, self.st.ising.beta,
+                            1, 0,
                             self.rules, head_position,
                             buffer_length,
                             dim_h, arr_h, buf_h,
-                            self.bounds, self.bars, self.fuzz,
+                            #self.bounds, self.bars, self.fuzz,
                         )
             arr_h = cf.update_array_positions(head_position, buffer_length, buffer_status,
                                               buf_h, 1)
-            cf.scroll_instruction_update(self.bars, dim_t)
-            cf.scroll_instruction_update(self.fuzz, dim_t)
-            cy.roll_rows_pointer(-1, dim_h, arr_h)
-            frame[0] += 1
+            time.sleep(0.5)
 
     def initialize_image(self, dim):
         """
@@ -190,4 +185,4 @@ if __name__ == '__main__':
     app = QApplication([])
     w = MainWindow(st)
     app.exec()
-    w.run()
+    w.smolrun()

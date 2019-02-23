@@ -4,7 +4,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
-from GUI import MainWindow
+from QTui.GUI import MainWindow
 import random as ra
 from munch import *
 from yaml import safe_load

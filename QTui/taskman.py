@@ -4,8 +4,6 @@ from PyQt5.QtCore import *
 
 import numpy as np
 import time
-import munch
-from src.pureUp import *
 
 
 ##===============TaskManager===============##
@@ -109,7 +107,7 @@ class RunController(QObject):
         self.wavecounter += self.st.wolfram.scale
         self.wavecounter %= self.st.canvas.dim[0]
         frame['wolfpos'] = self.wavecounter
-        if self.st.general.wolfwave == False:
+        if self.st.general.wolfwave is False:
             frame['wolfpole'] = -1
         if self.st.general.equilibrate:
             frame['conwayrules'] = []

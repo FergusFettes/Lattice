@@ -5,7 +5,6 @@ from PyQt5.QtCore import *
 import numpy as np
 import time
 from screeninfo import get_monitors
-from src.pureUp import *
 
 
 class ImageCreator(QObject, pureHandler):

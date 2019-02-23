@@ -3,9 +3,9 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from functools import partial
 
-from imageProcessing import *
-from taskman import *
-from graphs import *
+from QTui.imageProcessing import *
+from QTui.taskman import *
+from QTui.graphs import *
 
 import munch
 

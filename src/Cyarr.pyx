@@ -1,6 +1,3 @@
-# cython: profile = True
-# cython: linetrace=True
-# distutils: define_macros=CYTHON_TRACE_NOGIL=1
 import cython
 
 import array

@@ -1,4 +1,4 @@
-# cython: profile = True
+# cython: linetrace=True
 import cython
 
 import array
@@ -9,7 +9,7 @@ from libc.stdlib cimport rand, RAND_MAX
 from cpython cimport array
 cimport numpy as np
 
-import Cyarr as cyarr
+import Cyarr as cy
 
 #==================HI-LEVEL==================
 #============================================
@@ -20,11 +20,11 @@ cpdef change_zoom_level(int[:] head_pos, int buffer_length, int[:] dim, int[:, :
     :param arr:
     :return:        (3D pointer) new buffer
     """
-    if cyarr.check_rim(0, dim, buf[head_pos[0]]) is True:
+    if cy.check_rim(0, dim, buf[head_pos[0]]) is True:
         dim_v, buf_v = resize_array_buffer(dim, buffer_length)
         change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v)
 #   else:   # if outer rim has nothing, check next one in
-#       if cyarr.check_rim(1, dim_v, arr_v) is False and check _rim(2, dim_v, arr_v) is False:
+#       if cy.check_rim(1, dim_v, arr_v) is False and check _rim(2, dim_v, arr_v) is False:
 #           dim_v, buf_v = resize_array_buffer(dim, buffer_length, -1)
 #           change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v,
 #                         array.array('i', [1,1]), array.array('i', [2, 2]))
@@ -66,7 +66,7 @@ cpdef tuple init(list dimensions):
     arr_h = buf_h[head_position[0] % buffer_length]
     arr_t = buf_h[tail_position[0] % buffer_length]
 
-    cyarr.clear_array(dim_h, arr_h)
+    cy.clear_array(dim_h, arr_h)
     advance_array(head_position, buffer_length, buf_h)
     arr_h = update_array_positions(head_position, buffer_length, buffer_status,
                                    buf_h, 0)
@@ -96,17 +96,17 @@ cpdef void basic_update(
     :param beta:        (float) inverse temperature
     :param threshold:   (float) noise threshold     (1 is off)
     :param coverage:    (float) fuzz noise coverage (0 is off)
-    :param bounds:      (pointer) boundary values   (-1 is off)
     :param rule:        (pointer) conway rule       (rule[0] == -1 is off)
     :param dim:         (pointer) arr dimensions
     :param arr:         (2D pointer) array
+    :param bounds:      (pointer) boundary values   (-1 is off)
     :param bars:        [start, width, step, axis, bounce, polarity (-1 is off)]
     :return:            None
     """
     ising_process(updates, beta, dim, arr)
     add_stochastic_noise(threshold, dim, arr)
-    cyarr.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
-    cyarr.scroll_bars(dim, arr, bars)
+    cy.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
+    cy.scroll_bars(dim, arr, bars)
     conway_process(rule, dim, arr)
 
 
@@ -142,8 +142,8 @@ cpdef void basic_update_buffer(
     """
     ising_process(updates, beta, dim, arr)
     add_stochastic_noise(threshold, dim, arr)
-    cyarr.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
-    cyarr.scroll_bars(dim, arr, bars)
+    cy.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
+    cy.scroll_bars(dim, arr, bars)
     scroll_noise(dim, arr, fuzz, coverage)
     conway_process(prepair_rule(rules, frame), dim, arr)
 
@@ -169,8 +169,8 @@ cpdef void basic_print(
     :param fuzz:        [start, width, step, axis, bounce, polarity (-2 is off)]
     :return:            None
     """
-    cyarr.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
-    cyarr.scroll_bars(dim, arr, bars)
+    cy.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
+    cy.scroll_bars(dim, arr, bars)
     scroll_noise(dim, arr, fuzz, coverage)
 
     temp = np.empty_like(arr, str)
@@ -353,7 +353,7 @@ cpdef change_buffer(
     :param cut:         (pointer) cut off sides of old buffer
     :return:            None
     """
-    cyarr.clear_array(dim_nu, buf_nu[pos[0] % length])
+    cy.clear_array(dim_nu, buf_nu[pos[0] % length])
     buf_nu[pos[0] % length, offset[0]: offset[0] + dim_old[0] - cut[0] * 2,\
                 offset[1]: offset[1] + dim_old[1] - cut[1] * 2] =\
         buf_old[pos[0] % length, cut[0]: dim_old[0] - cut[0],\
@@ -489,7 +489,7 @@ cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, float threshold=0.2):
     add_global_noise(threshold, dim_v, arr_v)
 
     offset_v = array.array('i', [int((dim[0] - dim_v[0])/2), int((dim[1] - dim_v[1])/2)])
-    cyarr.replace_array(offset_v, dim_v, arr_v, dim, arr)
+    cy.replace_array(offset_v, dim_v, arr_v, dim, arr)
 
 cpdef add_global_noise(float threshold, int[:] dim, int[:, :] arr, int polarity=0):
     """
@@ -623,14 +623,14 @@ cpdef void conway_process(int[:] rule, int[:] dim, int[:, :] arr):
     if rule[0] == -1:
         return
     cdef int[:, :] l, r, u, d, ul, dl, ur, dr
-    l = cyarr.roll_columns(1, dim, arr)
-    r = cyarr.roll_columns(-1, dim, arr)
-    u = cyarr.roll_rows(1, dim, arr)
-    d = cyarr.roll_rows(-1, dim, arr)
-    ul = cyarr.roll_rows(1, dim, l)
-    dl = cyarr.roll_rows(-1, dim, l)
-    ur = cyarr.roll_rows(1, dim, r)
-    dr = cyarr.roll_rows(-1, dim, r)
+    l = cy.roll_columns(1, dim, arr)
+    r = cy.roll_columns(-1, dim, arr)
+    u = cy.roll_rows(1, dim, arr)
+    d = cy.roll_rows(-1, dim, arr)
+    ul = cy.roll_rows(1, dim, l)
+    dl = cy.roll_rows(-1, dim, l)
+    ur = cy.roll_rows(1, dim, r)
+    dr = cy.roll_rows(-1, dim, r)
     cdef int NB
     cdef Py_ssize_t i, j
     for i in range(dim[0]):

@@ -55,6 +55,7 @@ class BasicSuiteTestCase(unittest.TestCase):
         self.updates = 1000
         self.beta = 1/8
         self.threshold = 0.9
+        self.coverage = 0.9
         self.rules = np.array([[2,5,4,6],[3,4,3,6]], np.intc)
 
     def test_init_basic(self):
@@ -65,7 +66,7 @@ class BasicSuiteTestCase(unittest.TestCase):
         basic_print(self.dim, self.arr)
 
     def test_basic_print_bounds_scroll(self):
-        basic_print(self.dim, self.arr,
+        basic_print(self.dim, self.arr, self.coverage,
                     self.bounds, self.bars)
 
     def test_basic_update_off(self):

@@ -450,16 +450,39 @@ class NeighborTestCase(unittest.TestCase):
         self.pos[1] = 0
         self.assertEqual(2, moore_neighbors_same(self.pos, self.dim, self.arr))
 
-    def test_neumann_neighbors_sum_manual(self):
-        self.assertEqual(4, neumann_neighbors_sum(self.pos, self.dim, self.arr))
+#   def test_neumann_neighbors_sum_manual(self):
+#       self.assertEqual(4, neumann_neighbors_sum(self.pos, self.dim, self.arr))
 
-    def test_neumann_neighbors_sum_manual2(self):
-        self.assertEqual(3, neumann_neighbors_sum(self.pos, tst_dim(), tst_arr()))
+#   def test_neumann_neighbors_sum_manual2(self):
+#       self.assertEqual(3, neumann_neighbors_sum(self.pos, tst_dim(), tst_arr()))
 
-    def test_neumann_neighbors_sum_manual_wraps(self):
-        self.pos[0] = 0
-        self.pos[1] = 0
-        self.assertEqual(4, neumann_neighbors_sum(self.pos, self.dim, self.arr))
+#   def test_neumann_neighbors_sum_random_versus_roll(self):
+#       arr = tst_arrL()
+#       add_global_noise(0.5, tst_dimL(), arr)
+#       l = cy.roll_columns(1, tst_dimL(), arr)
+#       r = cy.roll_columns(-1, tst_dimL(), arr)
+#       u = cy.roll_rows(1, tst_dimL(), arr)
+#       d = cy.roll_rows(-1, tst_dimL(), arr)
+#       ul = cy.roll_rows(1, tst_dimL(), l)
+#       dl = cy.roll_rows(-1, tst_dimL(), l)
+#       ur = cy.roll_rows(1, tst_dimL(), r)
+#       dr = cy.roll_rows(-1, tst_dimL(), r)
+#       NB = np.asarray(l) + np.asarray(r) + np.asarray(u) + np.asarray(d) +\
+#                   np.asarray(ul) + np.asarray(ur) + np.asarray(dl) + np.asarray(dr)
+#       NB2 = np.zeros_like(arr)
+#       pos = array.array('i', [0, 0])
+#       for i in range(tst_dimL()[0]):
+#           for j in range(tst_dimL()[1]):
+#               pos[0] = i
+#               pos[1] = j
+#               NB2[i, j] = neumann_neighbors_sum(pos, tst_dimL(), arr)
+
+#       testing.assert_array_equal(NB, NB2)
+
+#   def test_neumann_neighbors_sum_manual_wraps(self):
+#       self.pos[0] = 0
+#       self.pos[1] = 0
+#       self.assertEqual(4, neumann_neighbors_sum(self.pos, self.dim, self.arr))
 
     def test_neumann_neighbors_same_manual(self):
         self.assertEqual(4, neumann_neighbors_same(self.pos, self.dim, self.arr))
@@ -542,6 +565,16 @@ class ConwayTestCase(unittest.TestCase):
 
         testing.assert_array_equal(arr2, arr)
 
+    def test_conway_process_neumann_versus_old(self):
+        arr = tst_arrL()
+        add_global_noise(0.5, tst_dimL(), arr)
+
+        arr2 = np.copy(arr)
+        testing.assert_array_equal(arr, arr2)
+
+        conway_process(self.rule, tst_dimL(), arr)
+        conway_process_old(self.rule, tst_dimL(), arr2)
+        testing.assert_array_equal(arr, arr2)
 
 basic_suite = unittest.TestLoader().loadTestsFromTestCase(BasicSuiteTestCase)
 

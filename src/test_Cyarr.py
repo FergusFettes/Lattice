@@ -200,37 +200,37 @@ class ArrayEditTestCase(unittest.TestCase):
 
         testing.assert_array_equal(arr2, arr)
 
-#   def test_fill_columns(self):
-#       arr = tst_arr()
-#       cy.fill_columns(0, 5, tst_dim(), arr)
-#       testing.assert_array_equal(np.ones_like(tst_arr()), arr)
+    def test_fill_columns(self):
+        arr = tst_arr()
+        cy.fill_columns(0, 5, tst_dim(), arr)
+        testing.assert_array_equal(np.ones_like(tst_arr()), arr)
 
-#   def test_clear_columns(self):
-#       arr = tst_arr()
-#       cy.clear_columns(0, 5, tst_dim(), arr)
-#       testing.assert_array_equal(np.zeros_like(tst_arr()), arr)
+    def test_clear_columns(self):
+        arr = tst_arr()
+        cy.clear_columns(0, 5, tst_dim(), arr)
+        testing.assert_array_equal(np.zeros_like(tst_arr()), arr)
 
-#   def test_fill_rows(self):
-#       arr = tst_arr()
-#       cy.fill_rows(0, 5, tst_dim(), arr)
-#       testing.assert_array_equal(np.ones_like(tst_arr()), arr)
+    def test_fill_rows(self):
+        arr = tst_arr()
+        cy.fill_rows(0, 5, tst_dim(), arr)
+        testing.assert_array_equal(np.ones_like(tst_arr()), arr)
 
-#   def test_clear_rows(self):
-#       arr = tst_arr()
-#       cy.clear_rows(0, 5, tst_dim(), arr)
-#       testing.assert_array_equal(np.zeros_like(tst_arr()), arr)
+    def test_clear_rows(self):
+        arr = tst_arr()
+        cy.clear_rows(0, 5, tst_dim(), arr)
+        testing.assert_array_equal(np.zeros_like(tst_arr()), arr)
 
-#   def test_replace_rows(self):
-#       arr = tst_arr()
-#       nu = np.ones(5, np.intc)
-#       cy.replace_rows(0, 5, nu, tst_dim(), arr)
-#       testing.assert_array_equal(np.ones_like(tst_arr()), arr)
+    def test_replace_rows(self):
+        arr = tst_arr()
+        nu = np.ones(5, np.intc)
+        cy.replace_rows(0, 5, nu, tst_dim(), arr)
+        testing.assert_array_equal(np.ones_like(tst_arr()), arr)
 
-#   def test_replace_columns(self):
-#       arr = tst_arr()
-#       nu = np.ones(5, np.intc)
-#       cy.replace_columns(0, 5, nu, tst_dim(), arr)
-#       testing.assert_array_equal(np.ones_like(tst_arr()), arr)
+    def test_replace_columns(self):
+        arr = tst_arr()
+        nu = np.ones(5, np.intc)
+        cy.replace_columns(0, 5, nu, tst_dim(), arr)
+        testing.assert_array_equal(np.ones_like(tst_arr()), arr)
 
 
 arrayedit = unittest.TestLoader().loadTestsFromTestCase(ArrayEditTestCase)

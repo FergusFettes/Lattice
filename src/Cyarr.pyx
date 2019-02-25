@@ -3,6 +3,7 @@ import cython
 import array
 import numpy as np
 
+from cython.parallel import prange
 from cpython cimport array
 cimport numpy as np
 
@@ -14,6 +15,30 @@ cimport numpy as np
 #can automaticaly apply this decorator in unit tests????
 @cython.boundscheck(False)
 @cython.wraparound(False)
+cpdef int[:, ::1] roll_columns_old(int pol, int[:] dim, int[:, ::1] arr):
+    """
+    Rolls along the columns axis (1)
+
+    :param pol:         (int) polarity of roll
+    :param dim:         (pointer) dimensions of arr
+    :param arr:       (2D pointer) arr
+    :return:            (2D pointer) new arr
+    """
+    cdef int d
+    d = dim[1]
+    cdef int[:, ::1] arrout = np.empty_like(arr)
+    if pol == -1:
+        arrout[:, d - 1] = arr[:, 0]
+        arrout[:, :d - 1] = arr[:, 1:]
+    elif pol == 1:
+        arrout[:, 0] = arr[:, d - 1]
+        arrout[:, 1:] = arr[:, :d - 1]
+    return arrout
+
+# Somehow this is about 30% faster, but uses precisely 4x the power so not worth it
+# methinks.
+@cython.boundscheck(False)
+@cython.wraparound(False)
 cpdef int[:, ::1] roll_columns(int pol, int[:] dim, int[:, ::1] arr):
     """
     Rolls along the columns axis (1)
@@ -23,16 +48,25 @@ cpdef int[:, ::1] roll_columns(int pol, int[:] dim, int[:, ::1] arr):
     :param arr:       (2D pointer) arr
     :return:            (2D pointer) new arr
     """
+    cdef int n, d
+    n = dim[0]
+    d = dim[1]
     cdef int[:, ::1] arrout = np.empty_like(arr)
+    cdef Py_ssize_t i, j
     if pol == -1:
-        arrout[:, dim[1] - 1] = arr[:, 0]
-        arrout[:, :dim[1] - 1] = arr[:, 1:]
+        for i in prange(n, nogil=True):
+            arrout[i, d - 1] = arr[i][0]
+            for j in range(d-1):
+                arr[i, j] = arr[i, j+1]
     elif pol == 1:
-        arrout[:, 0] = arr[:, dim[1] - 1]
-        arrout[:, 1:] = arr[:, :dim[1] - 1]
+        for i in prange(n, nogil=True):
+            arrout[i, 0] = arr[i, d -1]
+            for j in range(d -1):
+                arr[i, d -j -1] = arr[i, d -j -2]
     return arrout
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 cpdef int[:, ::1] roll_rows(int pol, int[:] dim, int[:, ::1] arr):
     """
     Rolls along the rows axis (0)
@@ -51,7 +85,9 @@ cpdef int[:, ::1] roll_rows(int pol, int[:] dim, int[:, ::1] arr):
         arrout[1:, :] = arr[:dim[0] - 1, :]
     return arrout
 
-cpdef roll_columns_pointer(int pol, int[:] dim, int[:, :] arr):
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef roll_columns_pointer(int pol, int[:] dim, int[:, ::1] arr):
     """
     Rolls along the columns axis (1)
 
@@ -60,20 +96,22 @@ cpdef roll_columns_pointer(int pol, int[:] dim, int[:, :] arr):
     :param arr:       (2D pointer) arr
     :return:            None
     """
-    cdef int temp
+    cdef int temp, n, d
+    n = dim[0]
+    d = dim[1]
     cdef Py_ssize_t i, j
     if pol == -1:
-        for i in range(dim[0]):
+        for i in prange(n, nogil=True):
             temp = arr[i][0]
-            for j in range(dim[1]-1):
-                arr[i][j] = arr[i][j+1]
-            arr[i][dim[1] - 1] = temp
+            for j in range(d-1):
+                arr[i, j] = arr[i, j+1]
+            arr[i, d - 1] = temp
     elif pol == 1:
-        for i in range(dim[0]):
-            temp = arr[i][-1]
-            for j in range(dim[1]-1):
-                arr[i][-1-j] = arr[i][-1-j-1]
-            arr[i][0] = temp
+        for i in prange(n, nogil=True):
+            temp = arr[i, d -1]
+            for j in range(d -1):
+                arr[i, d -j -1] = arr[i, d -j -2]
+            arr[i, 0] = temp
 
 cpdef roll_rows_pointer(int pol, int[:] dim, int[:, :] arr):
     """
@@ -93,6 +131,30 @@ cpdef roll_rows_pointer(int pol, int[:] dim, int[:, :] arr):
     elif pol == 1:
         temp_v = array.array('i', arr[-1, :])
         arr[1:, :] = arr[:-1, :]
+        arr[0, :] = temp_v
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef roll_rows_pointer_nu(int pol, int[:] dim, int[:, ::1] arr):
+    """
+    Rolls along the rows axis (0)
+
+    :param pol:         (int) polarity of roll
+    :param dim:         (pointer) dimensions of arr
+    :param arr:       (2D pointer) arr
+    :return:            None
+    """
+    cdef int temp, n, d
+    n = dim[0]
+    cdef int[:] temp_v
+    cdef Py_ssize_t i, j
+    if pol == -1:
+        temp_v = array.array('i', arr[0, :])
+        arr[:n, :] = arr[1:, :]
+        arr[n -1, :] = temp_v
+    elif pol == 1:
+        temp_v = array.array('i', arr[n -1, :])
+        arr[1:, :] = arr[:n, :]
         arr[0, :] = temp_v
 
 #==============Rim jobs===========================
@@ -290,7 +352,7 @@ cpdef clear_bounds(int[:] dim, int[:, :] arr):
     clear_column(0,  arr)
     clear_column(-1, arr)
 
-cdef inline void fill_rows(int num, int width, int[:] dim, int[:, :] arr):
+cpdef inline void fill_rows(int num, int width, int[:] dim, int[:, :] arr):
     """
     Fills rows of arr with 1s
 
@@ -304,7 +366,7 @@ cdef inline void fill_rows(int num, int width, int[:] dim, int[:, :] arr):
     for i in range(width):
         fill_row((num + i) % dim[0], arr)
 
-cdef inline void clear_rows(int num, int width, int[:] dim, int[:, :] arr):
+cpdef inline void clear_rows(int num, int width, int[:] dim, int[:, :] arr):
     """
     Fills rows of arr with 0s
 
@@ -318,7 +380,7 @@ cdef inline void clear_rows(int num, int width, int[:] dim, int[:, :] arr):
     for i in range(width):
         clear_row((num + i) % dim[0], arr)
 
-cdef inline void replace_rows(int num, int width, int[:] nurow, int[:] dim, int[:, :] arr):
+cpdef inline void replace_rows(int num, int width, int[:] nurow, int[:] dim, int[:, :] arr):
     """
     Fills rows of arr with another row
 
@@ -333,7 +395,7 @@ cdef inline void replace_rows(int num, int width, int[:] nurow, int[:] dim, int[
     for i in range(width):
         replace_row((num + i) % dim[0], nurow, arr)
 
-cdef inline void fill_columns(int num, int width, int[:] dim, int[:, :] arr):
+cpdef inline void fill_columns(int num, int width, int[:] dim, int[:, :] arr):
     """
     Fills columns of arr with 1s
 
@@ -347,7 +409,7 @@ cdef inline void fill_columns(int num, int width, int[:] dim, int[:, :] arr):
     for i in range(width):
         fill_column((num + i) % dim[1], arr)
 
-cdef inline void clear_columns(int num, int width, int[:] dim, int[:, :] arr):
+cpdef inline void clear_columns(int num, int width, int[:] dim, int[:, :] arr):
     """
     Fills columns of arr with 0s
 
@@ -361,7 +423,7 @@ cdef inline void clear_columns(int num, int width, int[:] dim, int[:, :] arr):
     for i in range(width):
         clear_column((num + i) % dim[1], arr)
 
-cdef inline void replace_columns(int num, int width, int[:] nucol, int[:] dim, int[:, :] arr):
+cpdef inline void replace_columns(int num, int width, int[:] nucol, int[:] dim, int[:, :] arr):
     """
     Fills columns of arr with new values
 
@@ -376,20 +438,26 @@ cdef inline void replace_columns(int num, int width, int[:] nucol, int[:] dim, i
     for i in range(width):
         replace_column((num + i) % dim[1], nucol, arr)
 
+@cython.profile(False)
 cdef inline void fill_row(int num, int[:, :] arr):
     arr[num, :] = 1
 
+@cython.profile(False)
 cdef inline void clear_row(int num, int[:, :] arr):
     arr[num, :] = 0
 
+@cython.profile(False)
 cdef inline void replace_row(int num, int[:] nurow, int[:, :] arr):
     arr[num, :] = nurow
 
+@cython.profile(False)
 cdef inline void fill_column(int num, int[:, :] arr):
     arr[:, num] = 1
 
+@cython.profile(False)
 cdef inline void clear_column(int num, int[:, :] arr):
     arr[:, num] = 0
 
+@cython.profile(False)
 cdef inline void replace_column(int num, int[:] nucol, int[:, :] arr):
     arr[:, num] = nucol

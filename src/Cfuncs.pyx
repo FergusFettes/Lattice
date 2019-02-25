@@ -5,6 +5,7 @@ import array
 import numpy as np
 import time
 
+from cython.parallel import prange
 from libc.stdlib cimport rand, RAND_MAX
 from cpython cimport array
 cimport numpy as np
@@ -50,7 +51,7 @@ cpdef tuple init(list dimensions):
         buf                 (3D pointer) buffer
     """
     cdef int buffer_length
-    cdef int[:] head_posistion, tail_position, buffer_status
+    cdef int[:] head_position, tail_position, buffer_status
     cdef int[:] dim_h = array.array('i', dimensions)
     cdef int[:] dim_t = array.array('i', dimensions)
     cdef int[:, :] arr_h, arr_t
@@ -85,7 +86,7 @@ cpdef tuple init(list dimensions):
 cpdef void basic_update(
     int updates, float beta,
     float threshold, float coverage,
-    int[:] rule, int[:] dim, int[:, :] arr,
+    int[:] rule, int[:] dim, int[:, ::1] arr,
     int[:] bounds = array.array('i', [-1, -1, -1, -1]),
     int[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.intc),
 ):
@@ -116,7 +117,7 @@ cpdef void basic_update_buffer(
     int updates, float beta,
     float threshold, float coverage,
     int[:, :] rules, int[:] frame, int buffer_length,
-    int[:] dim, int[:, :] arr, int[:, :, :] buf,
+    int[:] dim, int[:, ::1] arr, int[:, :, :] buf,
     int[:] bounds = array.array('i', [-1, -1, -1, -1]),
     int[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.intc),
     int[:, :] fuzz = np.array([[0, 1, 1, 0, 0, -2]], np.intc),
@@ -257,6 +258,8 @@ cpdef print_buffer_status(int[:] buffer_status, int pad=4,
     print(out)
 
 #needs to be c only!
+#TODO: for this to make any sense, it needs to take the new rules, and the old rules as
+# pointers
 cdef void update_rules(
     int* updates,
     float* beta, float* threshold,
@@ -611,7 +614,7 @@ cpdef ising_process(int updates, float beta, int[:] dim, int[:, :] arr):
 
 #===================CONWAY=================
 #TODO: make more atomic, so you can do more testing. Also add different version, likewise.
-cpdef void conway_process(int[:] rule, int[:] dim, int[:, :] arr):
+cpdef void conway_process_old(int[:] rule, int[:] dim, int[:, :] arr):
     """
     Performs conway update on the array.
 
@@ -631,10 +634,12 @@ cpdef void conway_process(int[:] rule, int[:] dim, int[:, :] arr):
     dl = cy.roll_rows(-1, dim, l)
     ur = cy.roll_rows(1, dim, r)
     dr = cy.roll_rows(-1, dim, r)
-    cdef int NB
+    cdef int NB, n, dd
+    n = dim[0]
+    dd = dim[1]
     cdef Py_ssize_t i, j
-    for i in range(dim[0]):
-        for j in range(dim[1]):
+    for i in range(n):
+        for j in range(dd):
             NB = 0
             NB = l[i][j] + r[i][j] + u[i][j] + d[i][j] + ul[i][j] + ur[i][j]\
                 + dl[i][j] + dr[i][j]
@@ -645,7 +650,134 @@ cpdef void conway_process(int[:] rule, int[:] dim, int[:, :] arr):
                 if rule[2] <= NB <= rule[3]:
                     arr[i][j] = 1
 
-cpdef void neumann_conway(int[:] rule, int[:] dim, int[:, :] arr):
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef void conway_process(int[:] rule, int[:] dim, int[:, ::1] arr):
+    """
+    Performs conway update on the array.
+
+    :param rule:    (pointer) update rule for this frame
+    :param dim:     (pointer) dimensions of array
+    :param array:   (2D pointer) array
+    :return:        None
+    """
+    if rule[0] == -1:
+        return
+    cdef int NB, n, d
+    n = dim[0]
+    d = dim[1]
+    cdef int[:] pos = array.array('i', [0, 0])
+    cdef int[:, ::1] arr_c = arr.copy()
+    cdef Py_ssize_t i, j
+    for i in range(n):
+        for j in range(d):
+            pos[0] = i
+            pos[1] = j
+            NB = neumann_neighbors_sum(pos, dim, arr_c)
+            if arr[i][j] == 1:
+                if not rule[0] <= NB <= rule[1]:
+                    arr[i][j] = 0
+            else:
+                if rule[2] <= NB <= rule[3]:
+                    arr[i][j] = 1
+
+
+cpdef void conway_process_nogil(int[:] rule, int[:] dim, int[:, ::1] arr):
+    """
+    Performs conway update on the array.
+
+    :param rule:    (pointer) update rule for this frame
+    :param dim:     (pointer) dimensions of array
+    :param array:   (2D pointer) array
+    :return:        None
+    """
+    if rule[0] == -1:
+        return
+    cdef int NB, n, d
+    n = dim[0]
+    d = dim[1]
+    cdef int[:] pos = array.array('i', [0, 0])
+    cdef int[:, ::1] arr_c = arr.copy()
+    cdef Py_ssize_t i, j
+    for i in prange(n, nogil=True):
+        for j in prange(d):
+            pos[0] = i
+            pos[1] = j
+            NB = neumann_neighbors_sum(pos, dim, arr_c)
+            if arr[i][j] == 1:
+                if not rule[0] <= NB <= rule[1]:
+                    arr[i][j] = 0
+            else:
+                if rule[2] <= NB <= rule[3]:
+                    arr[i][j] = 1
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef void conway_process_nogil_nocheck(int[:] rule, int[:] dim, int[:, ::1] arr):
+    """
+    Performs conway update on the array.
+
+    :param rule:    (pointer) update rule for this frame
+    :param dim:     (pointer) dimensions of array
+    :param array:   (2D pointer) array
+    :return:        None
+    """
+    if rule[0] == -1:
+        return
+    cdef int NB, n, d
+    n = dim[0]
+    d = dim[1]
+    cdef int[:] pos = array.array('i', [0, 0])
+    cdef int[:, ::1] arr_c = arr.copy()
+    cdef Py_ssize_t i, j
+    for i in prange(n, nogil=True):
+        for j in prange(d):
+            pos[0] = i
+            pos[1] = j
+            NB = neumann_neighbors_sum(pos, dim, arr_c)
+            if arr[i][j] == 1:
+                if not rule[0] <= NB <= rule[1]:
+                    arr[i][j] = 0
+            else:
+                if rule[2] <= NB <= rule[3]:
+                    arr[i][j] = 1
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef void conway_process_nogil_nocheck_oneloop(int[:] rule, int[:] dim, int[:, ::1] arr):
+    """
+    Performs conway update on the array.
+
+    :param rule:    (pointer) update rule for this frame
+    :param dim:     (pointer) dimensions of array
+    :param array:   (2D pointer) array
+    :return:        None
+    """
+    if rule[0] == -1:
+        return
+    cdef int NB, n, d
+    n = dim[0]
+    d = dim[1]
+    cdef int[:] pos = array.array('i', [0, 0])
+    cdef int[:, ::1] arr_c = arr.copy()
+    cdef Py_ssize_t i, j
+    for i in prange(n, nogil=True):
+        for j in range(d):
+            pos[0] = i
+            pos[1] = j
+            NB = neumann_neighbors_sum(pos, dim, arr_c)
+            if arr[i][j] == 1:
+                if not rule[0] <= NB <= rule[1]:
+                    arr[i][j] = 0
+            else:
+                if rule[2] <= NB <= rule[3]:
+                    arr[i][j] = 1
+
+
+cpdef void neumann_conway(int[:] rule, int[:] dim, int[:, ::1] arr):
     """
     Performs conway updates at random positions in the array.
 
@@ -668,7 +800,7 @@ cpdef void neumann_conway(int[:] rule, int[:] dim, int[:, :] arr):
                 if rule[2] <= nb <= rule[3]:
                     arr[i, j] = 1
 
-cpdef void stochastic_conway(float coverage, int[:] rule, int[:] dim, int[:, :] arr):
+cpdef void stochastic_conway(float coverage, int[:] rule, int[:] dim, int[:, ::1] arr):
     """
     Performs conway updates at random positions in the array.
 
@@ -700,7 +832,7 @@ cpdef void stochastic_conway(float coverage, int[:] rule, int[:] dim, int[:, :] 
             if rule[2] <= nb <= rule[3]:
                 arr[a, b] = 1
 
-cpdef void stochastic_conway_rand(float coverage, int[:] rule, int[:] dim, int[:, :] arr):
+cpdef void stochastic_conway_rand(float coverage, int[:] rule, int[:] dim, int[:, ::1] arr):
     """
     Performs conway updates at random positions in the array.
 
@@ -821,7 +953,11 @@ cpdef int neumann_neighbors_same(int[:] pos, int[:] dim, int[:, :] arr):
         nb = l + u + d + r + ul + ur + dl + dr
     return nb
 
-cpdef int neumann_neighbors_sum(int[:] pos, int[:] dim, int[:, :] arr):
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cdef int neumann_neighbors_sum(int[:] pos, int[:] dim, int[:, ::1] arr) nogil:
     """
     Calculated the population of the Neumann neighborhood at position.
 
@@ -837,13 +973,13 @@ cpdef int neumann_neighbors_sum(int[:] pos, int[:] dim, int[:, :] arr):
     cdef int l, r, u, d, ur, ul, dr, dl, nb
     if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
         l = arr[(a + 1) % N][b]
-        r = arr[(a - 1) % N][b]
+        r = arr[(a - 1 + N) % N][b]
         ul = arr[(a + 1) % N][(b + 1) % D]
-        ur = arr[(a - 1) % N][(b + 1) % D]
-        dl = arr[(a + 1) % N][(b - 1) % D]
-        dr = arr[(a - 1) % N][(b - 1) % D]
+        ur = arr[(a - 1 + N) % N][(b + 1) % D]
+        dl = arr[(a + 1) % N][(b - 1 + D) % D]
+        dr = arr[(a - 1 + N) % N][(b - 1 + D) % D]
         u = arr[a][(b + 1) % D]
-        d = arr[a][(b - 1) % D]
+        d = arr[a][(b - 1 + D) % D]
         nb = l + u + d + r + ul + ur + dl + dr
     else:
         l = arr[(a + 1)][b]

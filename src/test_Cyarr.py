@@ -99,7 +99,7 @@ class ArrayCheckTestCase(unittest.TestCase):
 class ArrayEditTestCase(unittest.TestCase):
 
     def test_scroll_bars_basic(self):
-        bars = np.array([[0, 1, 1, 0, 0, 1]], np.intc)
+        bars = np.array([[0, 1, 1, 0, 0, 1]], np.double)
         arr = tst_arrL()
 
         cy.scroll_bars(tst_dimL(), arr, bars)
@@ -109,7 +109,7 @@ class ArrayEditTestCase(unittest.TestCase):
         testing.assert_array_equal(arr, arr2)
 
     def test_scroll_bars_axis(self):
-        bars = np.array([[0, 1, 1, 1, 0, 1]], np.intc)
+        bars = np.array([[0, 1, 1, 1, 0, 1]], np.double)
         arr = tst_arrL()
 
         cy.scroll_bars(tst_dimL(), arr, bars)
@@ -119,7 +119,7 @@ class ArrayEditTestCase(unittest.TestCase):
         testing.assert_array_equal(arr, arr2)
 
     def test_scroll_bars_width(self):
-        bars = np.array([[0, 5, 1, 1, 0, 1]], np.intc)
+        bars = np.array([[0, 5, 1, 1, 0, 1]], np.double)
         arr = tst_arrL()
 
         cy.scroll_bars(tst_dimL(), arr, bars)
@@ -133,7 +133,7 @@ class ArrayEditTestCase(unittest.TestCase):
             [10, 1, 1, 0, 0, 1],
             [0, 1, 1, 1, 0, 1],
             [1, 1, 1, 1, 0, 1],
-        ], np.intc)
+        ], np.double)
         arr = tst_arrL()
 
         cy.scroll_bars(tst_dimL(), arr, bars)

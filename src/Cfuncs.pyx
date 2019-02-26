@@ -85,10 +85,10 @@ cpdef tuple init(list dimensions):
 
 cpdef void basic_update(
     float updates, float beta,
-    float threshold, float coverage,
+    float threshold,
     int[:] rule, int[:] dim, int[:, ::1] arr,
     int[:] bounds = array.array('i', [-1, -1, -1, -1]),
-    int[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.intc),
+    double[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.double),
 ):
     """
     Performs the basic update
@@ -96,7 +96,6 @@ cpdef void basic_update(
     :param updates:     (float) ising updates (as percentage of all positions, 0 is off)
     :param beta:        (float) inverse temperature
     :param threshold:   (float) noise threshold     (1 is off)
-    :param coverage:    (float) fuzz noise coverage (0 is off)
     :param rule:        (pointer) conway rule       (rule[0] == -1 is off)
     :param dim:         (pointer) arr dimensions
     :param arr:         (2D pointer) array
@@ -115,12 +114,12 @@ cpdef void basic_update(
 # Same for all the other small changes!
 cpdef void basic_update_buffer(
     float updates, float beta,
-    float threshold, float coverage,
+    float threshold,
     int[:, :] rules, int[:] frame, int buffer_length,
     int[:] dim, int[:, ::1] arr, int[:, :, :] buf,
     int[:] bounds = array.array('i', [-1, -1, -1, -1]),
-    int[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.intc),
-    int[:, :] fuzz = np.array([[0, 1, 1, 0, 0, -2]], np.intc),
+    double[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.double),
+    double[:, :] fuzz = np.array([[0, 1, 1, 0, 0, 0.5, -2]], np.double),
 ):
     """
     Performs the basic update, including advancing the array in the buffer.
@@ -129,7 +128,6 @@ cpdef void basic_update_buffer(
     :param updates:     (float) ising updates (as percentage of all positions, 0 is off)
     :param beta:        (float) inverse temperature
     :param threshold:   (float) noise threshold     (1 is off)
-    :param coverage:    (float) fuzz noise coverage (0 is off)
     :param rule:        (pointer) conway rule       (rule[0] == -1 is off)
     :param frame:
     :param buffer_length:
@@ -138,14 +136,14 @@ cpdef void basic_update_buffer(
     :param buf:         (3D pointer) array buffer
     :param bounds:      (pointer) boundary values   (-1 is off)
     :param bars:        [start, width, step, axis, bounce, polarity (-1 is off)]
-    :param fuzz:        [start, width, step, axis, bounce, polarity (-2 is off)]
+    :param fuzz:        [start, width, step, axis, bounce, coverage, polarity (-2 is off)]
     :return:            None
     """
     ising_process(updates, beta, dim, arr)
     add_stochastic_noise(threshold, dim, arr)
     cy.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
     cy.scroll_bars(dim, arr, bars)
-    scroll_noise(dim, arr, fuzz, coverage)
+    scroll_noise(dim, arr, fuzz)
     conway_process(prepair_rule(rules, frame), dim, arr)
 
     advance_array(frame, buffer_length, buf)
@@ -153,10 +151,9 @@ cpdef void basic_update_buffer(
 
 cpdef void basic_print(
     int[:] dim, int[:, :] arr,
-    float coverage = 0,
     int[:] bounds = array.array('i', [-1, -1, -1, -1]),
-    int[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.intc),
-    int[:, :] fuzz = np.array([[0, 1, 1, 0, 0, -2]], np.intc),
+    double[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.double),
+    double[:, :] fuzz = np.array([[0, 1, 1, 0, 0, 0.5, -2]], np.double),
 ):
     """
     Performs a basic print after adding back the bars etc. as reference.
@@ -164,15 +161,14 @@ cpdef void basic_print(
 
     :param dim:         (pointer) arr dimensions
     :param arr:         (2D pointer) array
-    :param coverage:    (float) fuzz noise coverage (0 is off)
     :param bounds:      (pointer) boundary values   (-1 is off)
     :param bars:        [start, width, step, axis, bounce, polarity (-1 is off)]
-    :param fuzz:        [start, width, step, axis, bounce, polarity (-2 is off)]
+    :param fuzz:        [start, width, step, axis, bounce, coverage, polarity (-2 is off)]
     :return:            None
     """
     cy.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
     cy.scroll_bars(dim, arr, bars)
-    scroll_noise(dim, arr, fuzz, coverage)
+    scroll_noise(dim, arr, fuzz)
 
     temp = np.empty_like(arr, str)
     out = []
@@ -257,12 +253,11 @@ cpdef print_buffer_status(int[:] buffer_status, int pad=4,
                      '{0}{1}{0}'.format(pad*border, len(buffer_status)*border)))
     print(out)
 
-#needs to be c only!
 #TODO: for this to make any sense, it needs to take the new rules, and the old rules as
-# pointers
+# pointers but for that to work, the old rules need to have been passed as pointers
+# throughout, no?
 cdef void update_rules(
-    float* updates,
-    float* beta, float* threshold,
+    float* updates, float* beta, float* threshold,
     int[:, :] bars, int[:] bounds,
     int[:, :] rules
 ):
@@ -272,8 +267,7 @@ cdef void update_rules(
     :param updates:     (float) ising updates (as percentage of all positions, 0 is off)
     :param beta:        (float) inverse temperature
     :param threshold:   (float) noise threshold
-    :param horizontal:  [start, width, step, bounce, polarity (-1 is off)]
-    :param vertical:    [start, width, step, bounce, polarity (-1 is off)]
+    :param bars:        [start, width, step, axis, bounce, polarity (-1 is off)]
     :param bounds:      (pointer) boundary values   (-1 is off)
     :param rules:       (2d pointer) rules for conway (-1 is off)
     :return:        none
@@ -402,29 +396,28 @@ cpdef int[:, :] init_array(int[:] dim_v):
 
 cpdef void scroll_noise(
     int[:] dim, int[:, :] arr,
-    int[:, :] bars = np.array([[0, 5, 1, 0, 0, 1]], np.intc),
-    float coverage = 0.8
+    double[:, :] bars = np.array([[0, 5, 1, 0, 0, 0.5, 1]], np.double),
 ):
     """
     Updates a region of the screen.
 
     :param dim:
     :param arr:
-    :param bar:     [start, width, step, axis, bounce, polarity (-2 is off)]
+    :param fuzz:     [start, width, step, axis, bounce, coverage, polarity (-2 is off)]
     :param coverage:    coverage of the line
     :returns:       None
     """
 
-    cdef int[:] bar
+    cdef double[:] bar
     cdef Py_ssize_t i
     for i in range(len(bars)):
         bar = bars[i]
         if bar[-1] == -2: continue
 
         if bar[3] == 0:
-            noise_rows(bar[0], bar[1], dim, arr, bar[-1], coverage)
+            noise_rows(int(bar[0]), int(bar[1]), dim, arr, int(bar[-1]), bar[5])
         if bar[3] == 1:
-            noise_columns(bar[0], bar[1], dim, arr, bar[-1], coverage)
+            noise_columns(int(bar[0]), int(bar[1]), dim, arr, int(bar[-1]), bar[5])
 
 
 cpdef void noise_rows(int num, int width, int[:] dim, int[:, :] arr,
@@ -549,7 +542,7 @@ cpdef add_stochastic_noise(float coverage, int[:] dim, int[:, :] arr, int polari
         else:
             arr[a, b] = 1 - arr[a, b]
 
-cpdef ising_process_moore(float updates, float beta, int[:] dim, int[:, :] arr):
+cpdef ising_process_moore(float updates, float beta, int[:] dim, int[:, ::1] arr):
     """
     Performs ising updates on the array.
 
@@ -758,26 +751,17 @@ cpdef int moore_neighbors_same(int[:] pos, int[:] dim, int[:, ::1] arr):
     :param arr:         array
     :return:            neighbors
     """
-    cdef int N = dim[0]
-    cdef int D = dim[1]
     cdef int a = pos[0]
     cdef int b = pos[1]
-    cdef int l, r, u, d, nb
-    if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
-        l = int(arr[a][b] == arr[(a + 1) % N][b])
-        r = int(arr[a][b] == arr[(a - 1 + N) % N][b])
-        u = int(arr[a][b] == arr[a][(b + 1) % D])
-        d = int(arr[a][b] == arr[a][(b - 1 + D) % D])
-        nb = l + u + d + r
+    if arr[a, b]:
+        return moore_neighbors_sum(pos, dim, arr)
     else:
-        l = int(arr[a][b] == arr[(a + 1)][b])
-        r = int(arr[a][b] == arr[(a - 1)][b])
-        u = int(arr[a][b] == arr[a][(b + 1)])
-        d = int(arr[a][b] == arr[a][(b - 1)])
-        nb = l + u + d + r
-    return nb
+        return 4 - moore_neighbors_sum(pos, dim, arr)
 
-cpdef int moore_neighbors_sum(int[:] pos, int[:] dim, int[:, :] arr):
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cpdef int moore_neighbors_sum(int[:] pos, int[:] dim, int[:, ::1] arr):
     """
     Calculated the population of the Moore neighborhood at position.
 
@@ -793,9 +777,9 @@ cpdef int moore_neighbors_sum(int[:] pos, int[:] dim, int[:, :] arr):
     cdef int l, r, u, d, nb
     if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
         l = arr[(a + 1) % N][b]
-        r = arr[(a - 1) % N][b]
+        r = arr[(a - 1 + N) % N][b]
         u = arr[a][(b + 1) % D]
-        d = arr[a][(b - 1) % D]
+        d = arr[a][(b - 1 + D) % D]
         nb = l + u + d + r
     else:
         l = arr[(a + 1)][b]
@@ -805,7 +789,18 @@ cpdef int moore_neighbors_sum(int[:] pos, int[:] dim, int[:, :] arr):
         nb = l + u + d + r
     return nb
 
-cpdef int neumann_neighbors_same(int[:] pos, int[:] dim, int[:, :] arr):
+cpdef int[:, :] moore_neighbors_array(int[:] dim, int[:, ::1] arr):
+    cdef int[:] pos = array.array('i', [0, 0])
+    cdef int[:, :] nb = np.empty_like(arr)
+    cdef Py_ssize_t i, j
+    for i in range(dim[0]):
+        for j in range(dim[1]):
+            pos[0] = i
+            pos[1] = j
+            nb[i, j] = moore_neighbors_sum(pos, dim, arr)
+    return nb
+
+cpdef int neumann_neighbors_same(int[:] pos, int[:] dim, int[:, ::1] arr):
     """
     Calculates the number of Neumann neighbors that share state with the position.
 
@@ -814,32 +809,12 @@ cpdef int neumann_neighbors_same(int[:] pos, int[:] dim, int[:, :] arr):
     :param arr:         array
     :return:            neighbors
     """
-    cdef int N = dim[0]
-    cdef int D = dim[1]
     cdef int a = pos[0]
     cdef int b = pos[1]
-    cdef int l, r, u, d, ur, ul, dr, dl, nb
-    if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
-        l = int(arr[a][b] == arr[(a + 1) % N][b])
-        r = int(arr[a][b] == arr[(a - 1) % N][b])
-        ul = int(arr[a][b] == arr[(a + 1) % N][(b + 1) % D])
-        ur = int(arr[a][b] == arr[(a - 1) % N][(b + 1) % D])
-        dl = int(arr[a][b] == arr[(a + 1) % N][(b - 1) % D])
-        dr = int(arr[a][b] == arr[(a - 1) % N][(b - 1) % D])
-        u = int(arr[a][b] == arr[a][(b + 1) % D])
-        d = int(arr[a][b] == arr[a][(b - 1) % D])
-        nb = l + u + d + r + ul + ur + dl + dr
+    if arr[a, b]:
+        return neumann_neighbors_sum(pos, dim, arr)
     else:
-        l = int(arr[a][b] == arr[(a + 1)][b])
-        r = int(arr[a][b] == arr[(a - 1)][b])
-        ul = int(arr[a][b] == arr[(a + 1)][(b + 1)])
-        ur = int(arr[a][b] == arr[(a - 1)][(b + 1)])
-        dl = int(arr[a][b] == arr[(a + 1)][(b - 1)])
-        dr = int(arr[a][b] == arr[(a - 1)][(b - 1)])
-        u = int(arr[a][b] == arr[a][(b + 1)])
-        d = int(arr[a][b] == arr[a][(b - 1)])
-        nb = l + u + d + r + ul + ur + dl + dr
-    return nb
+        return 8 - neumann_neighbors_sum(pos, dim, arr)
 
 
 @cython.boundscheck(False)
@@ -883,3 +858,87 @@ cdef int neumann_neighbors_sum(int[:] pos, int[:] dim, int[:, ::1] arr) nogil:
 
 cpdef int neumann_neighbors_sum_CP(int[:] pos, int[:] dim, int[:, ::1] arr):
     return neumann_neighbors_sum(pos, dim, arr)
+
+cpdef int[:, :] neumann_neighbors_array(int[:] dim, int[:, ::1] arr):
+    cdef int[:] pos = array.array('i', [0, 0])
+    cdef int[:, :] nb = np.empty_like(arr)
+    cdef Py_ssize_t i, j
+    for i in range(dim[0]):
+        for j in range(dim[1]):
+            pos[0] = i
+            pos[1] = j
+            nb[i, j] = neumann_neighbors_sum(pos, dim, arr)
+    return nb
+
+#=============================OLDFUNCS for testing
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cpdef int moore_neighbors_same_complex(int[:] pos, int[:] dim, int[:, ::1] arr):
+    """
+    Calculates the number of Moore neighbors that share state with the position.
+
+    :param pos:         position to be checked
+    :param dim:         dimensions of array
+    :param arr:         array
+    :return:            neighbors
+    """
+    cdef int N = dim[0]
+    cdef int D = dim[1]
+    cdef int a = pos[0]
+    cdef int b = pos[1]
+    cdef int l, r, u, d, nb
+    if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
+        l = int(arr[a][b] == arr[(a + 1) % N][b])
+        r = int(arr[a][b] == arr[(a - 1 + N) % N][b])
+        u = int(arr[a][b] == arr[a][(b + 1) % D])
+        d = int(arr[a][b] == arr[a][(b - 1 + D) % D])
+        nb = l + u + d + r
+    else:
+        l = int(arr[a][b] == arr[(a + 1)][b])
+        r = int(arr[a][b] == arr[(a - 1)][b])
+        u = int(arr[a][b] == arr[a][(b + 1)])
+        d = int(arr[a][b] == arr[a][(b - 1)])
+        nb = l + u + d + r
+    return nb
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cpdef int neumann_neighbors_same_complex(int[:] pos, int[:] dim, int[:, ::1] arr):
+    """
+    Calculates the number of Neumann neighbors that share state with the position.
+
+    :param pos:         position to be checked
+    :param dim:         dimensions of array
+    :param arr:         array
+    :return:            neighbors
+    """
+    cdef int N = dim[0]
+    cdef int D = dim[1]
+    cdef int a = pos[0]
+    cdef int b = pos[1]
+    cdef int l, r, u, d, ur, ul, dr, dl, nb
+    if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
+        l = int(arr[a][b] == arr[(a + 1) % N][b])
+        r = int(arr[a][b] == arr[(a - 1 + N) % N][b])
+        ul = int(arr[a][b] == arr[(a + 1) % N][(b + 1) % D])
+        ur = int(arr[a][b] == arr[(a - 1 + N) % N][(b + 1) % D])
+        dl = int(arr[a][b] == arr[(a + 1) % N][(b - 1 + D) % D])
+        dr = int(arr[a][b] == arr[(a - 1 + N) % N][(b - 1 + D) % D])
+        u = int(arr[a][b] == arr[a][(b + 1) % D])
+        d = int(arr[a][b] == arr[a][(b - 1 + D) % D])
+        nb = l + u + d + r + ul + ur + dl + dr
+    else:
+        l = int(arr[a][b] == arr[(a + 1)][b])
+        r = int(arr[a][b] == arr[(a - 1)][b])
+        ul = int(arr[a][b] == arr[(a + 1)][(b + 1)])
+        ur = int(arr[a][b] == arr[(a - 1)][(b + 1)])
+        dl = int(arr[a][b] == arr[(a + 1)][(b - 1)])
+        dr = int(arr[a][b] == arr[(a - 1)][(b - 1)])
+        u = int(arr[a][b] == arr[a][(b + 1)])
+        d = int(arr[a][b] == arr[a][(b - 1)])
+        nb = l + u + d + r + ul + ur + dl + dr
+    return nb
+

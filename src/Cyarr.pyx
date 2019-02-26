@@ -15,7 +15,7 @@ cimport numpy as np
 #can automaticaly apply this decorator in unit tests????
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cpdef int[:, ::1] roll_columns_old(int pol, int[:] dim, int[:, ::1] arr):
+cpdef int[:, ::1] roll_columns(int pol, int[:] dim, int[:, ::1] arr):
     """
     Rolls along the columns axis (1)
 
@@ -39,7 +39,7 @@ cpdef int[:, ::1] roll_columns_old(int pol, int[:] dim, int[:, ::1] arr):
 # methinks.
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cpdef int[:, ::1] roll_columns(int pol, int[:] dim, int[:, ::1] arr):
+cpdef int[:, ::1] roll_columns_prange(int pol, int[:] dim, int[:, ::1] arr):
     """
     Rolls along the columns axis (1)
 
@@ -204,7 +204,7 @@ cpdef check_rim(int num, int[:] dim, int[:, :] arr):
 #=========Array editing=============
 cpdef void scroll_bars(
     int[:] dim, int[:, :] arr,
-    int[:, :] bars = np.array([[0, 1, 1, 1, 0, 1]], np.intc),
+    double[:, :] bars = np.array([[0, 1, 1, 1, 0, 1]], np.double),
 ):
     """
     Controls the vertical and horizontal scroll bars.
@@ -214,7 +214,7 @@ cpdef void scroll_bars(
     :param arr:         (2D pointer) array
     :return:            None
     """
-    cdef int[:] bar
+    cdef double[:] bar
     cdef Py_ssize_t i
     for i in range(len(bars)):
         bar = bars[i]
@@ -224,16 +224,16 @@ cpdef void scroll_bars(
         if bar[3] == 0:
             # Fill/ clear columns accordingly
             if bar[-1] == 1:
-                fill_rows(bar[0], bar[1], dim, arr)
+                fill_rows(int(bar[0]), int(bar[1]), dim, arr)
             elif bar[-1] == 0:
-                clear_rows(bar[0], bar[1], dim, arr)
+                clear_rows(int(bar[0]), int(bar[1]), dim, arr)
         # If axis == 1
         elif bar[3] == 1:
             # Do rows
             if bar[-1] == 1:
-                fill_columns(bar[0], bar[1], dim, arr)
+                fill_columns(int(bar[0]), int(bar[1]), dim, arr)
             elif bar[-1] == 0:
-                clear_columns(bar[0], bar[1], dim, arr)
+                clear_columns(int(bar[0]), int(bar[1]), dim, arr)
 
 
 cpdef set_bounds(int ub, int rb, int db, int lb, int[:] dim, int[:, :] arr):

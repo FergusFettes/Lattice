@@ -27,18 +27,18 @@ bounds = array.array('i', [0, -1, 0, -1])
 bars = np.array([
                 [0, 4, 1, 0, 1, -1],
                 [0, 4, 1, 1, 1, -1],
-                ], np.intc)
+                ], np.double)
 fuzz = np.array([
                 [70, 7, 0, 0, 1, 1],
                 [0, 4, 1, 1, 1, -2],
-                ], np.intc)
+                ], np.double)
 
 if __name__ == "__main__":
     head_position, tail_position, buffer_length, buffer_status,\
         dim_t, arr_t, buf_t, dim_h, arr_h, buf_h = cf.init(lampdim)
 
     cf.basic_update_buffer(
-                    updates, beta, threshold, cov,
+                    updates, beta, threshold,
                     rules, head_position,
                     buffer_length,
                     dim_h, arr_h, buf_h,
@@ -50,14 +50,14 @@ if __name__ == "__main__":
     frame = memoryview(array.array('i', [0]))
     while True:
         # analysis here
-        cf.basic_print(dim_t, arr_t, cov, bounds, bars, fuzz)
+        cf.basic_print(dim_t, arr_t, bounds, bars, fuzz)
         cf.scroll_instruction_update(bars, dim_t)
         arr_t = cf.update_array_positions(tail_position, buffer_length, buffer_status,
                                           buf_t, 0)
         time.sleep(0.1)
 
         cf.basic_update_buffer(
-                        updates, beta, threshold, cov,
+                        updates, beta, threshold,
                         rules, head_position,
                         buffer_length,
                         dim_h, arr_h, buf_h,

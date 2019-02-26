@@ -7,7 +7,7 @@ from Cfuncs import *
 import Cyarr as cy
 import Cyphys as cyphys
 
-debug = False
+debug = True
 simple = False
 
 
@@ -51,8 +51,8 @@ class BasicSuiteTestCase(unittest.TestCase):
         self.head_pos, self.tail_pos, self.buf_siz, self.buf_stat,\
             _, _, _, self.dim, self.arr, self.buf = init([50, 50])
         self.bounds = array.array('i', [1, 1, 1, 1])
-        self.bars = np.array([[0, 1, 1, 0, 0, 1]], np.intc)
-        self.updates = 1000
+        self.bars = np.array([[0, 1, 1, 0, 0, 1]], np.double)
+        self.updates = 0.01
         self.beta = 1/8
         self.threshold = 0.9
         self.coverage = 0.9
@@ -66,15 +66,13 @@ class BasicSuiteTestCase(unittest.TestCase):
         basic_print(self.dim, self.arr)
 
     def test_basic_print_bounds_scroll(self):
-        basic_print(self.dim, self.arr, self.coverage,
-                    self.bounds, self.bars)
+        basic_print(self.dim, self.arr, self.bounds, self.bars)
 
     def test_basic_update_off(self):
         arr = np.copy(self.arr)
         basic_update(
             0,
             self.beta,
-            0,
             0,
             prepair_rule(np.array([[-1,0,0,0]], np.intc), self.head_pos),
             self.dim,
@@ -87,7 +85,6 @@ class BasicSuiteTestCase(unittest.TestCase):
         basic_update(
             0,
             self.beta,
-            0,
             0,
             prepair_rule(np.array([[-1,0,0,0]], np.intc), self.head_pos),
             self.dim,
@@ -103,12 +100,11 @@ class BasicSuiteTestCase(unittest.TestCase):
             0,
             self.beta,
             0,
-            0,
             prepair_rule(np.array([[-1,0,0,0]], np.intc), self.head_pos),
             self.dim,
             self.arr,
             self.bounds,
-            bars = np.array([[1, 1, 1, 0, 0, 1]], np.intc),
+            bars = np.array([[1, 1, 1, 0, 0, 1]], np.double),
         )
         cy.fill_bounds(self.dim, arr)
         arr[1, :] = 1
@@ -119,7 +115,6 @@ class BasicSuiteTestCase(unittest.TestCase):
         basic_update(
             self.updates,
             self.beta,
-            self.threshold,
             self.threshold,
             prepair_rule(np.array([[-1,0,0,0]], np.intc), self.head_pos),
             self.dim,
@@ -172,18 +167,18 @@ class MiscTestCase(unittest.TestCase):
     def test_scroll_noise_off(self):
         arr = tst_arrL()
         bars = np.array([
-            [0, 1, 1, 0, 0, -2],
-            [5, 1, 1, 1, 0, -2],
-        ], np.intc)
+            [0, 1, 1, 0, 0, 0.5, -2],
+            [5, 1, 1, 1, 0, 0.5, -2],
+        ], np.double)
         scroll_noise(tst_dimL(), arr, bars)
         testing.assert_array_equal(arr, tst_arrL())
 
     def test_scroll_noise_random(self):
         arr = tst_arrL()
         bars = np.array([
-            [0, tst_dimL()[0], 0, 0, 0, 0],
-        ], np.intc)
-        scroll_noise(tst_dimL(), arr, bars, 5)
+            [0, tst_dimL()[0], 0, 0, 0, 5, 0],
+        ], np.double)
+        scroll_noise(tst_dimL(), arr, bars)
 
         arr2 = tst_arrL()
         add_stochastic_noise(5, tst_dimL(), arr2)
@@ -193,9 +188,9 @@ class MiscTestCase(unittest.TestCase):
         arr = tst_arrL()
         arr[:] = 0
         bars = np.array([
-            [0, tst_dimL()[0], 0, 0, 0, 1],
-        ], np.intc)
-        scroll_noise(tst_dimL(), arr, bars, 5)
+            [0, tst_dimL()[0], 0, 0, 0, 5, 1],
+        ], np.double)
+        scroll_noise(tst_dimL(), arr, bars)
 
         self.assertAlmostEqual(1, np.asarray(arr).mean(), 1)
 
@@ -203,18 +198,18 @@ class MiscTestCase(unittest.TestCase):
         arr = tst_arrL()
         arr[:] = 1
         bars = np.array([
-            [0, tst_dimL()[0], 0, 0, 0, -1],
-        ], np.intc)
-        scroll_noise(tst_dimL(), arr, bars, 5)
+            [0, tst_dimL()[0], 0, 0, 0, 5, -1],
+        ], np.double)
+        scroll_noise(tst_dimL(), arr, bars)
 
         self.assertAlmostEqual(0, np.asarray(arr).mean(), 1)
 
     def test_scroll_noise_random_wraps(self):
         arr = tst_arrL()
         bars = np.array([
-            [100, tst_dimL()[0], 0, 0, 0, 0],
-        ], np.intc)
-        scroll_noise(tst_dimL(), arr, bars, 5)
+            [100, tst_dimL()[0], 0, 0, 0, 5, 0],
+        ], np.double)
+        scroll_noise(tst_dimL(), arr, bars)
 
         arr2 = tst_arrL()
         add_stochastic_noise(5, tst_dimL(), arr2)
@@ -417,23 +412,6 @@ class NoiseTestCase(unittest.TestCase):
 
 class NeighborTestCase(unittest.TestCase):
 
-    def setUp(self):
-        """
-        Array:
-            010
-            101
-            001
-        """
-        self.arr = np.array([[0,1,0],[1,0,1],[0,0,1]], np.intc)
-        self.dim = array.array('i', [3,3])
-        self.pos = array.array('i', [1,1])
-
-    def test_moore_neighbors_sum_manual(self):
-        self.assertEqual(3, moore_neighbors_sum(self.pos, self.dim, self.arr))
-
-    def test_moore_neighbors_sum_manual2(self):
-        self.assertEqual(2, moore_neighbors_sum(self.pos, tst_dim(), tst_arr()))
-
     def test_moore_neighbors_sum_random_versus_roll(self):
         arr = tst_arrL()
         add_global_noise(0.5, tst_dimL(), arr)
@@ -442,26 +420,9 @@ class NeighborTestCase(unittest.TestCase):
         u = cy.roll_rows(1, tst_dimL(), arr)
         d = cy.roll_rows(-1, tst_dimL(), arr)
         NB = np.asarray(l) + np.asarray(r) + np.asarray(u) + np.asarray(d)
-        NB2 = np.zeros_like(arr)
-        pos = array.array('i', [0, 0])
-        for i in range(tst_dimL()[0]):
-            for j in range(tst_dimL()[1]):
-                pos[0] = i
-                pos[1] = j
-                NB2[i, j] = moore_neighbors_sum(pos, tst_dimL(), arr)
+        NB2 = moore_neighbors_array(tst_dimL(), arr)
 
         testing.assert_array_equal(NB, NB2)
-
-    def test_moore_neighbors_sum_manual_wraps(self):
-        self.pos[0] = 0
-        self.pos[1] = 0
-        self.assertEqual(2, moore_neighbors_sum(self.pos, self.dim, self.arr))
-
-    def test_moore_neighbors_same_manual(self):
-        self.assertEqual(1, moore_neighbors_same(self.pos, self.dim, self.arr))
-
-    def test_moore_neighbors_same_manual2(self):
-        self.assertEqual(2, moore_neighbors_same(self.pos, tst_dim(), tst_arr()))
 
     def test_moore_neighbors_same_random_versus_roll(self):
         arr = tst_arrL()
@@ -483,16 +444,20 @@ class NeighborTestCase(unittest.TestCase):
 
         testing.assert_array_equal(NB, NB2)
 
-    def test_moore_neighbors_same_manual_wraps(self):
-        self.pos[0] = 0
-        self.pos[1] = 0
-        self.assertEqual(2, moore_neighbors_same(self.pos, self.dim, self.arr))
+    def test_moore_neighbors_same_complex(self):
+        arr = tst_arrL()
+        add_global_noise(0.5, tst_dimL(), arr)
+        pos = array.array('i', [0, 0])
+        NB = np.zeros_like(arr)
+        NB2 = np.zeros_like(arr)
+        for i in range(tst_dimL()[0]):
+            for j in range(tst_dimL()[1]):
+                pos[0] = i
+                pos[1] = j
+                NB[i, j] = moore_neighbors_same(pos, tst_dimL(), arr)
+                NB2[i, j] = moore_neighbors_same_complex(pos, tst_dimL(), arr)
 
-    def test_neumann_neighbors_sum_CP_manual(self):
-        self.assertEqual(4, neumann_neighbors_sum_CP(self.pos, self.dim, self.arr))
-
-    def test_neumann_neighbors_sum_CP_manual2(self):
-        self.assertEqual(3, neumann_neighbors_sum_CP(self.pos, tst_dim(), tst_arr()))
+        testing.assert_array_equal(NB, NB2)
 
     def test_neumann_neighbors_sum_CP_random_versus_roll(self):
         arr = tst_arrL()
@@ -507,31 +472,23 @@ class NeighborTestCase(unittest.TestCase):
         dr = cy.roll_rows(-1, tst_dimL(), r)
         NB = np.asarray(l) + np.asarray(r) + np.asarray(u) + np.asarray(d) +\
                     np.asarray(ul) + np.asarray(ur) + np.asarray(dl) + np.asarray(dr)
-        NB2 = np.zeros_like(arr)
+        NB2 = neumann_neighbors_array(tst_dimL(), arr)
+
+        testing.assert_array_equal(NB, NB2)
+
+    def test_neumann_neighbors_same_complex(self):
+        arr = tst_arrL()
+        add_global_noise(0.5, tst_dimL(), arr)
         pos = array.array('i', [0, 0])
+        NB = np.zeros_like(arr)
+        NB2 = np.zeros_like(arr)
         for i in range(tst_dimL()[0]):
             for j in range(tst_dimL()[1]):
                 pos[0] = i
                 pos[1] = j
-                NB2[i, j] = neumann_neighbors_sum_CP(pos, tst_dimL(), arr)
-
+                NB[i, j] = neumann_neighbors_same(pos, tst_dimL(), arr)
+                NB2[i, j] = neumann_neighbors_same_complex(pos, tst_dimL(), arr)
         testing.assert_array_equal(NB, NB2)
-
-    def test_neumann_neighbors_sum_CP_manual_wraps(self):
-        self.pos[0] = 0
-        self.pos[1] = 0
-        self.assertEqual(4, neumann_neighbors_sum_CP(self.pos, self.dim, self.arr))
-
-    def test_neumann_neighbors_same_manual(self):
-        self.assertEqual(4, neumann_neighbors_same(self.pos, self.dim, self.arr))
-
-    def test_neumann_neighbors_same_manual2(self):
-        self.assertEqual(3, neumann_neighbors_same(self.pos, tst_dim(), tst_arr()))
-
-    def test_neumann_neighbors_same_manual_wraps(self):
-        self.pos[0] = 0
-        self.pos[1] = 0
-        self.assertEqual(4, neumann_neighbors_same(self.pos, self.dim, self.arr))
 
 class IsingTestCase(unittest.TestCase):
 
@@ -542,7 +499,7 @@ class IsingTestCase(unittest.TestCase):
 
     def test_ising_process_type(self):
         arr = tst_arr()
-        ising_process(10, 1/8, tst_dim(), arr)
+        ising_process(0.01, 1/8, tst_dim(), arr)
         self.assertIs(arr.dtype, tst_arr().dtype)
 
     def test_ising_process_high_temp(self):
@@ -551,7 +508,7 @@ class IsingTestCase(unittest.TestCase):
         polinit = cyphys.polarization(tst_dimL(), arr)
         self.assertEqual(1, polinit)
 
-        ising_process(1000000, 0.01, tst_dimL(), arr)
+        ising_process(10, 0.01, tst_dimL(), arr)
         polfin = cyphys.polarization(tst_dimL(), arr)
         self.assertAlmostEqual(0, polfin, 2)
 
@@ -561,7 +518,7 @@ class IsingTestCase(unittest.TestCase):
         polinit = cyphys.polarization(tst_dimL(), arr)
         self.assertEqual(1, polinit)
 
-        ising_process(100000, 10, tst_dimL(), arr)
+        ising_process(0.1, 10, tst_dimL(), arr)
         polfin = cyphys.polarization(tst_dimL(), arr)
         self.assertAlmostEqual(1, polfin)
 
@@ -570,7 +527,7 @@ class IsingTestCase(unittest.TestCase):
         With the inverse temperature low, the chance of a collision is ~ 1/25! ~ 0
         """
         arr = tst_arr()
-        ising_process(10000, 1/1000, tst_dim(), arr)
+        ising_process(0.1, 1/1000, tst_dim(), arr)
         testing.assert_equal(np.any(np.not_equal(arr, tst_arr())), True)
 
 

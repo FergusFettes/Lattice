@@ -84,7 +84,7 @@ cpdef tuple init(list dimensions):
 
 
 cpdef void basic_update(
-    int updates, float beta,
+    float updates, float beta,
     float threshold, float coverage,
     int[:] rule, int[:] dim, int[:, ::1] arr,
     int[:] bounds = array.array('i', [-1, -1, -1, -1]),
@@ -93,7 +93,7 @@ cpdef void basic_update(
     """
     Performs the basic update
 
-    :param updates:     (int) ising updates         (0 is off)
+    :param updates:     (float) ising updates (as percentage of all positions, 0 is off)
     :param beta:        (float) inverse temperature
     :param threshold:   (float) noise threshold     (1 is off)
     :param coverage:    (float) fuzz noise coverage (0 is off)
@@ -114,7 +114,7 @@ cpdef void basic_update(
 # A real hero would make this a decorator
 # Same for all the other small changes!
 cpdef void basic_update_buffer(
-    int updates, float beta,
+    float updates, float beta,
     float threshold, float coverage,
     int[:, :] rules, int[:] frame, int buffer_length,
     int[:] dim, int[:, ::1] arr, int[:, :, :] buf,
@@ -126,7 +126,7 @@ cpdef void basic_update_buffer(
     Performs the basic update, including advancing the array in the buffer.
     Doesnt update your pointers though.
 
-    :param updates:     (int) ising updates         (0 is off)
+    :param updates:     (float) ising updates (as percentage of all positions, 0 is off)
     :param beta:        (float) inverse temperature
     :param threshold:   (float) noise threshold     (1 is off)
     :param coverage:    (float) fuzz noise coverage (0 is off)
@@ -261,7 +261,7 @@ cpdef print_buffer_status(int[:] buffer_status, int pad=4,
 #TODO: for this to make any sense, it needs to take the new rules, and the old rules as
 # pointers
 cdef void update_rules(
-    int* updates,
+    float* updates,
     float* beta, float* threshold,
     int[:, :] bars, int[:] bounds,
     int[:, :] rules
@@ -269,7 +269,7 @@ cdef void update_rules(
     """
     updates the rules.
 
-    :param update:      (int) ising updates
+    :param updates:     (float) ising updates (as percentage of all positions, 0 is off)
     :param beta:        (float) inverse temperature
     :param threshold:   (float) noise threshold
     :param horizontal:  [start, width, step, bounce, polarity (-1 is off)]
@@ -491,7 +491,7 @@ cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, float threshold=0.2):
 
     add_global_noise(threshold, dim_v, arr_v)
 
-    offset_v = array.array('i', [int((dim[0] - dim_v[0])/2), int((dim[1] - dim_v[1])/2)])
+    offset_v = array.array('i', [(dim[0] - dim_v[0])//2, (dim[1] - dim_v[1])//2])
     cy.replace_array(offset_v, dim_v, arr_v, dim, arr)
 
 cpdef add_global_noise(float threshold, int[:] dim, int[:, :] arr, int polarity=0):
@@ -549,11 +549,11 @@ cpdef add_stochastic_noise(float coverage, int[:] dim, int[:, :] arr, int polari
         else:
             arr[a, b] = 1 - arr[a, b]
 
-cpdef ising_process_moore(int updates, float beta, int[:] dim, int[:, :] arr):
+cpdef ising_process_moore(float updates, float beta, int[:] dim, int[:, :] arr):
     """
     Performs ising updates on the array.
 
-    :param updates: (int) Number of updates to perform
+    :param updates:     (float) ising updates (as percentage of all positions, 0 is off)
     :param beta:    (float) Inverse temperature (>1/8 --> pure noise)
     :param dim:     (pointer) dimensions of array
     :param array:   (2D pointer) array
@@ -566,20 +566,20 @@ cpdef ising_process_moore(int updates, float beta, int[:] dim, int[:, :] arr):
     cost[2] = cost[1] ** 2
     cdef int N = dim[0]
     cdef int D = dim[1]
-    cdef Py_ssize_t i
+    cdef Py_ssize_t _
     cdef int nb
     cdef int[:] pos
-    for i in range(updates):
+    for _ in range(int(updates * dim[0] * dim[1])):
         pos = array.array('i', [rand() % N, rand() % D])
         nb = moore_neighbors_same(pos, dim, arr)
         if nb - 2 <= 0 or (rand() / float(RAND_MAX)) < cost[nb - 2]:
             arr[pos[0], pos[1]] = 1 - arr[pos[0], pos[1]]
 
-cpdef ising_process(int updates, float beta, int[:] dim, int[:, :] arr):
+cpdef ising_process(float updates, float beta, int[:] dim, int[:, :] arr):
     """
     Performs ising updates on the array.
 
-    :param updates: (int) Number of updates to perform
+    :param updates:     (float) ising updates (as percentage of all positions, 0 is off)
     :param beta:    (float) Inverse temperature (>1/8 --> pure noise)
     :param dim:     (pointer) dimensions of array
     :param array:   (2D pointer) array
@@ -594,7 +594,7 @@ cpdef ising_process(int updates, float beta, int[:] dim, int[:, :] arr):
     cdef int D = dim[1]
     cdef Py_ssize_t _
     cdef int a, b, l, r, u, d, nb
-    for _ in range(updates):
+    for _ in range(int(updates * dim[0] * dim[1])):
         a = rand() % N
         b = rand() % D
         if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
@@ -613,7 +613,6 @@ cpdef ising_process(int updates, float beta, int[:] dim, int[:, :] arr):
             arr[a][b] = 1 - arr[a][b]
 
 #===================CONWAY=================
-#TODO: make more atomic, so you can do more testing. Also add different version, likewise.
 cpdef void conway_process_old(int[:] rule, int[:] dim, int[:, :] arr):
     """
     Performs conway update on the array.
@@ -682,72 +681,10 @@ cpdef void conway_process(int[:] rule, int[:] dim, int[:, ::1] arr):
                 if rule[2] <= NB <= rule[3]:
                     arr[i][j] = 1
 
-
+@cython.boundscheck(False)
+@cython.wraparound(False)
+#TODO: figure out why this is so much slower
 cpdef void conway_process_nogil(int[:] rule, int[:] dim, int[:, ::1] arr):
-    """
-    Performs conway update on the array.
-
-    :param rule:    (pointer) update rule for this frame
-    :param dim:     (pointer) dimensions of array
-    :param array:   (2D pointer) array
-    :return:        None
-    """
-    if rule[0] == -1:
-        return
-    cdef int NB, n, d
-    n = dim[0]
-    d = dim[1]
-    cdef int[:] pos = array.array('i', [0, 0])
-    cdef int[:, ::1] arr_c = arr.copy()
-    cdef Py_ssize_t i, j
-    for i in prange(n, nogil=True):
-        for j in prange(d):
-            pos[0] = i
-            pos[1] = j
-            NB = neumann_neighbors_sum(pos, dim, arr_c)
-            if arr[i][j] == 1:
-                if not rule[0] <= NB <= rule[1]:
-                    arr[i][j] = 0
-            else:
-                if rule[2] <= NB <= rule[3]:
-                    arr[i][j] = 1
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cpdef void conway_process_nogil_nocheck(int[:] rule, int[:] dim, int[:, ::1] arr):
-    """
-    Performs conway update on the array.
-
-    :param rule:    (pointer) update rule for this frame
-    :param dim:     (pointer) dimensions of array
-    :param array:   (2D pointer) array
-    :return:        None
-    """
-    if rule[0] == -1:
-        return
-    cdef int NB, n, d
-    n = dim[0]
-    d = dim[1]
-    cdef int[:] pos = array.array('i', [0, 0])
-    cdef int[:, ::1] arr_c = arr.copy()
-    cdef Py_ssize_t i, j
-    for i in prange(n, nogil=True):
-        for j in prange(d):
-            pos[0] = i
-            pos[1] = j
-            NB = neumann_neighbors_sum(pos, dim, arr_c)
-            if arr[i][j] == 1:
-                if not rule[0] <= NB <= rule[1]:
-                    arr[i][j] = 0
-            else:
-                if rule[2] <= NB <= rule[3]:
-                    arr[i][j] = 1
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cpdef void conway_process_nogil_nocheck_oneloop(int[:] rule, int[:] dim, int[:, ::1] arr):
     """
     Performs conway update on the array.
 
@@ -775,30 +712,6 @@ cpdef void conway_process_nogil_nocheck_oneloop(int[:] rule, int[:] dim, int[:, 
             else:
                 if rule[2] <= NB <= rule[3]:
                     arr[i][j] = 1
-
-
-cpdef void neumann_conway(int[:] rule, int[:] dim, int[:, ::1] arr):
-    """
-    Performs conway updates at random positions in the array.
-
-    :param rule:    (pointer) update rule for this frame
-    :param dim:     (pointer) dimensions of array
-    :param array:   (2D pointer) array
-    :return:        None
-    """
-    cdef int a, b, nb
-    cdef int[:] pos = array.array('i', [0, 0])
-    cdef Py_ssize_t i, j
-    for i in range(dim[0]):
-        for j in range(dim[1]):
-            pos = array.array('i', [i, j])
-            nb = neumann_neighbors_sum(pos, dim, arr)
-            if arr[i, j] == 1:
-                if not rule[0] <= nb <= rule[1]:
-                    arr[i, j] = 0
-            else:
-                if rule[2] <= nb <= rule[3]:
-                    arr[i, j] = 1
 
 cpdef void stochastic_conway(float coverage, int[:] rule, int[:] dim, int[:, ::1] arr):
     """
@@ -832,36 +745,11 @@ cpdef void stochastic_conway(float coverage, int[:] rule, int[:] dim, int[:, ::1
             if rule[2] <= nb <= rule[3]:
                 arr[a, b] = 1
 
-cpdef void stochastic_conway_rand(float coverage, int[:] rule, int[:] dim, int[:, ::1] arr):
-    """
-    Performs conway updates at random positions in the array.
-
-    :param coverage:(float) percentage of the array to cover
-    :param rule:    (pointer) update rule for this frame
-    :param dim:     (pointer) dimensions of array
-    :param array:   (2D pointer) array
-    :return:        None
-    """
-    if coverage == 0.0:
-        return
-    cdef int[:] pos = array.array('i', [0, 0])
-    cdef Py_ssize_t _
-    cdef int a, b, nb
-    for _ in range(int(coverage * dim[0] * dim[1])):
-        pos = array.array('i', [rand() % dim[0], rand() % dim[1]])
-        nb = neumann_neighbors_sum(pos, dim, arr)
-        a = pos[0]
-        b = pos[1]
-        if arr[a, b] == 1:
-            if not rule[0] <= nb <= rule[1]:
-                arr[a, b] = 0
-        else:
-            if rule[2] <= nb <= rule[3]:
-                arr[a, b] = 1
-
 #=====NEIGHBOR CALCULATIONS===========
-# for some reason this is faily slow, needs further testing
-cpdef int moore_neighbors_same(int[:] pos, int[:] dim, int[:, :] arr):
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cpdef int moore_neighbors_same(int[:] pos, int[:] dim, int[:, ::1] arr):
     """
     Calculates the number of Moore neighbors that share state with the position.
 
@@ -877,9 +765,9 @@ cpdef int moore_neighbors_same(int[:] pos, int[:] dim, int[:, :] arr):
     cdef int l, r, u, d, nb
     if a == 0 or b == 0 or a == dim[0]-1 or b == dim[1]-1:
         l = int(arr[a][b] == arr[(a + 1) % N][b])
-        r = int(arr[a][b] == arr[(a - 1) % N][b])
+        r = int(arr[a][b] == arr[(a - 1 + N) % N][b])
         u = int(arr[a][b] == arr[a][(b + 1) % D])
-        d = int(arr[a][b] == arr[a][(b - 1) % D])
+        d = int(arr[a][b] == arr[a][(b - 1 + D) % D])
         nb = l + u + d + r
     else:
         l = int(arr[a][b] == arr[(a + 1)][b])
@@ -992,3 +880,6 @@ cdef int neumann_neighbors_sum(int[:] pos, int[:] dim, int[:, ::1] arr) nogil:
         d = arr[a][(b - 1)]
         nb = l + u + d + r + ul + ur + dl + dr
     return nb
+
+cpdef int neumann_neighbors_sum_CP(int[:] pos, int[:] dim, int[:, ::1] arr):
+    return neumann_neighbors_sum(pos, dim, arr)

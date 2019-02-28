@@ -28,12 +28,9 @@ class EngineOperator(QObject):
     plainSig = pyqtSignal(list)
 
     def __init__(self, canvas, graphs, frameLabel, arrayfpsLabel, canvasfpsLabel, st):
-    # The kwargs consists of the following: speed, updates, frames, beta,
-    # stochastic?, threshold/coverage.
         QObject.__init__(self)
         self.st = st
         self.canvas = canvas
-        self.graphs = graphs
         self.frameLabel = frameLabel
         self.arrayfpsLabel = arrayfpsLabel
         self.canvasfpsLabel = canvasfpsLabel
@@ -50,9 +47,6 @@ class EngineOperator(QObject):
         self.st.general.running = False
         self.st.general.equilibrate = False
         self.st.general.clear = False
-
-    def thread_looper(self):
-        print('Thread standing by.')
 
 #===============Run Initiators=============#
     def static_run(self):
@@ -79,6 +73,9 @@ class EngineOperator(QObject):
         self.taskthread.start()
 
     def clear_background(self):
+        """
+        Just repaints the background, leaving the array in the same configuration.
+        """
         self.backgroundSig.emit()
         self.imagethread.start()
 
@@ -114,58 +111,23 @@ class EngineOperator(QObject):
     def taskman_init(self):
         # Initialise the threads and the workers, and put them in place
         self.taskthread = QThread()
-        self.imagethread = QThread()
-        self.updatethread = QThread()
-        self.analysisthread = QThread()
-        self.handler = Handler(self.st)
         self.taskman = RunController(self.st)
-        self.image = ImageCreator(self.st)
-        self.analyser = Analyser(self.st)
         self.taskman.moveToThread(self.taskthread)
-        self.handler.moveToThread(self.updatethread)
-        self.image.moveToThread(self.imagethread)
-        self.analyser.moveToThread(self.analysisthread)
 
         self.taskthread.started.connect(self.taskman.process)
-        self.taskthread.started.connect(self.imagethread.start)
-        self.taskthread.started.connect(self.updatethread.start)
-        self.taskthread.started.connect(self.analysisthread.start)
 
         # Connections from the engine to the workers
         self.interruptSig.connect(self.breaker)
-        self.backgroundSig.connect(self.image.wolfram_paint)
-        self.plainSig.connect(self.image.resize_array)
-        self.gifresetSig.connect(self.image.reset_gifcount)
+#        self.backgroundSig.connect(self.image.wolfram_paint)
+        self.gifresetSig.connect(self.reset_gifcount)
 
-        # Connect up the signals between the workers
-        self.taskman.handlerSig.connect(self.handler.next_array)
-        self.taskman.handlerSingleSig.connect(self.handler.push_single_array)
-        self.taskman.handlerinitSig.connect(self.handler.updater_start)
-        self.handler.arraySig.connect(self.image.process)
-        self.handler.arraySingleSig.connect(self.image.process_single)
-        self.handler.arrayinitSig.connect(self.image.processer_start)
-        self.image.analyseSig.connect(self.analyser.process)
-        self.analyser.nextarraySig.connect(self.taskman.next_frame)
-
-        # Connections for closing threads WORK NECC HERE
-        # Need to figure out exactly ho long a thread will stay waiting, what activates
-        # it, how it proecesses signals it has recieved while it has been shutdown etc.
-        # TODO
         self.taskman.finished.connect(self.taskthread.quit)
-        self.taskman.finished.connect(self.updatethread.quit)
-        self.taskman.finished.connect(self.imagethread.quit)
-        self.taskman.finished.connect(self.analysisthread.quit)
-        self.taskthread.finished.connect(self.thread_looper)
-        self.image.breakSig.connect(self.breaker)
-        self.taskman.breakSig.connect(self.breaker)
 
         # Signals from the workers back to the GUI
         self.taskman.frameSig.connect(self.frame_value_update)
         self.handler.arrayfpsSig.connect(self.array_fps_update)
         self.image.canvasfpsSig.connect(self.canvas_fps_update)
         self.taskman.error.connect(self.error_string)
-        self.image.error.connect(self.error_string)
-        self.handler.error.connect(self.error_string)
         self.image.imageSig.connect(self.canvas.paint)
         self.analyser.popSig.connect(self.graphs.paint)
         self.analyser.radSig.connect(self.graphs.paint)

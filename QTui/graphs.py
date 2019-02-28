@@ -7,28 +7,7 @@ import numpy as np
 from src.pureUp import *
 
 
-class Analyser(QObject, pureHandler):
-    popSig = pyqtSignal(np.ndarray, str)
-    radSig = pyqtSignal(np.ndarray, str)
-    nextarraySig = pyqtSignal()
-
-
-    def __init__(self, st):
-        QObject.__init__(self)
-
-        self.st = st
-        super().clear()
-
-    def process(self, array):
-        super().analyse(array)
-        center,population,radius = super().export()
-        self.popSig.emit(population, 'p1')
-        self.radSig.emit(radius, 'p2')
-        self.nextarraySig.emit()
-
-
 class Graphs(pg.GraphicsView):
-
     def __init__(self):
         super().__init__()
 

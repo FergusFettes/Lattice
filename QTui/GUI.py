@@ -16,11 +16,32 @@ import glob
 from munch import *
 from yaml import safe_load, safe_dump
 
-# Draws the main window and contains the simulation code
-class MainWindow(QMainWindow):
 
-    # Initialises the window and variables. Very uncertain about which
-    # variables should go where, but it's fine for now I guess.
+#====================The canvas=================#
+class Canvas(QLabel):
+
+    def __init__(self, st):
+        self.primaryColor = QColor(st.canvas.colorlist[0])
+        self.st = st
+        self.reset()
+
+    def reset(self):
+        self.setPixmap(QPixmap(self.st.canvas.dim[0] * self.st.canvas.scale,
+                               self.st.canvas.dim[1] * self.st.canvas.scale))
+        self.pixmap().fill(self.primaryColor)
+
+    def paint(self, image):
+        self.setPixmap(image)
+        self.repaint()
+
+
+class MainWindow(QMainWindow):
+    """
+    The Main GUI window. This class contains all the QT code for the UI and all the
+    functions that controll the simulation. It is pretty unwieldy. I wouldn't make
+    half of these mistakes next time, but this is what it is. Lets let it be for now.
+    """
+
     def __init__(self, st):
         super().__init__()
 
@@ -33,13 +54,11 @@ class MainWindow(QMainWindow):
         # Save settings
         self.st = st
 
-        # INITS
-        # This means that you have to stop manipulating the controls for half a
-        # second for the changes to be sent to the thread. This stops uneccesary
-        # restarts, but needs to be tuned for comfort.
         self.initGUI(st)
 
 #=====================Settings controllers================#
+    # I had to make all of these because of a disaster with adding partial functions
+    # to the button callback thingies. This can presumably be done much better.
     def wolfram_rule(self, val):
         self.st.wolfram.rule = val()
 
@@ -166,16 +185,6 @@ class MainWindow(QMainWindow):
         fileints = [int(i[0]) for i in filter(None, filenums)]
         rules = ''.join([''.join([str(i) for i in j]) for j in self.st.conway.rules])
 
-# Watermark, off for now
-#       overlay_file = ffmpeg.input('images/watermark.png')
-#       (
-#           ffmpeg
-#           .input('images/temp{:04d}.png'.format(max(fileints)))
-#           .overlay(overlay_file)
-#           .output('images/temp{:04d}.png'.format(max(fileints)))
-#           .overwrite_output()
-#           .run()
-#       )
         (
             ffmpeg
             .input('images/temp%04d.png')
@@ -189,7 +198,6 @@ class MainWindow(QMainWindow):
         filelist = glob.glob('images/temp*.png')
         for i in filelist:
             os.remove(i)
-
 
     #TODO: make it save the previous configuration before overwriting
     def save_defaults(self):
@@ -218,9 +226,8 @@ class MainWindow(QMainWindow):
                 self.engine.imagethread.deleteLater()
                 QCoreApplication.instance().quit()
                 print('Threads shutting down and powering off')
-                # TODO: add a 'are you sure?' popup
-        # left alt key. guess i could just look this up?
         elif e.key() == 16777251:
+            # left alt key
             self.speedCtrl.setFocus()
         elif e.key() == Qt.Key_C:
             self.speedCtrl.triggerAction(QSlider.SliderPageStepAdd)
@@ -256,9 +263,8 @@ class MainWindow(QMainWindow):
         # Initialise the thread manager and painter and feed them the UI elements they
         # need to control. TODO: cleaner way of connecting signals to a parent? Using
         # Super perhaps? TODO: pass the guys with args anyway no?
-        self.canvas = Canvas()
+        self.canvas = Canvas(st)
         self.graphs = Graphs()
-        self.canvas.initialize(st)
         self.frameLabel = QLabel()
         self.arrayfpsLabel = QLabel()
         self.canvasfpsLabel = QLabel()

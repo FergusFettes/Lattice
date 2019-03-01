@@ -7,8 +7,8 @@ import numpy as np
 from cpython cimport array
 cimport numpy as np
 
-import Cfuncs as cf
-import Cyarr as cy
+import src.Cfuncs as cf
+import src.Cyarr as cy
 
 cpdef tuple analysis_loop_energy(float[:] com_in, int[:] dim, int[:, :] arr):
     """

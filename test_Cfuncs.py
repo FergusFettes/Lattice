@@ -3,9 +3,9 @@ import numpy as np
 from numpy import testing
 import unittest
 
-from Cfuncs import *
-import Cyarr as cy
-import Cyphys as cyphys
+from src.Cfuncs import *
+import src.Cyarr as cy
+import src.Cyphys as cyphys
 
 debug = True
 simple = False
@@ -135,7 +135,7 @@ class MiscTestCase(unittest.TestCase):
         bars = np.array([
             [0, 1, 1, 0, 0, 1],
             [3, 1, 1, 1, 0, 1],
-        ], np.intc)
+        ], np.double)
         scroll_instruction_update(bars, tst_dim())
         self.assertEqual(bars[0][0], 1)
         self.assertEqual(bars[1][0], 4)

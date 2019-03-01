@@ -1,12 +1,11 @@
 import array
+
 import numpy as np
 import time
 
 import src.Cfuncs as cf
 import src.Cyarr as cy
-from src.Pfuncs import (
-    center_of_mass_P
-)
+import src.Cyphys as cph
 from src.PHifuncs import (
     recenter
 )
@@ -21,7 +20,6 @@ lampdim = [77, 50]
 beta = 1/8
 updates = 100
 threshold = 0
-cov = 0.3
 rules = np.array([[2, 3, 3, 3], [2, 3, 3, 3]], np.intc)
 bounds = array.array('i', [0, -1, 0, -1])
 bars = np.array([
@@ -29,8 +27,8 @@ bars = np.array([
                 [0, 4, 1, 1, 1, -1],
                 ], np.double)
 fuzz = np.array([
-                [70, 7, 0, 0, 1, 1],
-                [0, 4, 1, 1, 1, -2],
+                [70, 7, 0, 0, 1, 0.5, 1],
+                [0, 4, 1, 1, 1, 0.5, -2],
                 ], np.double)
 
 if __name__ == "__main__":

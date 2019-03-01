@@ -10,7 +10,7 @@ from libc.stdlib cimport rand, RAND_MAX
 from cpython cimport array
 cimport numpy as np
 
-import Cyarr as cy
+import src.Cyarr as cy
 
 #==================HI-LEVEL==================
 #============================================
@@ -77,7 +77,7 @@ cpdef tuple init(list dimensions):
     arr_h = update_array_positions(head_position, buffer_length, buffer_status,
                                    buf_h, 0)
 
-    buffer_status[0] = 2 #placing the tail in place
+    buffer_status[0] = 2 #placing the tail
 
     return head_position, tail_position, buffer_length, buffer_status,\
             dim_t, arr_t, buf_h, dim_h, arr_h, buf_h
@@ -201,15 +201,14 @@ cpdef update_array_positions(int[:] position, int buffer_length, int[:] buffer_s
     :return:                    (pointer) updated array
     """
     cdef int[:, :] arrout
-    cdef int index, target
+    cdef int index, target, PADDING = 1
 
     index = position[0] % buffer_length
     target = (index + 1) % buffer_length
-    if not buffer_status[target] == 0:
+    if not buffer_status[(target + PADDING) % buffer_length] == 0:
         return None
-    else:
-        buffer_status[target] = buffer_status[index]
-        buffer_status[index] = 0
+    buffer_status[target] = buffer_status[index]
+    buffer_status[index] = 0
 
     position[0] += 1
     arrout = buf[position[0] % buffer_length]
@@ -217,7 +216,6 @@ cpdef update_array_positions(int[:] position, int buffer_length, int[:] buffer_s
     if display:
         print_buffer_status(buffer_status)
 
-    # should make a pointer to the memview to be a real hero
     return arrout
 
 
@@ -279,7 +277,7 @@ cdef void update_rules(
     bars = array.array('i', [0, 1, 2, 0, 0, 1])
     bounds = array.array('i', [1, 1, 1, 1])
 
-cpdef scroll_instruction_update(int[:, :] bars, int[:] dim):
+cpdef scroll_instruction_update(double[:, :] bars, int[:] dim):
     """
     Updates the positons of the scrollbar.
 
@@ -287,7 +285,7 @@ cpdef scroll_instruction_update(int[:, :] bars, int[:] dim):
     :param dim:         (pointer) dimensions of array
     :return:            None
     """
-    cdef int[:] bar
+    cdef double[:] bar
     cdef Py_ssize_t i
     for i in range(len(bars)):
         bar = bars[i]
@@ -296,7 +294,7 @@ cpdef scroll_instruction_update(int[:, :] bars, int[:] dim):
             # If the step is positive
             if bar[2] > 0:
                 # If the next step takes it out of bounds
-                if bar[0] + bar[1] + bar[2] >= dim[bar[3]]:
+                if bar[0] + bar[1] + bar[2] >= dim[int(bar[3])]:
                     # Turn it around
                     bar[2] = -bar[2]
             # If the step is negative

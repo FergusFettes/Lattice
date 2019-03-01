@@ -18,6 +18,6 @@ setup(
         extra_compile_args=['-fopenmp'],
         extra_link_args=['-fopenmp'],
         define_macros = define_macros),
-        annotate = True,
+#       annotate = True,
         compiler_directives = compiler_directives)
 )

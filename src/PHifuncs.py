@@ -1,9 +1,9 @@
 import array
 import numpy as np
 
-from Cfuncs import *
-from Cyarr import *
-from Pfuncs import *
+from src.Cfuncs import *
+from src.Cyarr import *
+from src.Pfuncs import *
 
 
 def recenter(com, dim, arr):

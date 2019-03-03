@@ -18,7 +18,7 @@ lampdim = [77, 50]
 
 
 beta = 1/8
-updates = 100
+updates = 0
 threshold = 0
 rules = np.array([[2, 3, 3, 3], [2, 3, 3, 3]], np.intc)
 bounds = array.array('i', [0, -1, 0, -1])

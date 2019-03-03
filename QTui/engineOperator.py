@@ -42,51 +42,10 @@ class EngineOperator(QObject):
     def reset_gifcount(self):
         self.gifresetSig.emit()
 
-    def breaker(self):
-        print('Breaker!')
-        self.st.general.running = False
-        self.st.general.equilibrate = False
-        self.st.general.clear = False
-
 #===============Run Initiators=============#
-    def static_run(self):
-        self.taskthread.requestInterruption()
-        self.st.general.running = True
-        self.st.general.equilibrate = False
-        self.st.general.clear = False
-        self.st.general.rundone = -2
-        self.taskthread.start()
-
     def dynamic_run(self):
         self.taskthread.requestInterruption()
         self.st.general.running = True
-        self.st.general.equilibrate = False
-        self.st.general.clear = False
-        self.taskthread.start()
-
-    def long_run(self):
-        self.taskthread.requestInterruption()
-        self.st.general.running = False
-        self.st.general.equilibrate = True
-        self.st.general.clear = False
-        self.st.general.rundone = -3
-        self.taskthread.start()
-
-    def clear_background(self):
-        """
-        Just repaints the background, leaving the array in the same configuration.
-        """
-        self.backgroundSig.emit()
-        self.imagethread.start()
-
-    def clear_array(self):
-        self.taskthread.requestInterruption()
-        self.st.general.running = False
-        self.st.general.equilibrate = False
-        self.st.general.clear = True
-        self.st.general.rundone = -3
-        self.plainSig.emit(self.st.canvas.dim)
-        self.imagethread.start()
         self.taskthread.start()
 
 #===============GUI updaters=============#
@@ -115,12 +74,6 @@ class EngineOperator(QObject):
         self.taskman.moveToThread(self.taskthread)
 
         self.taskthread.started.connect(self.taskman.process)
-
-        # Connections from the engine to the workers
-        self.interruptSig.connect(self.breaker)
-#        self.backgroundSig.connect(self.image.wolfram_paint)
-        self.gifresetSig.connect(self.reset_gifcount)
-
         self.taskman.finished.connect(self.taskthread.quit)
 
         # Signals from the workers back to the GUI
@@ -129,5 +82,3 @@ class EngineOperator(QObject):
         self.image.canvasfpsSig.connect(self.canvas_fps_update)
         self.taskman.error.connect(self.error_string)
         self.image.imageSig.connect(self.canvas.paint)
-        self.analyser.popSig.connect(self.graphs.paint)
-        self.analyser.radSig.connect(self.graphs.paint)

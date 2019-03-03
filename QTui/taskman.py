@@ -23,7 +23,21 @@ class RunController(QObject):
 
         self.st.general.rundone = 0
 
-        self.array = super().resize_array(st.canvas.dim)
+        self.dim = array.array('i', st.canvas.dim)
+        self.buf_len = 10
+        self.buf_stat = np.zeros(self.buf_len, np.intc)
+        self.buf_stat[0] = 1
+        self.head_position = array.array('i', [0, 0])
+        self.tail_position = array.array('i', [0, 0])
+
+        self.buf = cf.init_array_buffer(self.dim, self.buf_len)
+        self.arr_h = self.buf[self.head_position[0] % self.buf_len]
+        self.arr_t = self.buf[self.tail_position[0] % self.buf_len]
+
+        cy.clear_array(self.dim, self.arr_h)
+        cf.advance_array(self.head_position, self.buf_len, self.buf_h)
+        self.arr_h = cf.update_array_positions(self.head_position, self.buf_len,
+                                               self.buf_stat, self.buf, 0)
         self.fpsRoll = np.zeros(9, float)
 
 #===============MAIN PROCESS OF THE THREAD===================#

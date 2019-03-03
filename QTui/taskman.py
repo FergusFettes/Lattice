@@ -38,6 +38,7 @@ class RunController(QObject):
         cf.advance_array(self.head_position, self.buf_len, self.buf_h)
         self.arr_h = cf.update_array_positions(self.head_position, self.buf_len,
                                                self.buf_stat, self.buf, 0)
+        self.buf_stat[0] = 2 #placing the tail
         self.fpsRoll = np.zeros(9, float)
 
 #===============MAIN PROCESS OF THE THREAD===================#
@@ -50,6 +51,7 @@ class RunController(QObject):
 
     def init_new_process(self):
         frame1 = self.prepare_frame()
+
         self.st.general.rundone += 1
         frame2 = self.prepare_frame()
         self.st.general.rundone += 1

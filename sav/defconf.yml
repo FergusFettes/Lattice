@@ -41,18 +41,14 @@ defaults:       &DEFAULTS
                 record: False
 
         bounds:
-                upper: -1
-                right: -1
-                lower: -1
-                left: -1
-
+                -[1, 1, 1, 1] #[upper, right, down, left]
         scroll:
                 bars:                                   # [start, width, step, axis, bounce, polarity (-1 is off)]
                         - [0, 1, 1, 0, 1, -1]          
                         - [0, 1, 1, 1, 1, -1]           
                 fuzz:                                   # [start, width, step, axis, bounce, polarity (-2 is off)]
-                        - [0, 1, 1, 0, 1, 1]            
-                        - [0, 1, 1, 0, 1, 1]           
+                        - [0, 1, 1, 0, 1, 0.5, 1]            
+                        - [0, 1, 1, 0, 1, 0.5, 1]           
                 coverage: 1                             # number of updates, as N x total_pixel_count
 
         wolfram:

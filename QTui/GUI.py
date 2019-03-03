@@ -210,20 +210,14 @@ class MainWindow(QMainWindow):
         print(e.key())
         # TODO: make this a dictonary
         if e.key() == Qt.Key_Escape:
-            if self.engine.updatethread.isRunning() or self.engine.imagethread.isRunning()\
-                    or self.engine.taskthread.isRunning():
+            if self.engine.taskthread.isRunning():
                 self.st.general.equilibrate = False
                 self.st.general.clear = False
                 self.st.general.running = False
                 self.engine.taskthread.requestInterruption()
-                self.engine.updatethread.requestInterruption()
-                self.engine.imagethread.quit()
                 print('Attempting to interrupt!')
-                # TODO: add a 'interrupted by user' popup (after a 'interrupting!'?)
             else:
                 self.engine.taskthread.deleteLater()
-                self.engine.updatethread.deleteLater()
-                self.engine.imagethread.deleteLater()
                 QCoreApplication.instance().quit()
                 print('Threads shutting down and powering off')
         elif e.key() == 16777251:
@@ -251,8 +245,6 @@ class MainWindow(QMainWindow):
         elif e.key() == Qt.Key_1:
             state = self.stochasticBox.isChecked()
             self.stochasticBox.setChecked(not state)
-        elif e.key() == Qt.Key_2:
-            self.conway_mangler()
         elif e.key() == Qt.Key_E:
             self.dynamic.click()
 
@@ -286,13 +278,13 @@ class MainWindow(QMainWindow):
         self.MainMenu.addWidget(self.dynamic)
 
         # Buttons and slider in the top left
-        self.short = self.MainMenu.addAction('Step', self.engine.static_run)
+#       self.short = self.MainMenu.addAction('Step', self.engine.static_run)
         self.short.setShortcuts(QKeySequence(Qt.Key_Z))
-        self.equilibrate = self.MainMenu.addAction('Equilibrate', self.engine.long_run)
+#       self.equilibrate = self.MainMenu.addAction('Equilibrate', self.engine.long_run)
         self.equilibrate.setShortcuts(QKeySequence(Qt.Key_L))
-        self.clear = self.MainMenu.addAction('Clear', self.engine.clear_array)
+#       self.clear = self.MainMenu.addAction('Clear', self.engine.clear_array)
         self.clear.setShortcuts(QKeySequence(Qt.Key_Q))
-        self.background = self.MainMenu.addAction('Background', self.engine.clear_background)
+#       self.background = self.MainMenu.addAction('Background', self.engine.clear_background)
         self.background.setShortcuts(QKeySequence(Qt.Key_B))
 
         self.tools = {'main': self.MainMenu}

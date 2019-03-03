@@ -41,7 +41,7 @@ defaults:       &DEFAULTS
                 record: False
 
         bounds:
-                -[1, 1, 1, 1] #[upper, right, down, left]
+                -[1, 1, 1, 1]                           #[upper, right, down, left]
         scroll:
                 bars:                                   # [start, width, step, axis, bounce, polarity (-1 is off)]
                         - [0, 1, 1, 0, 1, -1]          

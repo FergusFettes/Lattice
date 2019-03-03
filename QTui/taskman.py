@@ -5,6 +5,11 @@ from PyQt5.QtCore import *
 import numpy as np
 import time
 
+import src.Cfuncs as cf
+import src.Cyarr as cy
+#import src.Cyphys as cph
+import src.Pfuncs as pf
+import src.PHifuncs as phi
 
 ##===============TaskManager===============##
 ##=========================================##
@@ -58,7 +63,7 @@ class RunController(QObject):
 
 #===============MAIN PROCESS OF THE THREAD===================#
     def process(self):
-        QCoreApplication.processEvents()
+#       QCoreApplication.processEvents()
         while True:
             now = time.time()
             cy.roll_rows_pointer(-1, kwargs['dim_h'], kwargs['arr_h'])

@@ -113,13 +113,16 @@ cpdef void basic_update(
 # A real hero would make this a decorator
 # Same for all the other small changes!
 cpdef void basic_update_buffer(
-    float updates, float beta,
-    float threshold,
-    int[:, :] rules, int[:] frame, int buffer_length,
-    int[:] dim, int[:, ::1] arr, int[:, :, :] buf,
-    int[:] bounds = array.array('i', [-1, -1, -1, -1]),
-    double[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.double),
-    double[:, :] fuzz = np.array([[0, 1, 1, 0, 0, 0.5, -2]], np.double),
+    float updates=0, float beta=1/8,
+    float threshold=1,
+    int[:, :] rules=np.array([[-1,1,1,1]], np.intc), int[:] frame=array.array('i', [0]),
+    int buffer_length=10,
+    int[:] dim=array.array('i', [0,0]), int[:, ::1] arr=np.empty((0,0), np.intc),
+    int[:, :, :] buf=np.empty((0,0,0), np.intc),
+    int[:] bounds=array.array('i', [-1, -1, -1, -1]),
+    double[:, :] bars=np.array([[0, 1, 1, 0, 0, -1]], np.double),
+    double[:, :] fuzz=np.array([[0, 1, 1, 0, 0, 0.5, -2]], np.double),
+    **_
 ):
     """
     Performs the basic update, including advancing the array in the buffer.

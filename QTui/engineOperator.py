@@ -5,7 +5,11 @@ from functools import partial
 
 from QTui.taskman import *
 
-import munch
+import logging
+LOGGING_LEVEL = logging.INFO
+logging.basicConfig(level=LOGGING_LEVEL,
+                    format='%(asctime)s:[%(levelname)s]-(%(processName)-15s): %(message)s',
+                    )
 
 import numpy as np
 import time
@@ -61,7 +65,7 @@ class EngineOperator(QObject):
             self.st.general.rundone = value
 
     def error_string(self, error='Unlabelled Error! Oh no!'):
-        print(error)
+        logging.info(error)
 
 #=================Thread Initiator============#
 #==================HERE BE DRAGONS============#

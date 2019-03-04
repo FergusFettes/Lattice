@@ -64,6 +64,7 @@ class RunController(QObject):
 #===============MAIN PROCESS OF THE THREAD===================#
     def process(self):
 #       QCoreApplication.processEvents()
+        self.error.emit('Process starting!')
         while True:
             now = time.time()
 
@@ -90,12 +91,13 @@ class RunController(QObject):
                 kwargs['buf'],
                 0
             )
-            cy.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
-            cy.scroll_bars(dim, arr, bars)
-            scroll_noise(dim, arr, fuzz)
+            cy.set_bounds(kwargs['bounds'][0], kwargs['bounds'][1], kwargs['bounds'][2],
+                          kwargs['bounds'][3], kwargs['dim'], kwargs['arr_t'])
+            cy.scroll_bars(kwargs['dim'], kwargs['arr_t'], kwargs['bars'])
+            cf.scroll_noise(kwargs['dim'], kwargs['arr_t'], kwargs['fuzz'])
 
             arr_t_old = self.buf[(self.tail_position[0] - 1) % self.buf_len]
-            b, d = pf.get_births_deaths_P(arr_t_old, arr_t)
+            b, d = pf.get_births_deaths_P(arr_t_old, kwargs['arr_t'])
             self.replace_image_positions(self, b, 0)
             self.replace_image_positions(self, d, 0)
             self.send_image()
@@ -120,24 +122,24 @@ class RunController(QObject):
 
     def prepare_frame(self):
         kwargs={
-            'dim':self.st.canvas.dim,
+            'dim':np.asarray(self.st.canvas.dim, np.intc),
             'threshold':self.st.noise.threshold,
             'updates':self.st.ising.updates,
             'beta':self.st.ising.beta,
-            'rules':self.st.conway.rules,
+            'rules':np.asarray(self.st.conway.rules, np.intc),
             'bounds':np.asarray(self.st.bounds, np.intc),
-            'bars':np.asarray(self.bars, np.double),
-            'fuzz':np.asarray(self.fuzz, np.double),
-            'head_position':np.asarray(self.head_position),
-            'tail_position':np.asarray(self.tail_position),
-            'buffer_length':np.asarray(self.buf_len),
-            'buffer_status':np.asarray(self.buf_stat),
-            'dim':np.asarray(self.dim),
-            'arr_h':np.asarray(self.arr_h),
-            'buf':np.asarray(self.buf),
-            'arr_t':np.asarray(self.arr_t),
+            'bars':np.asarray(self.st.scroll.bars, np.double),
+            'fuzz':np.asarray(self.st.scroll.fuzz, np.double),
+            'head_position':np.asarray(self.head_position, np.intc),
+            'tail_position':np.asarray(self.tail_position, np.intc),
+            'buffer_length':np.asarray(self.buf_len, np.intc),
+            'buffer_status':np.asarray(self.buf_stat, np.intc),
+            'dim':np.asarray(self.dim, np.intc),
+            'arr_h':np.asarray(self.arr_h, np.intc),
+            'buf':np.asarray(self.buf, np.intc),
+            'arr_t':np.asarray(self.arr_t, np.intc),
         }
-        return frame
+        return kwargs
 
     # Resize/reset
     # Image and array have the same size, should be resized in one function.

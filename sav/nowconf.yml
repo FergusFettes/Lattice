@@ -92,6 +92,7 @@ lastsave:
         <<: *DEFAULTS
         conway:
                 rules:
+                        - [2,4,3,3]
                         - [2,3,3,3]
         noise:
                 threshold: 0.001
@@ -100,3 +101,4 @@ lastsave:
                         - [0, 10, 1, 0, 1, 0]          
                 fuzz:                                   # [start, width, step, axis, bounce, coverage, polarity (-2 is off)]
                         - [0, 10, 1, 1, 1, 0.1, 1]            
+                        - [10, 10, 1, 0, 1, 0.2, -1]          

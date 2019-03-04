@@ -75,7 +75,6 @@ class RunController(QObject):
         frame = array.array('i', [0])
         while kwargs['running']:
             frame[0] += 1
-            arr_old = np.copy(kwargs['arr_h'])
 
             logging.debug('Prepairing frame')
             kwargs = self.update_frame(kwargs)
@@ -94,15 +93,24 @@ class RunController(QObject):
                 kwargs['bars'],
                 kwargs['fuzz'],
             )
+            logging.debug('Update array positions')
+            kwargs['arr_h'] = cf.update_array_positions(
+                kwargs['head_position'],
+                kwargs['buffer_length'],
+                kwargs['buffer_status'],
+                kwargs['buf'],
+                0
+            )
             logging.debug('Set bounds')
             cy.set_bounds(kwargs['bounds'][0], kwargs['bounds'][1], kwargs['bounds'][2],
-                          kwargs['bounds'][3], kwargs['dim'], kwargs['arr_h'])
+                          kwargs['bounds'][3], kwargs['dim'], kwargs['arr_t'])
             logging.debug('Scroll bars')
-            cy.scroll_bars(kwargs['dim'], kwargs['arr_h'], kwargs['bars'])
-            cf.scroll_noise(kwargs['dim'], kwargs['arr_h'], kwargs['fuzz'])
+            cy.scroll_bars(kwargs['dim'], kwargs['arr_t'], kwargs['bars'])
+            cf.scroll_noise(kwargs['dim'], kwargs['arr_t'], kwargs['fuzz'])
 
             logging.debug('Doing calculations for image')
-            b, d = pf.get_births_deaths_P(arr_old, kwargs['arr_h'])
+            arr_t_old = self.buf[(self.tail_position[0] - 1) % self.buf_len]
+            b, d = pf.get_births_deaths_P(arr_t_old, kwargs['arr_t'])
             logging.debug('Replacing locations in image')
             self.replace_image_positions(b, 0)
             self.replace_image_positions(d, 1)
@@ -115,6 +123,14 @@ class RunController(QObject):
             )
             cf.scroll_instruction_update(
                 kwargs['fuzz'], kwargs['dim']
+            )
+            logging.debug('Updating tail position')
+            kwargs['arr_t'] = cf.update_array_positions(
+                kwargs['tail_position'],
+                kwargs['buffer_length'],
+                kwargs['buffer_status'],
+                kwargs['buf'],
+                0
             )
 
             time.sleep(0.01)

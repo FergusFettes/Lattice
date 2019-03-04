@@ -89,18 +89,20 @@ cpdef void basic_update(
     int[:] rule, int[:] dim, int[:, ::1] arr,
     int[:] bounds = array.array('i', [-1, -1, -1, -1]),
     double[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.double),
+    double[:, :] fuzz = np.array([[0, 1, 1, 0, 0, 0.5, -2]], np.double),
 ):
     """
     Performs the basic update
 
     :param updates:     (float) ising updates (as percentage of all positions, 0 is off)
     :param beta:        (float) inverse temperature
-    :param threshold:   (float) noise threshold     (1 is off)
+    :param threshold:   (float) noise coverage      (0 is off)
     :param rule:        (pointer) conway rule       (rule[0] == -1 is off)
     :param dim:         (pointer) arr dimensions
     :param arr:         (2D pointer) array
     :param bounds:      (pointer) boundary values   (-1 is off)
     :param bars:        [start, width, step, axis, bounce, polarity (-1 is off)]
+    :param fuzz:        [start, width, step, axis, bounce, coverage, polarity (-2 is off)]
     :return:            None
     """
     ising_process(updates, beta, dim, arr)
@@ -127,7 +129,7 @@ cpdef void basic_update_buffer(
 
     :param updates:     (float) ising updates (as percentage of all positions, 0 is off)
     :param beta:        (float) inverse temperature
-    :param threshold:   (float) noise threshold     (1 is off)
+    :param threshold:   (float) noise coverage      (0 is off)
     :param rule:        (pointer) conway rule       (rule[0] == -1 is off)
     :param frame:
     :param buffer_length:

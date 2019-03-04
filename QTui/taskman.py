@@ -12,6 +12,12 @@ import src.Cyarr as cy
 import src.Pfuncs as pf
 import src.PHifuncs as phi
 
+import logging
+LOGGING_LEVEL = logging.DEBUG
+logging.basicConfig(level=LOGGING_LEVEL,
+                    format='%(asctime)s:[%(levelname)s]-(%(processName)-15s): %(message)s',
+                    )
+
 ##===============TaskManager===============##
 ##=========================================##
 # This fancy chap goes into the thread with all the workers and controls what they do
@@ -58,18 +64,77 @@ class RunController(QObject):
             cf.advance_array(self.head_position, self.buf_len, self.buf)
             self.arr_h = cf.update_array_positions(self.head_position, self.buf_len,
                                                 self.buf_stat, self.buf, 0)
+        self.export_array(self.arr_h, 0)
         self.buf_stat[1] = 2 #placing the tail
         self.fpsRoll = np.zeros(9, float)
 
 #===============MAIN PROCESS OF THE THREAD===================#
     def process(self):
-#       QCoreApplication.processEvents()
         self.error.emit('Process starting!')
-        while True:
+        kwargs = self.prepare_frame()
+        frame = array.array('i', [0])
+        while kwargs['running']:
+            frame[0] += 1
+            arr_old = np.copy(kwargs['arr_h'])
             now = time.time()
 
+            logging.debug('Prepairing frame')
             kwargs = self.prepare_frame()
+            logging.debug('Rolling')
             cy.roll_rows_pointer(-1, kwargs['dim'], kwargs['arr_h'])
+            logging.debug('Basic update')
+            cf.basic_update(
+                kwargs['updates'],
+                kwargs['beta'],
+                kwargs['threshold'],
+                cf.prepair_rule(kwargs['rules'], frame),
+                kwargs['dim'],
+                kwargs['arr_h'],
+                kwargs['bounds'],
+                kwargs['bars'],
+                kwargs['fuzz'],
+            )
+            logging.debug('Set bounds')
+            cy.set_bounds(kwargs['bounds'][0], kwargs['bounds'][1], kwargs['bounds'][2],
+                          kwargs['bounds'][3], kwargs['dim'], kwargs['arr_h'])
+            logging.debug('Scroll bars')
+            cy.scroll_bars(kwargs['dim'], kwargs['arr_h'], kwargs['bars'])
+            cf.scroll_noise(kwargs['dim'], kwargs['arr_h'], kwargs['fuzz'])
+
+            logging.debug('Doing calculations for image')
+            b, d = pf.get_births_deaths_P(arr_old, kwargs['arr_h'])
+            logging.debug('Replacing locations in image')
+            self.replace_image_positions(b, 0)
+            self.replace_image_positions(d, 1)
+            logging.debug('Sending image')
+            self.send_image()
+
+            logging.debug('Updating scroll instructions')
+            cf.scroll_instruction_update(
+                kwargs['bars'], kwargs['dim']
+            )
+            cf.scroll_instruction_update(
+                kwargs['fuzz'], kwargs['dim']
+            )
+
+            self.fpsRoll[0] = time.time()-now
+            self.fpsRoll = np.roll(self.fpsRoll, 1)
+            self.frameSig.emit(np.mean(self.fpsRoll))
+            time.sleep(0.1)
+        self.finished.emit()
+
+    def process_full(self):
+#       QCoreApplication.processEvents()
+        self.error.emit('Process starting!')
+        kwargs = self.prepare_frame()
+        while kwargs['running']:
+            now = time.time()
+
+            logging.debug('Prepairing frame')
+            kwargs = self.prepare_frame()
+            logging.debug('Rolling')
+            cy.roll_rows_pointer(-1, kwargs['dim'], kwargs['arr_h'])
+            logging.debug('Basic update')
             cf.basic_update_buffer(
                 kwargs['updates'],
                 kwargs['beta'],
@@ -84,6 +149,7 @@ class RunController(QObject):
                 kwargs['bars'],
                 kwargs['fuzz'],
             )
+            logging.debug('Update array positions')
             kwargs['arr_h'] = cf.update_array_positions(
                 kwargs['head_position'],
                 kwargs['buffer_length'],
@@ -91,37 +157,46 @@ class RunController(QObject):
                 kwargs['buf'],
                 0
             )
+            logging.debug('Set bounds')
             cy.set_bounds(kwargs['bounds'][0], kwargs['bounds'][1], kwargs['bounds'][2],
                           kwargs['bounds'][3], kwargs['dim'], kwargs['arr_t'])
+            logging.debug('Scroll bars')
             cy.scroll_bars(kwargs['dim'], kwargs['arr_t'], kwargs['bars'])
             cf.scroll_noise(kwargs['dim'], kwargs['arr_t'], kwargs['fuzz'])
 
+            logging.debug('Doing calculations for image')
             arr_t_old = self.buf[(self.tail_position[0] - 1) % self.buf_len]
             b, d = pf.get_births_deaths_P(arr_t_old, kwargs['arr_t'])
-            self.replace_image_positions(self, b, 0)
-            self.replace_image_positions(self, d, 0)
+            logging.debug('Replacing locations in image')
+            self.replace_image_positions(b, 0)
+            self.replace_image_positions(d, 0)
+            logging.debug('Sending image')
             self.send_image()
 
+            logging.debug('Updating scroll instructions')
             cf.scroll_instruction_update(
-                kwargs['bars'], kwargs['dim_t']
+                kwargs['bars'], kwargs['dim']
             )
             cf.scroll_instruction_update(
-                kwargs['fuzz'], kwargs['dim_t']
+                kwargs['fuzz'], kwargs['dim']
             )
+            logging.debug('Updating tail position')
             kwargs['arr_t'] = cf.update_array_positions(
                 kwargs['tail_position'],
                 kwargs['buffer_length'],
                 kwargs['buffer_status'],
-                kwargs['buf_t'],
+                kwargs['buf'],
                 0
             )
 
             self.fpsRoll[0] = time.time()-now
             self.fpsRoll = np.roll(self.fpsRoll, 1)
-            self.arrayfpsSig.emit(np.mean(self.fpsRoll))
+            self.frameSig.emit(np.mean(self.fpsRoll))
+            time.sleep(5)
 
     def prepare_frame(self):
         kwargs={
+            'running':self.st.general.running,
             'dim':np.asarray(self.st.canvas.dim, np.intc),
             'threshold':self.st.noise.threshold,
             'updates':self.st.ising.updates,
@@ -168,7 +243,7 @@ class RunController(QObject):
         for i in range(A.shape[0]):
             for j in range(A.shape[1]):
                 num = int(A[i][j])
-                color = self.canvas.colorList[num + color_offset]
+                color = self.colorList[num + color_offset]
                 self.image.setPixel(i, j, color)
 
     def replace_image_positions(self, L, color):
@@ -179,4 +254,4 @@ class RunController(QObject):
         :param color:   selection from colorlist
         :return:        None
         """
-        [self.image.setPixel(el[0], el[1], self.canvas.colorList[color]) for el in L]
+        [self.image.setPixel(el[0], el[1], self.colorList[color]) for el in L]

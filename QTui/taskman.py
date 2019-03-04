@@ -73,23 +73,23 @@ class RunController(QObject):
         self.error.emit('Process starting!')
         kwargs = self.prepare_frame()
         frame = array.array('i', [0])
-        cf.randomize_center(20, kwargs['dim'], kwargs['arr_h'])
         while kwargs['running']:
             frame[0] += 1
             arr_old = np.copy(kwargs['arr_h'])
 
             logging.debug('Prepairing frame')
-            kwargs = self.prepare_frame()
-            logging.debug('Rolling')
-            cy.roll_rows_pointer(-1, kwargs['dim'], kwargs['arr_h'])
+            kwargs = self.update_frame(kwargs)
             logging.debug('Basic update')
-            cf.basic_update(
+            cf.basic_update_buffer(
                 kwargs['updates'],
                 kwargs['beta'],
                 kwargs['threshold'],
-                cf.prepair_rule(kwargs['rules'], frame),
+                kwargs['rules'],
+                kwargs['head_position'],
+                kwargs['buffer_length'],
                 kwargs['dim'],
                 kwargs['arr_h'],
+                kwargs['buf'],
                 kwargs['bounds'],
                 kwargs['bars'],
                 kwargs['fuzz'],
@@ -109,10 +109,18 @@ class RunController(QObject):
             logging.debug('Sending image')
             self.send_image()
 
-            time.sleep(0.05)
+            logging.debug('Updating scroll instructions')
+            cf.scroll_instruction_update(
+                kwargs['bars'], kwargs['dim']
+            )
+            cf.scroll_instruction_update(
+                kwargs['fuzz'], kwargs['dim']
+            )
+
+            time.sleep(0.01)
         self.finished.emit()
 
-    def process_full(self):
+    def process_buf(self):
 #       QCoreApplication.processEvents()
         self.error.emit('Process starting!')
         kwargs = self.prepare_frame()
@@ -120,9 +128,7 @@ class RunController(QObject):
             now = time.time()
 
             logging.debug('Prepairing frame')
-            kwargs = self.prepare_frame()
-            logging.debug('Rolling')
-            cy.roll_rows_pointer(-1, kwargs['dim'], kwargs['arr_h'])
+            kwargs = self.update_frame()
             logging.debug('Basic update')
             cf.basic_update_buffer(
                 kwargs['updates'],
@@ -158,7 +164,7 @@ class RunController(QObject):
             b, d = pf.get_births_deaths_P(arr_t_old, kwargs['arr_t'])
             logging.debug('Replacing locations in image')
             self.replace_image_positions(b, 0)
-            self.replace_image_positions(d, 0)
+            self.replace_image_positions(d, 1)
             logging.debug('Sending image')
             self.send_image()
 
@@ -181,7 +187,30 @@ class RunController(QObject):
             self.fpsRoll[0] = time.time()-now
             self.fpsRoll = np.roll(self.fpsRoll, 1)
             self.frameSig.emit(np.mean(self.fpsRoll))
-            time.sleep(5)
+            time.sleep(0.1)
+        self.finished.emit()
+
+    def update_frame(self, kwargs):
+        kwargs.update({
+            'running':self.st.general.running,
+            #'dim':np.asarray(self.st.canvas.dim, np.intc),
+            #'threshold':self.st.noise.threshold,
+            #'updates':self.st.ising.updates,
+            #'beta':self.st.ising.beta,
+            #'rules':np.asarray(self.st.conway.rules, np.intc),
+            #'bounds':np.asarray(self.st.bounds, np.intc),
+            #'bars':np.asarray(self.st.scroll.bars, np.double),
+            #'fuzz':np.asarray(self.st.scroll.fuzz, np.double),
+            #'head_position':np.asarray(self.head_position, np.intc),
+            #'tail_position':np.asarray(self.tail_position, np.intc),
+            #'buffer_length':np.asarray(self.buf_len, np.intc),
+            #'buffer_status':np.asarray(self.buf_stat, np.intc),
+            #'dim':np.asarray(self.dim, np.intc),
+            #'arr_h':np.asarray(self.arr_h, np.intc),
+            #'buf':np.asarray(self.buf, np.intc),
+            #'arr_t':np.asarray(self.arr_t, np.intc),
+        })
+        return kwargs
 
     def prepare_frame(self):
         kwargs={

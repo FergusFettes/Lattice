@@ -283,7 +283,7 @@ cpdef scroll_instruction_update(double[:, :] bars, int[:] dim):
     """
     Updates the positons of the scrollbar.
 
-    :param bars:        [start, width, step, axis, bounce, polarity (-1 is off)]
+    :param bars:        [start, width, step, axis, bounce, [coverage,] polarity]
     :param dim:         (pointer) dimensions of array
     :return:            None
     """

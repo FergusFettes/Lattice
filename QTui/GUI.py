@@ -4,7 +4,6 @@ from PyQt5.QtCore import *
 from functools import partial
 
 from QTui.engineOperator import *
-from QTui.imageProcessing import *
 from QTui.graphs import *
 
 import random as ra
@@ -21,6 +20,7 @@ from yaml import safe_load, safe_dump
 class Canvas(QLabel):
 
     def __init__(self, st):
+        super().__init__()
         self.primaryColor = QColor(st.canvas.colorlist[0])
         self.st = st
         self.reset()
@@ -256,12 +256,11 @@ class MainWindow(QMainWindow):
         # need to control. TODO: cleaner way of connecting signals to a parent? Using
         # Super perhaps? TODO: pass the guys with args anyway no?
         self.canvas = Canvas(st)
-        self.graphs = Graphs()
         self.frameLabel = QLabel()
         self.arrayfpsLabel = QLabel()
         self.canvasfpsLabel = QLabel()
         self.statusBar = super().statusBar()
-        self.engine = EngineOperator(self.canvas, self.graphs, self.frameLabel, self.arrayfpsLabel,
+        self.engine = EngineOperator(self.canvas, self.frameLabel, self.arrayfpsLabel,
                                      self.canvasfpsLabel, st)
         self.setDockNestingEnabled(True)
 
@@ -279,13 +278,13 @@ class MainWindow(QMainWindow):
 
         # Buttons and slider in the top left
 #       self.short = self.MainMenu.addAction('Step', self.engine.static_run)
-        self.short.setShortcuts(QKeySequence(Qt.Key_Z))
+#       self.short.setShortcuts(QKeySequence(Qt.Key_Z))
 #       self.equilibrate = self.MainMenu.addAction('Equilibrate', self.engine.long_run)
-        self.equilibrate.setShortcuts(QKeySequence(Qt.Key_L))
+#       self.equilibrate.setShortcuts(QKeySequence(Qt.Key_L))
 #       self.clear = self.MainMenu.addAction('Clear', self.engine.clear_array)
-        self.clear.setShortcuts(QKeySequence(Qt.Key_Q))
+#       self.clear.setShortcuts(QKeySequence(Qt.Key_Q))
 #       self.background = self.MainMenu.addAction('Background', self.engine.clear_background)
-        self.background.setShortcuts(QKeySequence(Qt.Key_B))
+#       self.background.setShortcuts(QKeySequence(Qt.Key_B))
 
         self.tools = {'main': self.MainMenu}
         self.addToolBar(Qt.TopToolBarArea, self.MainMenu)
@@ -488,7 +487,7 @@ class MainWindow(QMainWindow):
         self.UBL = QLabel('UB')
         self.UB = QSpinBox()
         self.UB.setRange(-1, 1)
-        self.UB.setValue(self.st.bounds.upper)
+        self.UB.setValue(self.st.bounds[0])
         self.UB.setMaximumSize(40, 40)
         self.UB.valueChanged.connect(partial(self.bounds_upper,
                                         self.UB.value))
@@ -498,7 +497,7 @@ class MainWindow(QMainWindow):
         self.LBL = QLabel('LB')
         self.LB = QSpinBox()
         self.LB.setRange(-1, 1)
-        self.LB.setValue(self.st.bounds.lower)
+        self.LB.setValue(self.st.bounds[3])
         self.LB.setMaximumSize(40, 40)
         self.LB.valueChanged.connect(partial(self.bounds_lower,
                                         self.LB.value))
@@ -509,7 +508,7 @@ class MainWindow(QMainWindow):
         self.RB = QSpinBox()
         self.RB.setRange(-1, 1)
         self.RB.setMaximumSize(40, 40)
-        self.RB.setValue(self.st.bounds.right)
+        self.RB.setValue(self.st.bounds[1])
         self.RB.valueChanged.connect(partial(self.bounds_right,
                                         self.RB.value))
         vlineRB = QFrame()
@@ -518,7 +517,7 @@ class MainWindow(QMainWindow):
         self.DBL = QLabel('LoB')
         self.DB = QSpinBox()
         self.DB.setRange(-1, 1)
-        self.DB.setValue(self.st.bounds.lower)
+        self.DB.setValue(self.st.bounds[2])
         self.DB.setMaximumSize(40, 40)
         self.DB.valueChanged.connect(partial(self.bounds_lower,
                                         self.DB.value))
@@ -638,18 +637,9 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.CanvasDock)
 #............................................................
 
-#========================================================GraphDock
-        #Wrap that all up in a DockWidget
-        self.GraphDock = QDockWidget()
-        self.buts.update({'graph': self.GraphDock})
-        self.GraphDock.setWidget(self.graphs)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.GraphDock)
-#............................................................
-
         self.buts['auto'].setMaximumSize(300,200)
         self.buts['bound'].setMaximumSize(200,150)
         self.buts['sliders'].setMaximumSize(1500,100)
-        self.buts['graph'].setMinimumSize(400,600)
         self.show()
 
         # The allows i3 to popup the window (add to i3/config)

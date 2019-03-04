@@ -3,9 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from functools import partial
 
-from QTui.imageProcessing import *
 from QTui.taskman import *
-from QTui.graphs import *
 
 import munch
 
@@ -27,7 +25,7 @@ class EngineOperator(QObject):
     gifresetSig = pyqtSignal()
     plainSig = pyqtSignal(list)
 
-    def __init__(self, canvas, graphs, frameLabel, arrayfpsLabel, canvasfpsLabel, st):
+    def __init__(self, canvas, frameLabel, arrayfpsLabel, canvasfpsLabel, st):
         QObject.__init__(self)
         self.st = st
         self.canvas = canvas
@@ -78,7 +76,5 @@ class EngineOperator(QObject):
 
         # Signals from the workers back to the GUI
         self.taskman.frameSig.connect(self.frame_value_update)
-        self.handler.arrayfpsSig.connect(self.array_fps_update)
-        self.image.canvasfpsSig.connect(self.canvas_fps_update)
         self.taskman.error.connect(self.error_string)
-        self.image.imageSig.connect(self.canvas.paint)
+        self.taskman.imageSig.connect(self.canvas.paint)

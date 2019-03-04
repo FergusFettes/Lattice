@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 import numpy as np
+import array
 import time
 
 import src.Cfuncs as cf
@@ -20,7 +21,6 @@ class RunController(QObject):
     popSig = pyqtSignal(np.ndarray, str)
     radSig = pyqtSignal(np.ndarray, str)
     imageSig = pyqtSignal(QPixmap)
-    canvasfpsSig = pyqtSignal(float)
     frameSig = pyqtSignal(int)
     finished = pyqtSignal()
     error = pyqtSignal(str)
@@ -53,9 +53,9 @@ class RunController(QObject):
         self.arr_t = self.buf[self.tail_position[0] % self.buf_len]
 
         # Process a few frames on startup
-        for 1 in range(3):
+        for _ in range(3):
             cy.clear_array(self.dim, self.arr_h)
-            cf.advance_array(self.head_position, self.buf_len, self.buf_h)
+            cf.advance_array(self.head_position, self.buf_len, self.buf)
             self.arr_h = cf.update_array_positions(self.head_position, self.buf_len,
                                                 self.buf_stat, self.buf, 0)
         self.buf_stat[1] = 2 #placing the tail
@@ -66,7 +66,9 @@ class RunController(QObject):
 #       QCoreApplication.processEvents()
         while True:
             now = time.time()
-            cy.roll_rows_pointer(-1, kwargs['dim_h'], kwargs['arr_h'])
+
+            kwargs = self.prepare_frame()
+            cy.roll_rows_pointer(-1, kwargs['dim'], kwargs['arr_h'])
             cf.basic_update_buffer(
                 kwargs['updates'],
                 kwargs['beta'],
@@ -111,7 +113,6 @@ class RunController(QObject):
                 kwargs['buf_t'],
                 0
             )
-            kwargs = self.prepare_frame():
 
             self.fpsRoll[0] = time.time()-now
             self.fpsRoll = np.roll(self.fpsRoll, 1)
@@ -135,6 +136,7 @@ class RunController(QObject):
             'arr_h':np.asarray(self.arr_h),
             'buf':np.asarray(self.buf),
             'arr_t':np.asarray(self.arr_t),
+        }
         return frame
 
     # Resize/reset

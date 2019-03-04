@@ -1,5 +1,10 @@
+# This is the YAML config file for the UltimateLatticeModelMonsterMashup!
+# This will make it nice and easy to store and share rad settings and creatures found.
+#
+# Lets get started!
+
 ---
-lastsave:
+defaults:       &DEFAULTS
         general:
                 maxFPS: 24
                 frametime: 0.05
@@ -12,6 +17,12 @@ lastsave:
                 wolfwave: True
                 running: False
                 interrupt: False
+
+        analysis:
+                steady:
+                        entropy: None
+                        population: None
+                        radius: None
         canvas:
                 colorlist:
                         - 1662807650   # These are just random rn. I was wondering
@@ -22,43 +33,42 @@ lastsave:
                         - 4294967295
                 saturation: 80
                 dim:                            # Screen dimensions (widthxheight)
-                        - 100
-                        - 250
-                scale: 3
+                        - 300
+                        - 200
+                
+                scale: 1
                 fullscreen: False
                 record: False
+
         bounds:
-                upper: -1
-                right: -1
-                lower: -1
-                left: -1
+                -[1, 1, 1, 1]                           #[upper, right, down, left]
         scroll:
-                bars:   # [start, width, step, axis, bounce, polarity (-1 is off)]
+                bars:                                   # [start, width, step, axis, bounce, polarity (-1 is off)]
                         - [0, 1, 1, 0, 1, -1]          
                         - [0, 1, 1, 1, 1, -1]           
-                fuzz:   # [start, width, step, axis, bounce, polarity (-2 is off)]
-                        - [0, 5, 1, 1, 1, -1]            
-                        - [0, 5, 1, 0, 1, -1]           
-                        - [10, 5, 1, 1, 1, 1]            
-                        - [10, 5, 1, 0, 1, 1]           
-                coverage: 1        # number of updates, as N x total_pixel_count
+                fuzz:                                   # [start, width, step, axis, bounce, polarity (-2 is off)]
+                        - [0, 1, 1, 0, 1, 0.5, 1]            
+                        - [0, 1, 1, 0, 1, 0.5, 1]           
+                coverage: 1                             # number of updates, as N x total_pixel_count
+
         wolfram:
                 rule: 90
                 position: 0
                 scale: 2
                 polarity: 1
+
         noise:
-                threshold: 1
+                threshold: 0.9
+
         conway:
                 rules:
-                        - [2,3,3,3]
+                        - [3,6,2,2]
+                        - [3,6,3,3]
+                        - [3,4,3,3]
+                        - [3,4,2,2]
+
         ising:
                 beta: 0.125
                 degree: 2
-                updates: 0                   #Updates / frame
+                updates: 1000                   #Updates / frame
                 equilibrate: 10000              #Updates in a longer run
-        analysis:
-                steady:
-                        entropy: None
-                        population: None
-                        radius: None

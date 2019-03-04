@@ -36,12 +36,15 @@ defaults:       &DEFAULTS
                         - 300
                         - 200
                 
-                scale: 2
+                scale: 1
                 fullscreen: False
                 record: False
 
-        bounds:
-                -[1, 1, 1, 1]                           #[upper, right, down, left]
+        bounds:                            #[upper, right, down, left]
+                - 1
+                - 1
+                - 1
+                - 1
         scroll:
                 bars:                                   # [start, width, step, axis, bounce, polarity (-1 is off)]
                         - [0, 1, 1, 0, 1, -1]          

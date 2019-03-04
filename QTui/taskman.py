@@ -13,7 +13,7 @@ import src.Pfuncs as pf
 import src.PHifuncs as phi
 
 import logging
-LOGGING_LEVEL = logging.DEBUG
+LOGGING_LEVEL = logging.INFO
 logging.basicConfig(level=LOGGING_LEVEL,
                     format='%(asctime)s:[%(levelname)s]-(%(processName)-15s): %(message)s',
                     )
@@ -73,10 +73,10 @@ class RunController(QObject):
         self.error.emit('Process starting!')
         kwargs = self.prepare_frame()
         frame = array.array('i', [0])
+        cf.randomize_center(20, kwargs['dim'], kwargs['arr_h'])
         while kwargs['running']:
             frame[0] += 1
             arr_old = np.copy(kwargs['arr_h'])
-            now = time.time()
 
             logging.debug('Prepairing frame')
             kwargs = self.prepare_frame()
@@ -109,18 +109,7 @@ class RunController(QObject):
             logging.debug('Sending image')
             self.send_image()
 
-            logging.debug('Updating scroll instructions')
-            cf.scroll_instruction_update(
-                kwargs['bars'], kwargs['dim']
-            )
-            cf.scroll_instruction_update(
-                kwargs['fuzz'], kwargs['dim']
-            )
-
-            self.fpsRoll[0] = time.time()-now
-            self.fpsRoll = np.roll(self.fpsRoll, 1)
-            self.frameSig.emit(np.mean(self.fpsRoll))
-            time.sleep(0.1)
+            time.sleep(0.05)
         self.finished.emit()
 
     def process_full(self):

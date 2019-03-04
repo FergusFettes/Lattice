@@ -4,7 +4,7 @@
 # Lets get started!
 
 ---
-defaults:       &DEFAULTS
+lastsave:       &DEFAULTS
         general:
                 maxFPS: 24
                 frametime: 0.05
@@ -36,19 +36,22 @@ defaults:       &DEFAULTS
                         - 300
                         - 200
                 
-                scale: 1
+                scale: 2
                 fullscreen: False
                 record: False
 
-        bounds:
-                -[1, 1, 1, 1]                           #[upper, right, down, left]
+        bounds:                            #[upper, right, down, left]
+                - 1
+                - 1
+                - 1
+                - 1
         scroll:
                 bars:                                   # [start, width, step, axis, bounce, polarity (-1 is off)]
                         - [0, 1, 1, 0, 1, -1]          
                         - [0, 1, 1, 1, 1, -1]           
                 fuzz:                                   # [start, width, step, axis, bounce, polarity (-2 is off)]
-                        - [0, 1, 1, 0, 1, 0.5, 1]            
-                        - [0, 1, 1, 0, 1, 0.5, 1]           
+                        - [0, 1, 1, 0, 1, 0.5, -2]            
+                        - [0, 1, 1, 0, 1, 0.5, -2]           
                 coverage: 1                             # number of updates, as N x total_pixel_count
 
         wolfram:
@@ -70,5 +73,26 @@ defaults:       &DEFAULTS
         ising:
                 beta: 0.125
                 degree: 2
-                updates: 1000                   #Updates / frame
+                updates: 0                   #Updates / frame
                 equilibrate: 10000              #Updates in a longer run
+                
+conway:
+        <<: *DEFAULTS
+        conway:
+                rules:
+                        - [2,3,3,3]
+
+monstro:
+        <<: *DEFAULTS
+        conway:
+                rules:
+                        - [3,6,2,2]
+                        - [3,4,3,3]
+
+lastsave:
+        <<: *DEFAULTS
+        conway:
+                rules:
+                        - [2,3,3,3]
+        noise:
+                threshold: 0

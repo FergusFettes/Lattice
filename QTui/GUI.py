@@ -59,6 +59,9 @@ class MainWindow(QMainWindow):
 #=====================Settings controllers================#
     # I had to make all of these because of a disaster with adding partial functions
     # to the button callback thingies. This can presumably be done much better.
+    def update_toggle(self):
+        self.st.general.update = True
+
     def wolfram_rule(self, val):
         self.st.wolfram.rule = val()
 
@@ -72,16 +75,16 @@ class MainWindow(QMainWindow):
         self.st.wolfram.polarity = val()
 
     def bounds_upper(self, val):
-        self.st.bounds.upper = val()
+        self.st.bounds[0] = val()
 
     def bounds_lower(self, val):
-        self.st.bounds.lower = val()
+        self.st.bounds[2] = val()
 
     def bounds_right(self, val):
-        self.st.bounds.right = val()
+        self.st.bounds[1] = val()
 
     def bounds_left(self, val):
-        self.st.bounds.left = val()
+        self.st.bounds[3] = val()
 
     def canvas_dim(self, val, dim):
         self.st.canvas.dim[dim] = val()
@@ -277,8 +280,8 @@ class MainWindow(QMainWindow):
         self.MainMenu.addWidget(self.dynamic)
 
         # Buttons and slider in the top left
-#       self.short = self.MainMenu.addAction('Step', self.engine.static_run)
-#       self.short.setShortcuts(QKeySequence(Qt.Key_Z))
+        self.update = self.MainMenu.addAction('Update', self.update_toggle)
+        self.update.setShortcuts(QKeySequence(Qt.Key_U))
 #       self.equilibrate = self.MainMenu.addAction('Equilibrate', self.engine.long_run)
 #       self.equilibrate.setShortcuts(QKeySequence(Qt.Key_L))
 #       self.clear = self.MainMenu.addAction('Clear', self.engine.clear_array)
@@ -499,7 +502,7 @@ class MainWindow(QMainWindow):
         self.LB.setRange(-1, 1)
         self.LB.setValue(self.st.bounds[3])
         self.LB.setMaximumSize(40, 40)
-        self.LB.valueChanged.connect(partial(self.bounds_lower,
+        self.LB.valueChanged.connect(partial(self.bounds_left,
                                         self.LB.value))
         vlineLB = QFrame()
         vlineLB.setFrameShape(QFrame.VLine)

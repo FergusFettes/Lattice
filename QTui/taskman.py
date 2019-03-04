@@ -78,6 +78,8 @@ class RunController(QObject):
 
             logging.debug('Prepairing frame')
             kwargs = self.update_frame(kwargs)
+            if kwargs['update_settings']:
+                kwargs = self.update_rules(kwargs)
             logging.debug('Basic update')
             cf.basic_update_buffer(
                 kwargs['updates'],
@@ -136,101 +138,32 @@ class RunController(QObject):
             time.sleep(0.01)
         self.finished.emit()
 
-    def process_buf(self):
-#       QCoreApplication.processEvents()
-        self.error.emit('Process starting!')
-        kwargs = self.prepare_frame()
-        while kwargs['running']:
-            now = time.time()
-
-            logging.debug('Prepairing frame')
-            kwargs = self.update_frame()
-            logging.debug('Basic update')
-            cf.basic_update_buffer(
-                kwargs['updates'],
-                kwargs['beta'],
-                kwargs['threshold'],
-                kwargs['rules'],
-                kwargs['head_position'],
-                kwargs['buffer_length'],
-                kwargs['dim'],
-                kwargs['arr_h'],
-                kwargs['buf'],
-                kwargs['bounds'],
-                kwargs['bars'],
-                kwargs['fuzz'],
-            )
-            logging.debug('Update array positions')
-            kwargs['arr_h'] = cf.update_array_positions(
-                kwargs['head_position'],
-                kwargs['buffer_length'],
-                kwargs['buffer_status'],
-                kwargs['buf'],
-                0
-            )
-            logging.debug('Set bounds')
-            cy.set_bounds(kwargs['bounds'][0], kwargs['bounds'][1], kwargs['bounds'][2],
-                          kwargs['bounds'][3], kwargs['dim'], kwargs['arr_t'])
-            logging.debug('Scroll bars')
-            cy.scroll_bars(kwargs['dim'], kwargs['arr_t'], kwargs['bars'])
-            cf.scroll_noise(kwargs['dim'], kwargs['arr_t'], kwargs['fuzz'])
-
-            logging.debug('Doing calculations for image')
-            arr_t_old = self.buf[(self.tail_position[0] - 1) % self.buf_len]
-            b, d = pf.get_births_deaths_P(arr_t_old, kwargs['arr_t'])
-            logging.debug('Replacing locations in image')
-            self.replace_image_positions(b, 0)
-            self.replace_image_positions(d, 1)
-            logging.debug('Sending image')
-            self.send_image()
-
-            logging.debug('Updating scroll instructions')
-            cf.scroll_instruction_update(
-                kwargs['bars'], kwargs['dim']
-            )
-            cf.scroll_instruction_update(
-                kwargs['fuzz'], kwargs['dim']
-            )
-            logging.debug('Updating tail position')
-            kwargs['arr_t'] = cf.update_array_positions(
-                kwargs['tail_position'],
-                kwargs['buffer_length'],
-                kwargs['buffer_status'],
-                kwargs['buf'],
-                0
-            )
-
-            self.fpsRoll[0] = time.time()-now
-            self.fpsRoll = np.roll(self.fpsRoll, 1)
-            self.frameSig.emit(np.mean(self.fpsRoll))
-            time.sleep(0.1)
-        self.finished.emit()
-
     def update_frame(self, kwargs):
         kwargs.update({
             'running':self.st.general.running,
-            #'dim':np.asarray(self.st.canvas.dim, np.intc),
-            #'threshold':self.st.noise.threshold,
-            #'updates':self.st.ising.updates,
-            #'beta':self.st.ising.beta,
-            #'rules':np.asarray(self.st.conway.rules, np.intc),
-            #'bounds':np.asarray(self.st.bounds, np.intc),
-            #'bars':np.asarray(self.st.scroll.bars, np.double),
-            #'fuzz':np.asarray(self.st.scroll.fuzz, np.double),
-            #'head_position':np.asarray(self.head_position, np.intc),
-            #'tail_position':np.asarray(self.tail_position, np.intc),
-            #'buffer_length':np.asarray(self.buf_len, np.intc),
-            #'buffer_status':np.asarray(self.buf_stat, np.intc),
-            #'dim':np.asarray(self.dim, np.intc),
-            #'arr_h':np.asarray(self.arr_h, np.intc),
-            #'buf':np.asarray(self.buf, np.intc),
-            #'arr_t':np.asarray(self.arr_t, np.intc),
+            'update_settings':self.st.general.update,
+        })
+        return kwargs
+
+    def update_rules(self, kwargs):
+        self.st.general.update = False
+        kwargs.update({
+            'running':self.st.general.running,
+            'update_settings':self.st.general.update,
+            'threshold':self.st.noise.threshold,
+            'updates':self.st.ising.updates,
+            'beta':self.st.ising.beta,
+            'rules':np.asarray(self.st.conway.rules, np.intc),
+            'bounds':np.asarray(self.st.bounds, np.intc),
+            'bars':np.asarray(self.st.scroll.bars, np.double),
+            'fuzz':np.asarray(self.st.scroll.fuzz, np.double),
         })
         return kwargs
 
     def prepare_frame(self):
         kwargs={
             'running':self.st.general.running,
+            'update_settings':self.st.general.update,
             'dim':np.asarray(self.st.canvas.dim, np.intc),
             'threshold':self.st.noise.threshold,
             'updates':self.st.ising.updates,

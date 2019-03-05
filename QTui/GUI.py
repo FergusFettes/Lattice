@@ -16,6 +16,12 @@ from munch import *
 from yaml import safe_load, safe_dump
 
 
+import logging
+LOGGING_LEVEL = logging.INFO
+logging.basicConfig(level=LOGGING_LEVEL,
+                    format='%(asctime)s:[%(levelname)s]-(%(processName)-15s): %(message)s',
+                    )
+
 #====================The canvas=================#
 class Canvas(QLabel):
 
@@ -171,6 +177,7 @@ class MainWindow(QMainWindow):
             self.conwayRules.setPalette(self.conwayPalette)
             ruleIter = re.finditer(regexMatchString, text)
             self.rul = [i.group(1,2,3,4) for i in ruleIter]
+        logging.info(self.rul)
         self.send_rule()
 
     def send_rule(self):
@@ -178,6 +185,52 @@ class MainWindow(QMainWindow):
         rules = [[int(j) for j in i] for i in self.rul]
         self.st.conway.rules = rules
         self.st.general.conway = not rules == []
+
+    def barRulesChange(self):
+        regexTestString=r'^(?:([0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)(-?[0-9]*\.[0-9]*)(?:;\ ?)[\ \n]*)+$'
+        regexMatchString=r'([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)(-?[0-9]+\.[0-9]+)(?:;\ ?)'
+        text = self.barRules.toPlainText()
+        strTest = re.match(regexTestString, text)
+        if strTest is None:
+            self.barPalette.setColor(QPalette.Base, Qt.red)
+            self.barRules.setPalette(self.barPalette)
+            ruleIter = re.finditer(regexTestString, text)
+            self.bar = [i.group(1,2,3,4,5,6) for i in ruleIter]
+        else:
+            self.barPalette.setColor(QPalette.Base, Qt.green)
+            self.barRules.setPalette(self.barPalette)
+            ruleIter = re.finditer(regexMatchString, text)
+            self.bar = [i.group(1,2,3,4,5,6) for i in ruleIter]
+        logging.info(self.bar)
+        self.send_bar()
+
+    def send_bar(self):
+        print('Bar sending!')
+        rules = [[float(j) for j in i] for i in self.bar]
+        self.st.scroll.bar = rules
+
+    def fuzzRulesChange(self):
+        regexTestString=r'^(?:([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)(-?[0-9]+\.[0-9]+)(?:;\ ?)[\ \n]*)+$'
+        regexMatchString=r'([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)(-?[0-9]+\.[0-9]+)(?:;\ ?)'
+        text = self.fuzzRules.toPlainText()
+        strTest = re.match(regexTestString, text)
+        if strTest is None:
+            self.fuzzPalette.setColor(QPalette.Base, Qt.red)
+            self.fuzzRules.setPalette(self.fuzzPalette)
+            ruleIter = re.finditer(regexTestString, text)
+            self.fuzz = [i.group(1,2,3,4,5,6,7) for i in ruleIter]
+        else:
+            self.fuzzPalette.setColor(QPalette.Base, Qt.green)
+            self.fuzzRules.setPalette(self.fuzzPalette)
+            ruleIter = re.finditer(regexMatchString, text)
+            self.fuzz = [i.group(1,2,3,4,5,6,7) for i in ruleIter]
+        logging.info(self.fuzz)
+        self.send_fuzz()
+
+    def send_fuzz(self):
+        print('Fuzz sending!')
+        rules = [[float(j) for j in i] for i in self.fuzz]
+        self.st.scroll.fuzz = rules
 
     def make_fullscreen(self):
         self.st.canvas.fullscreen = not self.st.canvas.fullscreen
@@ -469,7 +522,7 @@ class MainWindow(QMainWindow):
 #====================================================AutomataDock
         # Conway rule selector
         self.conwayRules = QTextEdit()
-        self.conwayRules.setMaximumSize(200, 100)
+        self.conwayRules.setMaximumSize(200, 30)
         self.conwayRules.setText(''.join(['{0},{1},{2},{3};'.format(*i)\
                                           for i in self.st.conway.rules]))
         self.conwayPalette = self.conwayRules.palette()
@@ -483,6 +536,46 @@ class MainWindow(QMainWindow):
         self.buts = {'auto': self.AutomataButtons}
         self.AutomataButtons.setWidget(self.conwayRules)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.AutomataButtons)
+#............................................................
+
+#DOCKWIDGETS=====================================================
+#========================================================BarsDock
+        # Conway rule selector
+        self.barRules = QTextEdit()
+        self.barRules.setMaximumSize(200, 80)
+        self.barRules.setText(''.join(['{0},{1},{2},{3},{4},{5};'.format(*i)\
+                                          for i in self.st.scroll.bars]))
+        self.barPalette = self.barRules.palette()
+        self.barPalette.setColor(QPalette.Base, Qt.green)
+        self.barRules.setPalette(self.barPalette)
+        self.barRules.setAcceptRichText(False)
+        self.barRules.textChanged.connect(self.barRulesChange)
+
+        #Wrap that all up in a DockWidget
+        self.BarButtons = QDockWidget('Bar Rules')
+        self.buts.update({'bar': self.BarButtons})
+        self.BarButtons.setWidget(self.barRules)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.BarButtons)
+#............................................................
+
+#DOCKWIDGETS=====================================================
+#========================================================FuzzDock
+        # Conway rule selector
+        self.fuzzRules = QTextEdit()
+        self.fuzzRules.setMaximumSize(200, 80)
+        self.fuzzRules.setText(''.join(['{0},{1},{2},{3},{4},{5},{6};'.format(*i)\
+                                          for i in self.st.scroll.fuzz]))
+        self.fuzzPalette = self.fuzzRules.palette()
+        self.fuzzPalette.setColor(QPalette.Base, Qt.green)
+        self.fuzzRules.setPalette(self.fuzzPalette)
+        self.fuzzRules.setAcceptRichText(False)
+        self.fuzzRules.textChanged.connect(self.fuzzRulesChange)
+
+        #Wrap that all up in a DockWidget
+        self.FuzzButtons = QDockWidget('Fuzz Rules')
+        self.buts.update({'fuzz': self.FuzzButtons})
+        self.FuzzButtons.setWidget(self.fuzzRules)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.FuzzButtons)
 #............................................................
 
 #====================================================BoundaryDock

@@ -1,109 +1,88 @@
-# This is the YAML config file for the UltimateLatticeModelMonsterMashup!
-# This will make it nice and easy to store and share rad settings and creatures found.
-#
-# Lets get started!
-
----
-lastsave:       &DEFAULTS
-        general:
-                maxFPS: 24
-                frametime: 0.05
-                runtodo: -1                   # -1 for unlimited run
-                rundone: 0
-                clear: False
-                equilibrate: False
-                stochastic: True
-                conway: True
-                wolfwave: True
-                running: False
-                interrupt: False
-                update: False
-
-        analysis:
-                steady:
-                        entropy: None
-                        population: None
-                        radius: None
-        canvas:
-                colorlist:
-                        - 1662807650   # These are just random rn. I was wondering
-                        - 4294951356   # if you could make a lambda function that
-                        - 4103433205   # generated them in YAML but maybe that is
-                        - 1151018145   # asking too much.
-                        - 4294967295
-                        - 4294967295
-                saturation: 80
-                dim:                            # Screen dimensions (widthxheight)
-                        - 300
-                        - 200
-                
-                scale: 2
-                fullscreen: False
-                record: False
-
-        bounds:                            #[upper, right, down, left]
-                - 1
-                - 1
-                - 1
-                - 1
-        scroll:
-                bars:                                   # [start, width, step, axis, bounce, polarity (-1 is off)]
-                        - [0, 1, 1, 0, 1, -1]          
-                        - [0, 1, 1, 1, 1, -1]           
-                fuzz:                                   # [start, width, step, axis, bounce, coverage, polarity (-2 is off)]
-                        - [0, 1, 1, 0, 1, 0.5, -2]            
-                        - [0, 1, 1, 0, 1, 0.5, -2]           
-
-        wolfram:
-                rule: 90
-                position: 0
-                scale: 2
-                polarity: 1
-
-        noise:
-                threshold: 0.9
-
-        conway:
-                rules:
-                        - [3,6,2,2]
-                        - [3,6,3,3]
-                        - [3,4,3,3]
-                        - [3,4,2,2]
-
-        ising:
-                beta: 0.125
-                degree: 2
-                updates: 0                   #Updates / frame
-                equilibrate: 10000              #Updates in a longer run
-                
 conway:
-        <<: *DEFAULTS
-        conway:
-                rules:
-                        - [2,3,3,3]
-
-monstro:
-        <<: *DEFAULTS
-        conway:
-                rules:
-                        - [3,6,2,2]
-                        - [3,4,3,3]
-
+  analysis: &id001
+    steady: {entropy: None, population: None, radius: None}
+  bounds: &id002 [1, 1, 1, 1]
+  canvas: &id003
+    colorlist: [1662807650, 4294951356, 4103433205, 1151018145, 4294967295, 4294967295]
+    dim: [300, 200]
+    fullscreen: false
+    record: false
+    saturation: 80
+    scale: 2
+  conway:
+    rules:
+    - [2, 3, 3, 3]
+  general: &id004 {clear: false, conway: true, equilibrate: false, frametime: 0.05,
+    interrupt: false, maxFPS: 24, rundone: 0, running: false, runtodo: -1, stochastic: true,
+    update: false, wolfwave: true}
+  ising: &id005 {beta: 0.125, degree: 2, equilibrate: 10000, updates: 0}
+  noise: &id006 {threshold: 0.9}
+  scroll: &id007
+    bars:
+    - [0, 1, 1, 0, 1, -1]
+    - [0, 1, 1, 1, 1, -1]
+    fuzz:
+    - [0, 1, 1, 0, 1, 0.5, -2]
+    - [0, 1, 1, 0, 1, 0.5, -2]
+  wolfram: &id008 {polarity: 1, position: 0, rule: 90, scale: 2}
+defaults:
+  analysis: *id001
+  bounds: *id002
+  canvas: *id003
+  conway:
+    rules:
+    - [3, 6, 2, 2]
+    - [3, 6, 3, 3]
+    - [3, 4, 3, 3]
+    - [3, 4, 2, 2]
+  general: *id004
+  ising: *id005
+  noise: *id006
+  scroll: *id007
+  wolfram: *id008
 lastsave:
-        <<: *DEFAULTS
-        conway:
-                rules:
-                        - [2,4,3,3]
-                        - [2,4,3,3]
-        noise:
-                threshold: 0.001
-        scroll:
-                bars:                                   # [start, width, step, axis, bounce, polarity (-1 is off)]
-                        - [0, 10, 1, 0, 1, 0]          
-                        - [10, 10, 1, 0, 1, 0]          
-                        - [20, 10, 1, 0, 1, 0]          
-                        - [30, 10, 1, 0, 1, 0]          
-                        - [40, 10, 1, 0, 1, 0]          
-                fuzz:                                   # [start, width, step, axis, bounce, coverage, polarity (-2 is off)]
-                        - [0, 10, 1, 1, 1, 0.1, 1]            
-                        - [50, 10, 1, 0, 1, 0.5, -1]          
+  analysis:
+    steady: {entropy: None, population: None, radius: None}
+  bounds: [1, -1, 1, -1]
+  canvas:
+    colorlist: [4278255360, 3373575854, 1872771672, 3510970351, 4294967295, 4294967295]
+    dim: [300, 50]
+    fullscreen: false
+    record: false
+    saturation: 80
+    scale: 2
+  conway:
+    rules:
+    - [2, 4, 3, 3]
+    - [2, 4, 3, 3]
+  general: {clear: false, conway: true, equilibrate: false, frametime: 0.1, interrupt: false,
+    maxFPS: 24, rundone: 0, running: true, runtodo: -1, stochastic: true, update: false,
+    wolfwave: true}
+  ising: {beta: 0.12, degree: 2, equilibrate: 10000, updates: 0}
+  noise: {threshold: 6.772414961964124e-05}
+  scroll:
+    bar:
+    - [0.0, 10.0, 1.0, 0.0, 1.0, 0.0]
+    bars:
+    - [0.0, 10.0, 1.0, 0.0, 1.0, 0.0]
+    - [10.0, 10.0, 1.0, 0.0, 1.0, 0.0]
+    - [20.0, 10.0, 1.0, 0.0, 1.0, 0.0]
+    - [30.0, 10.0, 1.0, 0.0, 1.0, 0.0]
+    - [40.0, 10.0, 1.0, 0.0, 1.0, 0.0]
+    fuzz:
+    - [0.0, 10.0, 1.0, 1.0, 1.0, 0.1, -2.0]
+    - [50.0, 10.0, 1.0, 0.0, 1.0, 0.5, -1.0]
+  wolfram: {polarity: 1, position: 0, rule: 90, scale: 2}
+monstro:
+  analysis: *id001
+  bounds: *id002
+  canvas: *id003
+  conway:
+    rules:
+    - [3, 6, 2, 2]
+    - [3, 4, 3, 3]
+  general: *id004
+  ising: *id005
+  noise: *id006
+  scroll: *id007
+  wolfram: *id008

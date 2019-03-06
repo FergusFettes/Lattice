@@ -65,7 +65,7 @@ class RunController(QObject):
             self.arr_h = cf.update_array_positions(self.head_position, self.buf_len,
                                                 self.buf_stat, self.buf, 0)
         self.export_array(self.arr_h, 0)
-        self.buf_stat[1] = 2 #placing the tail
+        self.buf_stat[0] = 2 #placing the tail
         self.fpsRoll = np.zeros(9, float)
 
 #===============MAIN PROCESS OF THE THREAD===================#
@@ -80,6 +80,9 @@ class RunController(QObject):
             kwargs = self.update_frame(kwargs)
             if kwargs['update_settings']:
                 kwargs = self.update_rules(kwargs)
+            logging.debug('Roll array')
+            cy.roll_columns_pointer(kwargs['roll'][0], kwargs['dim'], kwargs['arr_h'])
+            cy.roll_rows_pointer(kwargs['roll'][1], kwargs['dim'], kwargs['arr_h'])
             logging.debug('Basic update')
             cf.basic_update_buffer(
                 kwargs['updates'],
@@ -103,6 +106,9 @@ class RunController(QObject):
                 kwargs['buf'],
                 0
             )
+            logging.debug(np.asarray(
+                cf.prepair_rule(kwargs['rules'], kwargs['head_position'])
+            ))
             logging.debug('Set bounds')
             cy.set_bounds(kwargs['bounds'][0], kwargs['bounds'][1], kwargs['bounds'][2],
                           kwargs['bounds'][3], kwargs['dim'], kwargs['arr_t'])
@@ -157,6 +163,7 @@ class RunController(QObject):
             'bounds':np.asarray(self.st.bounds, np.intc),
             'bars':np.asarray(self.st.scroll.bars, np.double),
             'fuzz':np.asarray(self.st.scroll.fuzz, np.double),
+            'roll':np.asarray(self.st.scroll.roll, np.intc),
         })
         return kwargs
 
@@ -172,6 +179,7 @@ class RunController(QObject):
             'bounds':np.asarray(self.st.bounds, np.intc),
             'bars':np.asarray(self.st.scroll.bars, np.double),
             'fuzz':np.asarray(self.st.scroll.fuzz, np.double),
+            'roll':np.asarray(self.st.scroll.roll, np.intc),
             'head_position':np.asarray(self.head_position, np.intc),
             'tail_position':np.asarray(self.tail_position, np.intc),
             'buffer_length':np.asarray(self.buf_len, np.intc),

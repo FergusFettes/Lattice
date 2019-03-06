@@ -207,7 +207,7 @@ class MainWindow(QMainWindow):
     def send_bar(self):
         print('Bar sending!')
         rules = [[float(j) for j in i] for i in self.bar]
-        self.st.scroll.bar = rules
+        self.st.scroll.bars = rules
 
     def fuzzRulesChange(self):
         regexTestString=r'^(?:([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)(-?[0-9]+\.[0-9]+)(?:;\ ?)[\ \n]*)+$'
@@ -348,42 +348,42 @@ class MainWindow(QMainWindow):
 
 
 #================================================WolframTool
-        self.WolframTool = QToolBar('Automata Rules')
-        self.automataLabel = QLabel('Rule')
-        self.WolframTool.addWidget(self.automataLabel)
-        self.wolfRule = QSpinBox()
-        self.wolfRule.setRange(0, 255)
-        self.wolfRule.setSingleStep(1)
-        self.wolfRule.setValue(self.st.wolfram.rule)
-        self.wolfRule.valueChanged.connect(partial(self.wolfram_rule,
-                                            self.wolfRule.value))
-        self.WolframTool.addWidget(self.wolfRule)
-        self.wolfScaleLabel = QLabel('Scale')
-        self.WolframTool.addWidget(self.wolfScaleLabel)
-        self.wolfScale = QSpinBox()
-        self.wolfScale.setRange(1, 100)
-        self.wolfScale.setSingleStep(1)
-        self.wolfScale.setValue(self.st.wolfram.scale)
-        self.wolfScale.valueChanged.connect(partial(self.wolfram_scale,
-                                                self.wolfScale.value))
-        self.WolframTool.addWidget(self.wolfScale)
-        self.wolfCheck = QCheckBox('WolfWaveTM')
-        self.wolfCheck.setChecked(self.st.general.wolfwave)
-        self.wolfCheck.stateChanged.connect(partial(self.general_wolfwave,
-                                            self.wolfCheck.isChecked))
-        self.WolframTool.addWidget(self.wolfCheck)
+#       self.WolframTool = QToolBar('Automata Rules')
+#       self.automataLabel = QLabel('Rule')
+#       self.WolframTool.addWidget(self.automataLabel)
+#       self.wolfRule = QSpinBox()
+#       self.wolfRule.setRange(0, 255)
+#       self.wolfRule.setSingleStep(1)
+#       self.wolfRule.setValue(self.st.wolfram.rule)
+#       self.wolfRule.valueChanged.connect(partial(self.wolfram_rule,
+#                                           self.wolfRule.value))
+#       self.WolframTool.addWidget(self.wolfRule)
+#       self.wolfScaleLabel = QLabel('Scale')
+#       self.WolframTool.addWidget(self.wolfScaleLabel)
+#       self.wolfScale = QSpinBox()
+#       self.wolfScale.setRange(1, 100)
+#       self.wolfScale.setSingleStep(1)
+#       self.wolfScale.setValue(self.st.wolfram.scale)
+#       self.wolfScale.valueChanged.connect(partial(self.wolfram_scale,
+#                                               self.wolfScale.value))
+#       self.WolframTool.addWidget(self.wolfScale)
+#       self.wolfCheck = QCheckBox('WolfWaveTM')
+#       self.wolfCheck.setChecked(self.st.general.wolfwave)
+#       self.wolfCheck.stateChanged.connect(partial(self.general_wolfwave,
+#                                           self.wolfCheck.isChecked))
+#       self.WolframTool.addWidget(self.wolfCheck)
 
-        self.wolfLabel = QLabel('Polarity')
-        self.WolframTool.addWidget(self.wolfLabel)
-        self.wolfPole = QSpinBox()
-        self.wolfPole.setRange(-1, 1)
-        self.wolfPole.setValue(self.st.wolfram.polarity)
-        self.wolfPole.valueChanged.connect(partial(self.wolfram_polarity,
-                                         self.wolfPole.value))
-        self.WolframTool.addWidget(self.wolfPole)
+#       self.wolfLabel = QLabel('Polarity')
+#       self.WolframTool.addWidget(self.wolfLabel)
+#       self.wolfPole = QSpinBox()
+#       self.wolfPole.setRange(-1, 1)
+#       self.wolfPole.setValue(self.st.wolfram.polarity)
+#       self.wolfPole.valueChanged.connect(partial(self.wolfram_polarity,
+#                                        self.wolfPole.value))
+#       self.WolframTool.addWidget(self.wolfPole)
 
-        self.tools = {'wolf': self.WolframTool}
-        self.addToolBar(Qt.TopToolBarArea, self.WolframTool)
+#       self.tools = {'wolf': self.WolframTool}
+#       self.addToolBar(Qt.TopToolBarArea, self.WolframTool)
 #............................................................
 
 #====================================================SettingsTool
@@ -411,34 +411,12 @@ class MainWindow(QMainWindow):
         MonteUpLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.SettingsTool.addWidget(MonteUpLab)
         self.MonteUpCtrl = QSpinBox()
-        self.MonteUpCtrl.setRange(100, 5000)
+        self.MonteUpCtrl.setRange(0, 5000)
         self.MonteUpCtrl.setSingleStep(100)
         self.MonteUpCtrl.setValue(self.st.ising.updates)
         self.MonteUpCtrl.valueChanged.connect(partial(self.ising_updates,
                                         self.MonteUpCtrl.value))
         self.SettingsTool.addWidget(self.MonteUpCtrl)
-        LongLab = QLabel('Long#= ')
-        LongLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.SettingsTool.addWidget(LongLab)
-        self.LongCtrl = QSpinBox()
-        self.LongCtrl.setRange(10000, 1000000)
-        self.LongCtrl.setSingleStep(10000)
-        self.LongCtrl.setValue(self.st.ising.equilibrate)
-        self.LongCtrl.setMaximumSize(100, 40)
-        self.LongCtrl.valueChanged.connect(partial(self.ising_equilibrate,
-                                        self.LongCtrl.value))
-        self.SettingsTool.addWidget(self.LongCtrl)
-        DegreeLab = QLabel('Degree= ')
-        DegreeLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.SettingsTool.addWidget(DegreeLab)
-        self.DegreeCtrl = QSpinBox()
-        self.DegreeCtrl.setRange(2, 10)
-        self.DegreeCtrl.setSingleStep(1)
-        self.DegreeCtrl.setValue(self.st.ising.degree)
-        self.DegreeCtrl.setMaximumSize(100, 40)
-        self.DegreeCtrl.valueChanged.connect(partial(self.ising_degree,
-                                        self.DegreeCtrl.value))
-        self.SettingsTool.addWidget(self.DegreeCtrl)
         ScaleLab = QLabel('Scale= ')
         ScaleLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.SettingsTool.addWidget(ScaleLab)
@@ -455,7 +433,7 @@ class MainWindow(QMainWindow):
         self.SettingsTool.addWidget(SaveDefaults)
 
         self.tools = {'settings': self.SettingsTool}
-        self.addToolBar(Qt.LeftToolBarArea, self.SettingsTool)
+        self.addToolBar(Qt.TopToolBarArea, self.SettingsTool)
 #............................................................
 
 #====================================================ColorTool
@@ -496,26 +474,26 @@ class MainWindow(QMainWindow):
         tempwidget = QWidget()
         tempwidget.setLayout(temp)
         self.ColorTool.addWidget(tempwidget)
-        self.mouseButton = QPushButton()
-        self.mouseButton.setStyleSheet('QPushButton { background-color: %s; }' %
-                                         QColor(self.st.canvas.colorlist[4]).name())
-        self.mouseButton.pressed.connect(
-            partial(self.choose_color, self.set_color, self.mouseButton, 4))
-        self.mouse2Button = QPushButton()
-        self.mouse2Button.setStyleSheet('QPushButton { background-color: %s; }' %
-                                         QColor(self.st.canvas.colorlist[5]).name())
-        self.mouse2Button.pressed.connect(
-            partial(self.choose_color, self.set_color, self.mouse2Button, 5))
-        self.ColorTool.addWidget(QLabel('Tertiary'))
-        temp = QHBoxLayout()
-        temp.addWidget(self.mouseButton)
-        temp.addWidget(self.mouse2Button)
-        tempwidget = QWidget()
-        tempwidget.setLayout(temp)
-        self.ColorTool.addWidget(tempwidget)
+#       self.mouseButton = QPushButton()
+#       self.mouseButton.setStyleSheet('QPushButton { background-color: %s; }' %
+#                                        QColor(self.st.canvas.colorlist[4]).name())
+#       self.mouseButton.pressed.connect(
+#           partial(self.choose_color, self.set_color, self.mouseButton, 4))
+#       self.mouse2Button = QPushButton()
+#       self.mouse2Button.setStyleSheet('QPushButton { background-color: %s; }' %
+#                                        QColor(self.st.canvas.colorlist[5]).name())
+#       self.mouse2Button.pressed.connect(
+#           partial(self.choose_color, self.set_color, self.mouse2Button, 5))
+#       self.ColorTool.addWidget(QLabel('Tertiary'))
+#       temp = QHBoxLayout()
+#       temp.addWidget(self.mouseButton)
+#       temp.addWidget(self.mouse2Button)
+#       tempwidget = QWidget()
+#       tempwidget.setLayout(temp)
+#       self.ColorTool.addWidget(tempwidget)
 
         self.tools = {'color': self.ColorTool}
-        self.addToolBar(Qt.LeftToolBarArea, self.ColorTool)
+        self.addToolBar(Qt.TopToolBarArea, self.ColorTool)
 #............................................................
 
 #DOCKWIDGETS=====================================================

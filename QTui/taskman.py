@@ -80,9 +80,6 @@ class RunController(QObject):
             kwargs = self.update_frame(kwargs)
             if kwargs['update_settings']:
                 kwargs = self.update_rules(kwargs)
-            logging.debug('Roll array')
-            cy.roll_columns_pointer(kwargs['roll'][0], kwargs['dim'], kwargs['arr_h'])
-            cy.roll_rows_pointer(kwargs['roll'][1], kwargs['dim'], kwargs['arr_h'])
             logging.debug('Basic update')
             cf.basic_update_buffer(
                 kwargs['updates'],
@@ -97,6 +94,7 @@ class RunController(QObject):
                 kwargs['bounds'],
                 kwargs['bars'],
                 kwargs['fuzz'],
+                kwargs['roll'],
             )
             logging.debug('Update array positions')
             kwargs['arr_h'] = cf.update_array_positions(

@@ -81,16 +81,22 @@ class MainWindow(QMainWindow):
         self.st.wolfram.polarity = val()
 
     def bounds_upper(self, val):
-        self.st.bounds[0] = val()
-
-    def bounds_lower(self, val):
-        self.st.bounds[2] = val()
+        self.st.bounds[3] = val()
 
     def bounds_right(self, val):
+        self.st.bounds[2] = val()
+
+    def bounds_lower(self, val):
         self.st.bounds[1] = val()
 
     def bounds_left(self, val):
-        self.st.bounds[3] = val()
+        self.st.bounds[0] = val()
+
+    def Vroll_update(self, val):
+        self.st.scroll.roll[0] = val()
+
+    def Hroll_update(self, val):
+        self.st.scroll.roll[1] = val()
 
     def canvas_dim(self, val, dim):
         self.st.canvas.dim[dim] = val()
@@ -403,7 +409,6 @@ class MainWindow(QMainWindow):
         self.DCtrl.setRange(10, 1000)
         self.DCtrl.setSingleStep(10)
         self.DCtrl.setValue(self.st.canvas.dim[1])
-        self.DCtrl.setMaximumSize(100, 40)
         self.DCtrl.valueChanged.connect(partial(self.canvas_dim,
                                         self.DCtrl.value, 1))
         self.SettingsTool.addWidget(self.DCtrl)
@@ -424,7 +429,6 @@ class MainWindow(QMainWindow):
         self.ScaleCtrl.setRange(1, 20)
         self.ScaleCtrl.setSingleStep(1)
         self.ScaleCtrl.setValue(self.st.canvas.scale)
-        self.ScaleCtrl.setMaximumSize(100, 40)
         self.ScaleCtrl.valueChanged.connect(partial(self.canvas_scale,
                                         self.ScaleCtrl.value))
         self.SettingsTool.addWidget(self.ScaleCtrl)
@@ -556,25 +560,55 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, self.FuzzButtons)
 #............................................................
 
+#=======================================================RollDock
+        # Roll settings
+        self.HrollL = QLabel('HRoll')
+        self.Hroll = QSpinBox()
+        self.Hroll.setRange(-1, 1)
+        self.Hroll.setValue(self.st.scroll.roll[1])
+        self.Hroll.setMaximumSize(40, 40)
+        self.Hroll.valueChanged.connect(partial(self.Hroll_update,
+                                        self.Hroll.value))
+        hlineHroll = QFrame()
+        hlineHroll.setFrameShape(QFrame.HLine)
+        hlineHroll.setFrameShadow(QFrame.Sunken)
+        self.VrollL = QLabel('VRoll')
+        self.Vroll = QSpinBox()
+        self.Vroll.setRange(-1, 1)
+        self.Vroll.setMaximumSize(40, 40)
+        self.Vroll.setValue(self.st.scroll.roll[0])
+        self.Vroll.valueChanged.connect(partial(self.Vroll_update,
+                                        self.Vroll.value))
+        vlineVroll = QFrame()
+        vlineVroll.setFrameShape(QFrame.VLine)
+        vlineVroll.setFrameShadow(QFrame.Sunken)
+        grRoll = QGridLayout()
+        grRoll.addWidget(self.HrollL, 0, 1)
+        grRoll.addWidget(self.Hroll, 0, 2)
+        grRoll.addWidget(hlineHroll, 1, 0, 1, 4)
+        grRoll.addWidget(self.VrollL, 2, 5)
+        grRoll.addWidget(self.Vroll, 3, 5)
+        grRoll.addWidget(vlineVroll, 2, 4, 3, 1)
+
+
+        #Wrap that all up in a DockWidget
+        self.RollButtons = QDockWidget('Roll Controls')
+        self.buts.update({'roll': self.RollButtons})
+        temp = QWidget()
+        temp.setLayout(grRoll)
+        self.RollButtons.setWidget(temp)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.RollButtons)
+#............................................................
+
 #====================================================BoundaryDock
         # Boundary conditions
         self.UBL = QLabel('UB')
         self.UB = QSpinBox()
         self.UB.setRange(-1, 1)
-        self.UB.setValue(self.st.bounds[0])
+        self.UB.setValue(self.st.bounds[3])
         self.UB.setMaximumSize(40, 40)
         self.UB.valueChanged.connect(partial(self.bounds_upper,
                                         self.UB.value))
-        hlineUB = QFrame()
-        hlineUB.setFrameShape(QFrame.HLine)
-        hlineUB.setFrameShadow(QFrame.Sunken)
-        self.LBL = QLabel('LB')
-        self.LB = QSpinBox()
-        self.LB.setRange(-1, 1)
-        self.LB.setValue(self.st.bounds[3])
-        self.LB.setMaximumSize(40, 40)
-        self.LB.valueChanged.connect(partial(self.bounds_left,
-                                        self.LB.value))
         vlineLB = QFrame()
         vlineLB.setFrameShape(QFrame.VLine)
         vlineLB.setFrameShadow(QFrame.Sunken)
@@ -582,7 +616,7 @@ class MainWindow(QMainWindow):
         self.RB = QSpinBox()
         self.RB.setRange(-1, 1)
         self.RB.setMaximumSize(40, 40)
-        self.RB.setValue(self.st.bounds[1])
+        self.RB.setValue(self.st.bounds[2])
         self.RB.valueChanged.connect(partial(self.bounds_right,
                                         self.RB.value))
         vlineRB = QFrame()
@@ -591,10 +625,20 @@ class MainWindow(QMainWindow):
         self.DBL = QLabel('LoB')
         self.DB = QSpinBox()
         self.DB.setRange(-1, 1)
-        self.DB.setValue(self.st.bounds[2])
+        self.DB.setValue(self.st.bounds[1])
         self.DB.setMaximumSize(40, 40)
         self.DB.valueChanged.connect(partial(self.bounds_lower,
                                         self.DB.value))
+        hlineUB = QFrame()
+        hlineUB.setFrameShape(QFrame.HLine)
+        hlineUB.setFrameShadow(QFrame.Sunken)
+        self.LBL = QLabel('LB')
+        self.LB = QSpinBox()
+        self.LB.setRange(-1, 1)
+        self.LB.setValue(self.st.bounds[0])
+        self.LB.setMaximumSize(40, 40)
+        self.LB.valueChanged.connect(partial(self.bounds_left,
+                                        self.LB.value))
         hlineDB = QFrame()
         hlineDB.setFrameShape(QFrame.HLine)
         hlineDB.setFrameShadow(QFrame.Sunken)
@@ -626,16 +670,16 @@ class MainWindow(QMainWindow):
         # Stats at the top of the canvas
         self.canvasfpsLabel.setText('Canvas fps: ')
         self.arrayfpsLabel.setText('Array fps: ')
-        self.record = QPushButton()
-        self.record.setText('Record')
-        self.record.clicked.connect(self.record_change)
+#       self.record = QPushButton()
+#       self.record.setText('Record')
+#       self.record.clicked.connect(self.record_change)
         self.stochasticBox = QCheckBox('Stochi')
         self.stochasticBox.setChecked(self.st.general.stochastic)
         self.stochasticBox.stateChanged.connect(partial(self.general_stochastic,
                                                     self.stochasticBox.isChecked))
         self.statusBar.addWidget(self.canvasfpsLabel)
         self.statusBar.addWidget(self.arrayfpsLabel)
-        self.statusBar.addWidget(self.record)
+#       self.statusBar.addWidget(self.record)
         self.statusBar.addWidget(self.stochasticBox)
 #............................................................
 

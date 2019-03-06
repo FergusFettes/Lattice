@@ -122,6 +122,7 @@ cpdef void basic_update_buffer(
     int[:] bounds = array.array('i', [-1, -1, -1, -1]),
     double[:, :] bars = np.array([[0, 1, 1, 0, 0, -1]], np.double),
     double[:, :] fuzz = np.array([[0, 1, 1, 0, 0, 0.5, -2]], np.double),
+    int[:] roll = array.array('i', [0, 0]),
 ):
     """
     Performs the basic update, including advancing the array in the buffer.
@@ -139,10 +140,14 @@ cpdef void basic_update_buffer(
     :param bounds:      (pointer) boundary values   (-1 is off)
     :param bars:        [start, width, step, axis, bounce, polarity (-1 is off)]
     :param fuzz:        [start, width, step, axis, bounce, coverage, polarity (-2 is off)]
+    :param roll:        roll amount
     :return:            None
     """
     ising_process(updates, beta, dim, arr)
     add_stochastic_noise(threshold, dim, arr)
+    cy.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
+    cy.roll_columns_pointer(roll[0], dim, arr)
+    cy.roll_rows_pointer(roll[1], dim, arr)
     cy.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
     cy.scroll_bars(dim, arr, bars)
     scroll_noise(dim, arr, fuzz)

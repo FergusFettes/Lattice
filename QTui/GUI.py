@@ -100,9 +100,10 @@ class MainWindow(QMainWindow):
 
     def canvas_dim(self, val, dim):
         self.st.canvas.dim[dim] = val()
+        self.st.general.resize = True
 
     def ising_updates(self, val):
-        self.st.ising.updates = val()
+        self.st.ising.updates = val() / 100
 
     def ising_equilibrate(self, val):
         self.st.ising.equilibrate = val()
@@ -189,8 +190,9 @@ class MainWindow(QMainWindow):
     def send_rule(self):
         print('Rule sending!')
         rules = [[int(j) for j in i] for i in self.rul]
+        if rules == []: rules = np.array([[-1,0,0,0]], np.intc)
         self.st.conway.rules = rules
-        self.st.general.conway = not rules == []
+
 
     def barRulesChange(self):
         regexTestString=r'^(?:([0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)(-?[0-9]*\.[0-9]*)(?:;\ ?)[\ \n]*)+$'
@@ -416,9 +418,9 @@ class MainWindow(QMainWindow):
         MonteUpLab.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.SettingsTool.addWidget(MonteUpLab)
         self.MonteUpCtrl = QSpinBox()
-        self.MonteUpCtrl.setRange(0, 5000)
-        self.MonteUpCtrl.setSingleStep(100)
-        self.MonteUpCtrl.setValue(self.st.ising.updates)
+        self.MonteUpCtrl.setRange(0, 500)
+        self.MonteUpCtrl.setSingleStep(1)
+        self.MonteUpCtrl.setValue(self.st.ising.updates * 100)
         self.MonteUpCtrl.valueChanged.connect(partial(self.ising_updates,
                                         self.MonteUpCtrl.value))
         self.SettingsTool.addWidget(self.MonteUpCtrl)

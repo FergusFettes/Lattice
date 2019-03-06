@@ -46,7 +46,9 @@ class RunController(QObject):
         self.st = st
 
         self.savecount = 0
+        self.initialize_variables(st)
 
+    def initialize_variables(self, st):
         self.dim = array.array('i', st.canvas.dim)
         self.buf_len = 10
         self.buf_stat = np.zeros(self.buf_len, np.intc)
@@ -150,6 +152,9 @@ class RunController(QObject):
         return kwargs
 
     def update_rules(self, kwargs):
+        if self.st.general.resize:
+            self.initialize_variables(self.st)
+            return self.prepare_frame()
         self.st.general.update = False
         kwargs.update({
             'running':self.st.general.running,

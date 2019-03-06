@@ -113,6 +113,7 @@ class MainWindow(QMainWindow):
 
     def canvas_scale(self, val):
         self.st.canvas.scale = val()
+        self.st.general.resize = True
 
     def general_stochastic(self, val):
         self.st.general.stochastic = val()

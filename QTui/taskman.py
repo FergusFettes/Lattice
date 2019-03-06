@@ -39,9 +39,7 @@ class RunController(QObject):
         self.st.general.rundone = 0
         self.colorList = st.canvas.colorlist
         self.wolfram_color_offset = 2
-        self.resize_image(st.canvas.dim)
 
-        self.scale = st.canvas.scale
         self.fpsRoll = np.zeros(9, float)
         self.st = st
 
@@ -49,6 +47,8 @@ class RunController(QObject):
         self.initialize_variables(st)
 
     def initialize_variables(self, st):
+        self.resize_image(st.canvas.dim)
+
         self.dim = array.array('i', st.canvas.dim)
         self.buf_len = 10
         self.buf_stat = np.zeros(self.buf_len, np.intc)
@@ -153,6 +153,7 @@ class RunController(QObject):
 
     def update_rules(self, kwargs):
         if self.st.general.resize:
+            self.st.general.resize = False
             self.initialize_variables(self.st)
             return self.prepare_frame()
         self.st.general.update = False
@@ -174,7 +175,6 @@ class RunController(QObject):
         kwargs={
             'running':self.st.general.running,
             'update_settings':self.st.general.update,
-            'dim':np.asarray(self.st.canvas.dim, np.intc),
             'threshold':self.st.noise.threshold,
             'updates':self.st.ising.updates,
             'beta':self.st.ising.beta,
@@ -198,12 +198,14 @@ class RunController(QObject):
     # Image and array have the same size, should be resized in one function.
     def resize_image(self, dim):
         self.image = QImage(dim[0], dim[1], QImage.Format_ARGB32)
-        self.imageDim = dim
+        self.imageDim = np.asarray(dim)
+        self.imageScale = np.asarray(self.st.canvas.scale)
+        self.send_image()
 
 #===============Array processing and Image export=============#
     def send_image(self):
-        ims = self.image.scaled(QSize(self.st.canvas.dim[0] * self.st.canvas.scale,
-                                 self.st.canvas.dim[1] * self.st.canvas.scale))
+        ims = self.image.scaled(QSize(self.imageDim[0] * self.imageScale,
+                                 self.imageDim[1] * self.imageScale))
         nupix = QPixmap()
         nupix.convertFromImage(ims)
         self.imageSig.emit(nupix)

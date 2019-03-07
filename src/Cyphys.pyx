@@ -19,7 +19,7 @@ cpdef tuple analysis_loop_energy(float[:] com_in, int[:] dim, int[:, :] arr):
     of mass as the input for the radius of gyration calculations. This is slightly
     innacurate and populations that vary wildly could see some systematic errors
     because of this. #TODO: Maybe look into it, or if there is enough CPU power to spare (LOL)
-    do it properly.O
+    do it properly.
 
     :param com_in:   center of mass
     :param dim:

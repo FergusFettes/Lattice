@@ -4,7 +4,7 @@
 This app started off as an attempt to visualise different lattice models, and to see what happens when you mix a bunch of them together. It is currently very visually-oriented, though I intend to add some analytics later.
 
 ## Getting started
-It is built using Python 3 and Qt5. Currently the pip install doesnt work because of pyqt5 (or maybe it does work but it takes forever to download, I'm not sure and I have terrible internet). So for now, if you want to use it to have to install Qt5 using `sudo apt-get install pyqt5-dev-tolls` or equivalent, then clone the repo and run `python3 __init__.py` from the latticeModelMashup folder.
+Unless you have QT5 on your computer, it is pretty hard to get it working at the moment. I do inted to package it with QT at some point but not yet. This means that the pip install doesnt work either. All you can do is clone the git repo and try running one of the executables (**Xcute is the main GUI, Xterminal is a terminal version**).
 
 To facilitate rapid testing, there are a few keyboard shortcuts:
 > NB: much has changed in version 2, maybe I'll add back some of these later but for now they are gone.
@@ -15,7 +15,7 @@ To facilitate rapid testing, there are a few keyboard shortcuts:
 * ~~**Z** steps forward one frame~~
 * ~~**B** paints the background with a cellular automaton~~
 * **WASD** controlls the 'coverage' aka how much noise is added when you clear the scren and 'beta', which determines how noise the simulation is while running.
-* ~~**XC** controls the maximum FPS it will operate at. The two FPS values given at the top are the current performance of the two main engines, and the actual FPS is always limited to the lowest of these three values.~~
+* **XC** controls the maximum FPS it will operate at. The two FPS values given at the top are the current performance of the two main engines, and the actual FPS is always limited to the lowest of these three values.
 * **Alt** brings the focus out of a textbox, so you can use the keyboard shortcuts again after editing something.
 
 A note on the update rules: currently rules of the following sort are permitted,
@@ -58,23 +58,18 @@ The app is currently based on the following models:
 - [ ] Potts Model is actually in there, or it was, but has been depreceated. This is a nice version of Ising with more states, but currently the models only have 2 states so this is inactive. Might bring it back.
 
 
-## Features in Version 1
-- Ising model
-- Life-like automata with time-varying rules
-- Dynamic update of settings without having to restart
-- ~~'Wolfram' 2D automata painter~~ breifly depreciated
-- Arbitrary boundary conditions on top, sides and scroller
-- Colors!
-- Basic recording function (makes gifs, pretty buggy)
+## Features in Current Version
+- [x] Ising model
+- [x] Life-like automata with time-varying rules
+- [x] Dynamic update of settings without having to restart
+- [ ] ~~'Wolfram' 2D automata painter~~ breifly depreciated
+- [x] Arbitrary boundary conditions on top, sides and scroller
+- [x] Colors!
+- [ ] ~~Basic recording function (makes gifs, pretty buggy)~~ briefly depreciated
 ![Fresh](img/clouds.gif)
-
-## Features coming in Version 2
-- ~~Fancy shader graphics~~ that'll come later
 - [x] Roll function, can set the whole array to roll along x or y
 - [x] Bars and fuzzers-- you can now set [scrolling] bars either of blocks (on of off) or of noise. The settings for the bars is described above.
-- [x] Faster engines, better integrated with one another (still a little to go but its already much faster
-- [x] complete rewrite of the update engines in cython
-- ~~Good support for exporting videos/ gifs~~ will come later, just now I just want to get a sort of V2 out with updated and faster functions.
+- [x] Faster engines, better integrated with one another (rewritten in cython, still a little to go)
 
 ## Soonish features:
 - [ ] Multiprocessing. Uses all the cores you have available.
@@ -82,7 +77,8 @@ The app is currently based on the following models:
 - [ ] Easy interaction, can paint different initial conditions onto the canvas
 
 ## Features planned:
-- The fanciest graphics
+- ~~Good support for exporting videos/ gifs~~ will come later, just now I just want to get a sort of V2 out with updated and faster functions.
+- Fancy shader graphics
 - Automatic monsterfinder (looks for repeating patters with different update rules)
 - More models! Including:
 - [ ] **Prisoners Dilemma**

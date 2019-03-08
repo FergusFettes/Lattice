@@ -107,7 +107,7 @@ cpdef void basic_update(
     """
     ising_process(updates, beta, dim, arr)
     add_stochastic_noise(threshold, dim, arr)
-    cy.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
+    cy.set_bounds(bounds, dim, arr)
     cy.scroll_bars(dim, arr, bars)
     conway_process(rule, dim, arr)
 
@@ -145,10 +145,10 @@ cpdef void basic_update_buffer(
     """
     ising_process(updates, beta, dim, arr)
     add_stochastic_noise(threshold, dim, arr)
-    cy.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
+    cy.set_bounds(bounds, dim, arr)
     cy.roll_columns_pointer(roll[0], dim, arr)
     cy.roll_rows_pointer(roll[1], dim, arr)
-    cy.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
+    cy.set_bounds(bounds, dim, arr)
     cy.scroll_bars(dim, arr, bars)
     scroll_noise(dim, arr, fuzz)
     conway_process(prepair_rule(rules, frame), dim, arr)
@@ -173,7 +173,7 @@ cpdef void basic_print(
     :param fuzz:        [start, width, step, axis, bounce, coverage, polarity (-2 is off)]
     :return:            None
     """
-    cy.set_bounds(bounds[0], bounds[1], bounds[2], bounds[3], dim, arr)
+    cy.set_bounds(bounds, dim, arr)
     cy.scroll_bars(dim, arr, bars)
     scroll_noise(dim, arr, fuzz)
 

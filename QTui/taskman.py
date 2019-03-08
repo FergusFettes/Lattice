@@ -240,7 +240,7 @@ class RunController(QObject):
             'bounds':np.asarray(self.st.bounds, np.intc),
             'bars':np.asarray(self.st.scroll.bars, np.double),
             'fuzz':np.asarray(self.st.scroll.fuzz, np.double),
-            'roll':np.asarray(self.st.scroll.roll, np.intc),
+            'roll':np.asarray(self.st.transform.roll, np.intc),
         })
         return kwargs
 
@@ -256,7 +256,7 @@ class RunController(QObject):
             'bounds':np.asarray(self.st.bounds, np.intc),
             'bars':np.asarray(self.st.scroll.bars, np.double),
             'fuzz':np.asarray(self.st.scroll.fuzz, np.double),
-            'roll':np.asarray(self.st.scroll.roll, np.intc),
+            'roll':np.asarray(self.st.transform.roll, np.intc),
             'head_position':np.asarray(self.head_position, np.intc),
             'tail_position':np.asarray(self.tail_position, np.intc),
             'buffer_length':np.asarray(self.buf_len, np.intc),

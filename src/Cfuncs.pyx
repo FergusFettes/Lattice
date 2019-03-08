@@ -42,22 +42,35 @@ import src.Cyarr as cy
 
 #==================HI-LEVEL==================
 #============================================
-cpdef change_zoom_level(int[:] head_pos, int buffer_length, int[:] dim, int[:, :, :] buf):
+cpdef change_zoom_level(int[:] head_pos, int buffer_length, int[:, :] buffer_status,
+                        int[:] dim, int[:, :, :] buf):
     """
     Checks the array edges, resizes if necessary.
 
-    :param arr:
+    :param head_pos:        position of the head in the buffer
+    :param buffer_length:
+    :param buffer_status:
+    :param dim:
+    :param buf:
     :return:        (3D pointer) new buffer
     """
-    if cy.check_rim(0, dim, buf[head_pos[0]]) is True:
+    cdef int[:] dim_v
+    cdef int[:, :, :] buf_v
+    if cy.check_rim(0, dim, buf[head_pos[0] % buffer_length]) is True:
         dim_v, buf_v = resize_array_buffer(dim, buffer_length)
         change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v)
-#   else:   # if outer rim has nothing, check next one in
-#       if cy.check_rim(1, dim_v, arr_v) is False and check _rim(2, dim_v, arr_v) is False:
-#           dim_v, buf_v = resize_array_buffer(dim, buffer_length, -1)
-#           change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v,
-#                         array.array('i', [1,1]), array.array('i', [2, 2]))
-    return dim_v, buf_v
+        head_pos[1] += 1
+        return dim_v, buf_v
+    # if outer rim has nothing, check next two in
+    elif cy.check_rim(1, dim, buf[head_pos[0] % buffer_length]) is False\
+     and cy.check_rim(2, dim, buf[head_pos[0] % buffer_length]) is False:
+        dim_v, buf_v = resize_array_buffer(dim, buffer_length, -1)
+        change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v,
+                        array.array('i', [1,1]), array.array('i', [2, 2]))
+        head_pos[1] += 1
+        return dim_v, buf_v
+    return dim, buf
+
 
 
 cpdef tuple init(list dimensions):

@@ -51,8 +51,8 @@ class RunController(QObject):
 
         self.dim = array.array('i', st.canvas.dim)
         self.buf_len = 10
-        self.buf_stat = np.zeros(self.buf_len, np.intc)
-        self.buf_stat[0] = 1
+        self.buf_stat = np.zeros((1, self.buf_len), np.intc)
+        self.buf_stat[0, 0] = 1
         self.head_position = array.array('i', [0, 0])
         self.tail_position = array.array('i', [0, 0])
 
@@ -67,9 +67,89 @@ class RunController(QObject):
             self.arr_h = cf.update_array_positions(self.head_position, self.buf_len,
                                                 self.buf_stat, self.buf, 0)
         self.export_array(self.arr_h, 0)
-        self.buf_stat[0] = 2 #placing the tail
+        self.buf_stat[0, 0] = 2 #placing the tail
+
+    def growth_variables(self, st):
+        self.dim = array.array('i', [20, 20])
+        self.buf = cf.init_array_buffer(self.dim, self.buf_len)
+        self.head_position = array.array('i', [0, 2])
+        self.tail_position = array.array('i', [0, 0])
+        self.arr_h = self.buf[self.head_position[0] % self.buf_len]
+        self.arr_t = self.buf[self.tail_position[0] % self.buf_len]
+
+        self.buf_stat[0, 2] = 1
+
+        # Process a few frames on startup
+        cy.randomize_center(9, self.dim, self.arr_h)
+        cf.advance_array(self.head_position, self.buf_len, self.buf)
+        self.arr_h = cf.update_array_positions(self.head_position, self.buf_len,
+                                                self.buf_stat, self.buf, 0)
+
+        self.export_array(self.arr_h, 0)
+        self.buf_stat[0, 0] = 2 #placing the tail
 
 #===============MAIN PROCESS OF THE THREAD===================#
+    def proc2(self):
+        self.error.emit('Proccess starting!')
+        kwargs = self.prepare_frame()
+
+        while kwargs['running']:
+            start = time.time()
+
+            kwargs = self.update_frame(kwargs)
+            if kwargs['update_settings']:
+                kwargs = self.update_rules(kwargs)
+
+            logging.debug('Basic update')
+            cf.ising_process(kwargs['updates'], kwargs['beta'], kwargs['dim'], kwargs['arr_h'])
+            cf.add_stochastic_noise(kwargs['threshold'], kwargs['dim'], kwargs['arr_h'])
+            cf.conway_process(cf.prepair_rule(kwargs['rules'], kwargs['head_position']),
+                           kwargs['dim'], kwargs['arr_h'])
+
+            logging.debug('Update array positions')
+            cf.advance_array(kwargs['head_position'], kwargs['buffer_length'], kwargs['buf'])
+            kwargs['arr_h'] = cf.update_array_positions(
+                kwargs['head_position'],
+                kwargs['buffer_length'],
+                kwargs['buffer_status'],
+                kwargs['buf'],
+                0
+            )
+            logging.debug('Scroll bars')
+            cy.scroll_bars(kwargs['dim'], kwargs['arr_t'], kwargs['bars'])
+            cf.scroll_noise(kwargs['dim'], kwargs['arr_t'], kwargs['fuzz'])
+
+            logging.debug('Doing calculations for image')
+            arr_t_old = self.buf[(self.tail_position[0] - 1) % self.buf_len]
+            b, d = pf.get_births_deaths_P(arr_t_old, kwargs['arr_t'])
+            logging.debug('Replacing locations in image')
+            self.replace_image_positions(b, 0)
+            self.replace_image_positions(d, 1)
+            logging.debug('Sending image')
+            self.send_image()
+
+            logging.debug('Updating scroll instructions')
+            cf.scroll_instruction_update(
+                kwargs['bars'], kwargs['dim']
+            )
+            cf.scroll_instruction_update(
+                kwargs['fuzz'], kwargs['dim']
+            )
+            logging.debug('Updating tail position')
+            kwargs['arr_t'] = cf.update_array_positions(
+                kwargs['tail_position'],
+                kwargs['buffer_length'],
+                kwargs['buffer_status'],
+                kwargs['buf'],
+                0
+            )
+
+            time.sleep(0.01)
+            while time.time() - start < kwargs['frametime']:
+                time.sleep(0.01)
+        self.finished.emit()
+
+
     def process(self):
         self.error.emit('Process starting!')
         kwargs = self.prepare_frame()

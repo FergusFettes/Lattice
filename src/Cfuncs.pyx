@@ -70,7 +70,7 @@ cpdef tuple init(list dimensions):
         head_pos            (pointer) position of head in buffer
         tail_pos        (pointer) positions to be analysed
         buffer_length       (int) buffer length
-        buffer_status       (pointer) list of array poistions in buffer
+        buffer_status       (2Dpointer) list of array poistions in buffer
         dim                 (pointer) dimensions of array
         arr                 (2D pointer) array
         buf                 (3D pointer) buffer
@@ -79,15 +79,16 @@ cpdef tuple init(list dimensions):
         buf                 (3D pointer) buffer
     """
     cdef int buffer_length
-    cdef int[:] head_position, tail_position, buffer_status
+    cdef int[:] head_position, tail_position
+    cdef int[:, :] buffer_status
     cdef int[:] dim_h = array.array('i', dimensions)
     cdef int[:] dim_t = array.array('i', dimensions)
     cdef int[:, :] arr_h, arr_t
     cdef int[:, :, :] buf_h
 
     buffer_length = 10
-    buffer_status = np.zeros(buffer_length, np.intc)
-    buffer_status[0] = 1
+    buffer_status = np.zeros((1, buffer_length), np.intc)
+    buffer_status[0, 0] = 1
     head_position = array.array('i', [0, 0])
     tail_position = array.array('i', [0, 0])
 
@@ -105,7 +106,7 @@ cpdef tuple init(list dimensions):
     arr_h = update_array_positions(head_position, buffer_length, buffer_status,
                                    buf_h, 0)
 
-    buffer_status[0] = 2 #placing the tail
+    buffer_status[0, 0] = 2 #placing the tail
 
     return head_position, tail_position, buffer_length, buffer_status,\
             dim_t, arr_t, buf_h, dim_h, arr_h, buf_h
@@ -221,8 +222,7 @@ cpdef void basic_print(
 
 #==============MID-LEVEL========================
 #===============================================
-#replace memoryview with pointer when you change everything to c
-cpdef update_array_positions(int[:] position, int buffer_length, int[:] buffer_status,
+cpdef update_array_positions(int[:] position, int buffer_length, int[:, :] buffer_status,
                              int[:, :, :] buf, int display=1):
     """
     Updates the chosen array (switches the memoryview
@@ -230,20 +230,25 @@ cpdef update_array_positions(int[:] position, int buffer_length, int[:] buffer_s
 
     :param position:            (pointer) position of array to update
     :param buffer_length:       (int)
-    :param buffer_status:       (pointer) current positions of arrays
+    :param buffer_status:       (2Dpointer) current positions of arrays
     :param buf:                 (3D pointer) buffer
     :param display:             (int) output position?
     :return:                    (pointer) updated array
     """
     cdef int[:, :] arrout
     cdef int index, target, PADDING = 1
+    cdef int buf_choice = position[1]
 
     index = position[0] % buffer_length
     target = (index + 1) % buffer_length
-    if not buffer_status[(target + PADDING) % buffer_length] == 0:
+    if not buffer_status[buf_choice, (target + PADDING) % buffer_length] == 0:
         return None
-    buffer_status[target] = buffer_status[index]
-    buffer_status[index] = 0
+    if not buffer_status[buf_choice, index]:
+        buffer_status[buf_choice, target] = buffer_status[buf_choice - 1, index]
+        buffer_status[buf_choice - 1, index] = 0
+    else:
+        buffer_status[buf_choice, target] = buffer_status[buf_choice, index]
+        buffer_status[buf_choice, index] = 0
 
     position[0] += 1
     arrout = buf[position[0] % buffer_length]
@@ -254,7 +259,7 @@ cpdef update_array_positions(int[:] position, int buffer_length, int[:] buffer_s
     return arrout
 
 
-cpdef print_buffer_status(int[:] buffer_status, int pad=4,
+cpdef print_buffer_status(int[:, :] buffer_status, int pad=4,
                           str border=r"*", str base=r"#"):
     """
     Outputs the array positions like so:
@@ -263,27 +268,30 @@ cpdef print_buffer_status(int[:] buffer_status, int pad=4,
         *  PPPPAAAH   *
         ***************
         where h=head, t=tail
-    :param buffer_status:      (pointer) current state of buffer
+    :param buffer_status:       (2D pointer) current state of buffer
     :param pad:                 (int) width of padding
     :param border:              (str) style of border
     :param base:                (str) style of base
     :return:                    None
     """
     cdef str out
+    cdef list lines = ['', '', '', '']
     cdef str buff
-    buff = 'a'
-    for i in buffer_status:
-        if i == 0:
-            buff += ' '
-        if i == 1:
-            buff += 'h'
-        if i == 2:
-            buff += 't'
-    buff = buff[1:]
-    out = '\n'.join(('{0}{1}{0}'.format(pad*border, len(buffer_status)*border),
-                    '{0}{1}{2}{1}{0}'.format(border, ' '*(pad-1), buff),
-                    '{0}{1}{2}{1}{0}'.format(border, ' '*(pad-1), len(buffer_status)*base),
-                     '{0}{1}{0}'.format(pad*border, len(buffer_status)*border)))
+    for buf in buffer_status:
+        bufp = ''
+        for i in buf:
+            if i == 0:
+                bufp += ' '
+            if i == 1:
+                bufp += 'h'
+            if i == 2:
+                bufp += 't'
+        lines[0] += '{0}{1}{0}'.format(pad*border, len(buf)*border)
+        lines[1] += '{0}{1}{2}{1}{0}'.format(border, ' '*(pad-1), bufp)
+        lines[2] += '{0}{1}{2}{1}{0}'.format(border, ' '*(pad-1), len(buf)*base)
+        lines[3] += '{0}{1}{0}'.format(pad*border, len(buf)*border)
+    out = '\n'.join(lines)
+
     print(out)
 
 cpdef scroll_instruction_update(double[:, :] bars, int[:] dim):

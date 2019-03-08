@@ -233,39 +233,39 @@ class MiscTestCase(unittest.TestCase):
 
     def test_print_buffer_status_standard(self):
         print('Prints something? I guess the is a check for this..')
-        print_buffer_status(array.array('i', [0,1,2,3]))
+        print_buffer_status(np.array([[1,2,3,4]], np.intc))
 
     def test_print_buffer_status_custom(self):
         print('Prints something? I guess the is a check for this..')
-        print_buffer_status(array.array('i', [0,1,2,3]), 1, '&', '_')
+        print_buffer_status(np.array([[1,2,3,4]], np.intc), 1, '&', '_')
 
 class BufferHandlingTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.position = array.array('i', [0])
+        self.position = array.array('i', [0, 0])
         self.buf = init_array_buffer(tst_dimL(), 10)
         self.dim = np.asarray(tst_dimL())
         self.buf_len = 10
-        self.buffer_status = np.zeros(self.buf_len, np.intc)
+        self.buffer_status = np.zeros((1, self.buf_len), np.intc)
 
     def test_update_array_positions_writes(self):
         position = self.position
-        self.buffer_status[position[0]] = 1
+        self.buffer_status[0, position[0]] = 1
         arr = update_array_positions(position, self.buf_len, self.buffer_status, self.buf)
-        self.assertEqual(self.buffer_status[1], 1)
+        self.assertEqual(self.buffer_status[0, 1], 1)
 
     def test_update_array_positions_clears(self):
         position = self.position
-        self.buffer_status[position[0]] = 1
+        self.buffer_status[0, position[0]] = 1
         arr = update_array_positions(position, self.buf_len, self.buffer_status, self.buf)
-        self.assertEqual(self.buffer_status[0], 0)
+        self.assertEqual(self.buffer_status[0, 0], 0)
 
     def test_update_array_positions_wraps(self):
         position = self.position
-        position = array.array('i', [self.buf_len - 1])
-        self.buffer_status[position[0]] = 1
+        position = array.array('i', [self.buf_len - 1, 0])
+        self.buffer_status[0, position[0]] = 1
         arr = update_array_positions(position, self.buf_len, self.buffer_status, self.buf)
-        self.assertEqual(self.buffer_status[0], 1)
+        self.assertEqual(self.buffer_status[0, 0], 1)
 
     def test_init_array_has_dimensions(self):
         arr = init_array(tst_dim())

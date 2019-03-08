@@ -68,37 +68,33 @@ class RunController(QObject):
                                                 self.buf_stat, self.buf, 0)
         self.export_array(self.arr_h, 0)
         self.buf_stat[0] = 2 #placing the tail
-        self.fpsRoll = np.zeros(9, float)
 
 #===============MAIN PROCESS OF THE THREAD===================#
     def process(self):
         self.error.emit('Process starting!')
         kwargs = self.prepare_frame()
-        frame = array.array('i', [0])
         while kwargs['running']:
-            frame[0] += 1
+            start = time.time()
 
             logging.debug('Prepairing frame')
             kwargs = self.update_frame(kwargs)
             if kwargs['update_settings']:
                 kwargs = self.update_rules(kwargs)
             logging.debug('Basic update')
-            cf.basic_update_buffer(
-                kwargs['updates'],
-                kwargs['beta'],
-                kwargs['threshold'],
-                kwargs['rules'],
-                kwargs['head_position'],
-                kwargs['buffer_length'],
-                kwargs['dim'],
-                kwargs['arr_h'],
-                kwargs['buf'],
-                kwargs['bounds'],
-                kwargs['bars'],
-                kwargs['fuzz'],
-                kwargs['roll'],
-            )
+            cf.ising_process(kwargs['updates'], kwargs['beta'], kwargs['dim'], kwargs['arr_h'])
+            cf.add_stochastic_noise(kwargs['threshold'], kwargs['dim'], kwargs['arr_h'])
+            cy.set_bounds(kwargs['bounds'], kwargs['dim'], kwargs['arr_h'])
+            cy.roll_columns_pointer(kwargs['roll'][0], kwargs['dim'], kwargs['arr_h'])
+            cy.roll_rows_pointer(kwargs['roll'][1], kwargs['dim'], kwargs['arr_h'])
+            cy.set_bounds(kwargs['bounds'], kwargs['dim'], kwargs['arr_h'])
+            cy.scroll_bars(kwargs['dim'], kwargs['arr_h'], kwargs['bars'])
+            cf.scroll_noise(kwargs['dim'], kwargs['arr_h'], kwargs['fuzz'])
+            cf.conway_process(cf.prepair_rule(kwargs['rules'], kwargs['head_position']),
+                           kwargs['dim'], kwargs['arr_h'])
+            cy.set_bounds(kwargs['bounds'], kwargs['dim'], kwargs['arr_h'])
+
             logging.debug('Update array positions')
+            cf.advance_array(kwargs['head_position'], kwargs['buffer_length'], kwargs['buf'])
             kwargs['arr_h'] = cf.update_array_positions(
                 kwargs['head_position'],
                 kwargs['buffer_length'],
@@ -106,12 +102,6 @@ class RunController(QObject):
                 kwargs['buf'],
                 0
             )
-            logging.debug(np.asarray(
-                cf.prepair_rule(kwargs['rules'], kwargs['head_position'])
-            ))
-            logging.debug('Set bounds')
-            cy.set_bounds(kwargs['bounds'][0], kwargs['bounds'][1], kwargs['bounds'][2],
-                          kwargs['bounds'][3], kwargs['dim'], kwargs['arr_t'])
             logging.debug('Scroll bars')
             cy.scroll_bars(kwargs['dim'], kwargs['arr_t'], kwargs['bars'])
             cf.scroll_noise(kwargs['dim'], kwargs['arr_t'], kwargs['fuzz'])
@@ -142,6 +132,8 @@ class RunController(QObject):
             )
 
             time.sleep(0.01)
+            while time.time() - start < kwargs['frametime']:
+                time.sleep(0.01)
         self.finished.emit()
 
     def update_frame(self, kwargs):
@@ -159,6 +151,7 @@ class RunController(QObject):
         self.st.general.update = False
         kwargs.update({
             'running':self.st.general.running,
+            'frametime':self.st.general.frametime,
             'update_settings':self.st.general.update,
             'threshold':self.st.noise.threshold,
             'updates':self.st.ising.updates,
@@ -174,6 +167,7 @@ class RunController(QObject):
     def prepare_frame(self):
         kwargs={
             'running':self.st.general.running,
+            'frametime':self.st.general.frametime, #NB: to get the to update in realtime, just use the original value
             'update_settings':self.st.general.update,
             'threshold':self.st.noise.threshold,
             'updates':self.st.ising.updates,

@@ -146,7 +146,8 @@ class ArrayEditTestCase(unittest.TestCase):
 
     def test_set_bounds(self):
         arr = tst_arr()
-        cy.set_bounds(1, 1, 1, 1, tst_dim(), arr)
+        bounds = array.array('i', [1,1,1,1])
+        cy.set_bounds(bounds, tst_dim(), arr)
 
         arr2 = tst_arr()
         arr2[0] = 1

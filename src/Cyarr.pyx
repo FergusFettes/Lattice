@@ -236,36 +236,33 @@ cpdef void scroll_bars(
                 clear_columns(int(bar[0]), int(bar[1]), dim, arr)
 
 
-cpdef set_bounds(int ub, int rb, int db, int lb, int[:] dim, int[:, :] arr):
+cpdef set_bounds(int [:] bounds, int[:] dim, int[:, :] arr):
     """
     Sets boundaries
 
-    :param ub:      (int) upper bound value
-    :param rb:      (int) right bound value
-    :param db:      (int) down bound value
-    :param lb:      (int) left bound value
+    :param bounds:  (pointer) [ub, rb, db, lb]
     :param dim:     (pointer) dimensions of arr
     :param arr:   (2D pointer) arr
     :return:        None
     """
-    if ub == 1:
+    if bounds[0] == 1:
         fill_row(0, arr)
-    elif ub == 0:
+    elif bounds[0] == 0:
         clear_row(0, arr)
 
-    if db == 1:
+    if bounds[2] == 1:
         fill_row(-1, arr)
-    elif db == 0:
+    elif bounds[2] == 0:
         clear_row(-1, arr)
 
-    if lb == 1:
+    if  bounds[3] == 1:
         fill_column(0, arr)
-    elif lb == 0:
+    elif  bounds[3] == 0:
         clear_column(0, arr)
 
-    if rb == 1:
+    if  bounds[1] == 1:
         fill_column(-1, arr)
-    elif rb == 0:
+    elif  bounds[1] == 0:
         clear_column(-1, arr)
 
 cpdef fill_array(int[:] dim, int[:, :] arr):

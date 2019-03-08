@@ -438,7 +438,7 @@ class NeighborTestCase(unittest.TestCase):
             for j in range(tst_dimL()[1]):
                 pos[0] = i
                 pos[1] = j
-                NB2[i, j] = moore_neighbors_same(pos, tst_dimL(), arr)
+                NB2[i, j] = moore_neighbors_same_CP(pos, tst_dimL(), arr)
                 if not arr[i, j]:
                     NB[i, j] = 4 - NB[i, j]
 
@@ -454,7 +454,7 @@ class NeighborTestCase(unittest.TestCase):
             for j in range(tst_dimL()[1]):
                 pos[0] = i
                 pos[1] = j
-                NB[i, j] = moore_neighbors_same(pos, tst_dimL(), arr)
+                NB[i, j] = moore_neighbors_same_CP(pos, tst_dimL(), arr)
                 NB2[i, j] = moore_neighbors_same_complex(pos, tst_dimL(), arr)
 
         testing.assert_array_equal(NB, NB2)

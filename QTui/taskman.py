@@ -204,7 +204,6 @@ class RunController(QObject):
         nupix.convertFromImage(ims)
         self.imageSig.emit(nupix)
 
-    #TODO: surely I can just use the array as an image directly? This is rediculous.
     def export_array(self, A, color_offset):
         """
         Updates the image with the values from an entire array.

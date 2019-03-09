@@ -93,10 +93,10 @@ class MainWindow(QMainWindow):
         self.st.bounds[0] = val()
 
     def Vroll_update(self, val):
-        self.st.scroll.roll[0] = val()
+        self.st.transform.roll[0] = val()
 
     def Hroll_update(self, val):
-        self.st.scroll.roll[1] = val()
+        self.st.transform.roll[1] = val()
 
     def canvas_dim(self, val, dim):
         self.st.canvas.dim[dim] = val()
@@ -113,10 +113,9 @@ class MainWindow(QMainWindow):
 
     def canvas_scale(self, val):
         self.st.canvas.scale = val()
-        self.st.general.resize = True
 
     def general_stochastic(self, val):
-        self.st.general.stochastic = val()
+        self.st.noise.switch = val()
 
     def frameChange(self):
         self.st.general.runtodo = self.frameCtrl.value()
@@ -568,7 +567,7 @@ class MainWindow(QMainWindow):
         self.HrollL = QLabel('HRoll')
         self.Hroll = QSpinBox()
         self.Hroll.setRange(-1, 1)
-        self.Hroll.setValue(self.st.scroll.roll[1])
+        self.Hroll.setValue(self.st.transform.roll[1])
         self.Hroll.setMaximumSize(40, 40)
         self.Hroll.valueChanged.connect(partial(self.Hroll_update,
                                         self.Hroll.value))
@@ -579,7 +578,7 @@ class MainWindow(QMainWindow):
         self.Vroll = QSpinBox()
         self.Vroll.setRange(-1, 1)
         self.Vroll.setMaximumSize(40, 40)
-        self.Vroll.setValue(self.st.scroll.roll[0])
+        self.Vroll.setValue(self.st.transform.roll[0])
         self.Vroll.valueChanged.connect(partial(self.Vroll_update,
                                         self.Vroll.value))
         vlineVroll = QFrame()
@@ -677,7 +676,7 @@ class MainWindow(QMainWindow):
 #       self.record.setText('Record')
 #       self.record.clicked.connect(self.record_change)
         self.stochasticBox = QCheckBox('Stochi')
-        self.stochasticBox.setChecked(self.st.general.stochastic)
+        self.stochasticBox.setChecked(self.st.noise.switch)
         self.stochasticBox.stateChanged.connect(partial(self.general_stochastic,
                                                     self.stochasticBox.isChecked))
         self.statusBar.addWidget(self.canvasfpsLabel)

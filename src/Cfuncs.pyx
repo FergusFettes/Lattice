@@ -60,16 +60,16 @@ cpdef change_zoom_level(int[:] head_pos, int buffer_length, int[:, :] buffer_sta
         dim_v, buf_v = resize_array_buffer(dim, buffer_length)
         change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v)
         head_pos[1] += 1
-        return dim_v, buf_v
+        return dim_v, buf_v, 1
     # if outer rim has nothing, check next two in
     elif cy.check_rim(1, dim, buf[head_pos[0] % buffer_length]) is False\
      and cy.check_rim(2, dim, buf[head_pos[0] % buffer_length]) is False:
         dim_v, buf_v = resize_array_buffer(dim, buffer_length, -1)
         change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v,
                         array.array('i', [1,1]), array.array('i', [2, 2]))
-        head_pos[1] += 1
-        return dim_v, buf_v
-    return dim, buf
+        head_pos[1] -= 1
+        return dim_v, buf_v, -1
+    return dim, buf, 0
 
 cpdef tuple init(list dimensions):
     """
@@ -285,11 +285,11 @@ cpdef extend_buffer_status(int[:] position, int buffer_length, int[:, :] buffer_
     cdef int buf_choice = position[1]
     cdef int[:, :] buffer_status_nu
 
-    if len(buffer_status) <= buf_choice:
+    if len(buffer_status) < buf_choice + 1:
         buffer_status_nu = np.zeros((len(buffer_status) + 1, buffer_length), np.intc)
         buffer_status_nu[0:-1, :] = buffer_status
         buffer_status = buffer_status_nu
-    elif len(buffer_status) > buf_choice:
+    elif len(buffer_status) > buf_choice + 1:
         buffer_status_nu = np.zeros((len(buffer_status) - 1, buffer_length), np.intc)
         buffer_status_nu[:, :] = buffer_status[0:-1, :]
         buffer_status = buffer_status_nu

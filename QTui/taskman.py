@@ -92,6 +92,8 @@ class RunController(QObject):
     def proc2(self):
         self.error.emit('Proccess starting!')
         kwargs = self.prepare_frame()
+        change_pos = -1
+        change = 0
 
         while kwargs['running']:
             start = time.time()
@@ -107,20 +109,25 @@ class RunController(QObject):
                            kwargs['dim'], kwargs['arr_h'])
 
             logging.debug('Update array positions')
+            kwargs['dim'], kwargs['buf'], change = cf.change_zoom_level(
+                kwargs['head_position'], kwargs['buffer_length'],
+                kwargs['buffer_status'], kwargs['dim'], kwargs['buf']
+            )
+            if change: change_pos = kwargs['head_position']
+            kwargs['buffer_status'] = cf.extend_buffer_status(kwargs['head_position'],
+                                    kwargs['buffer_length'], kwargs['buffer_status'])
             cf.advance_array(kwargs['head_position'], kwargs['buffer_length'], kwargs['buf'])
             kwargs['arr_h'] = cf.update_array_positions(
                 kwargs['head_position'],
                 kwargs['buffer_length'],
                 kwargs['buffer_status'],
                 kwargs['buf'],
-                0
+                1
             )
-            logging.debug('Scroll bars')
-            cy.scroll_bars(kwargs['dim'], kwargs['arr_t'], kwargs['bars'])
-            cf.scroll_noise(kwargs['dim'], kwargs['arr_t'], kwargs['fuzz'])
 
             logging.debug('Doing calculations for image')
-            arr_t_old = self.buf[(self.tail_position[0] - 1) % self.buf_len]
+            arr_t_old = kwargs['buf'][kwargs['tail_position'][1],
+                                      (kwargs['tail_position'][0] - 1) % kwargs['buf_len']]
             b, d = pf.get_births_deaths_P(arr_t_old, kwargs['arr_t'])
             logging.debug('Replacing locations in image')
             self.replace_image_positions(b, 0)
@@ -187,7 +194,7 @@ class RunController(QObject):
             cf.scroll_noise(kwargs['dim'], kwargs['arr_t'], kwargs['fuzz'])
 
             logging.debug('Doing calculations for image')
-            arr_t_old = self.buf[(self.tail_position[0] - 1) % self.buf_len]
+            arr_t_old = kwargs['buf'][(kwargs['tail_position'][0] - 1) % kwargs['buffer_length']]
             b, d = pf.get_births_deaths_P(arr_t_old, kwargs['arr_t'])
             logging.debug('Replacing locations in image')
             self.replace_image_positions(b, 0)

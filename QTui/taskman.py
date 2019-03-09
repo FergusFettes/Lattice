@@ -103,31 +103,31 @@ class RunController(QObject):
                 kwargs = self.update_rules(kwargs)
 
             logging.debug('Basic update')
-            cf.ising_process(kwargs['updates'], kwargs['beta'], kwargs['dim'], kwargs['arr_h'])
-            cf.add_stochastic_noise(kwargs['threshold'], kwargs['dim'], kwargs['arr_h'])
+            cf.ising_process(kwargs['updates'], kwargs['beta'], kwargs['dim_h'], kwargs['arr_h'])
+            cf.add_stochastic_noise(kwargs['threshold'], kwargs['dim_h'], kwargs['arr_h'])
             cf.conway_process(cf.prepair_rule(kwargs['rules'], kwargs['head_position']),
-                           kwargs['dim'], kwargs['arr_h'])
+                           kwargs['dim_h'], kwargs['arr_h'])
 
             logging.debug('Update array positions')
-            kwargs['dim'], kwargs['buf'], change = cf.change_zoom_level(
+            kwargs['dim_h'], kwargs['buf_h'], change = cf.change_zoom_level(
                 kwargs['head_position'], kwargs['buffer_length'],
-                kwargs['buffer_status'], kwargs['dim'], kwargs['buf']
+                kwargs['buffer_status'], kwargs['dim_h'], kwargs['buf_h']
             )
             if change: change_pos = kwargs['head_position']
             kwargs['buffer_status'] = cf.extend_buffer_status(kwargs['head_position'],
                                     kwargs['buffer_length'], kwargs['buffer_status'])
-            cf.advance_array(kwargs['head_position'], kwargs['buffer_length'], kwargs['buf'])
+            cf.advance_array(kwargs['head_position'], kwargs['buffer_length'], kwargs['buf_h'])
             kwargs['arr_h'] = cf.update_array_positions(
                 kwargs['head_position'],
                 kwargs['buffer_length'],
                 kwargs['buffer_status'],
-                kwargs['buf'],
+                kwargs['buf_h'],
                 1
             )
 
             logging.debug('Doing calculations for image')
-            arr_t_old = kwargs['buf'][kwargs['tail_position'][1],
-                                      (kwargs['tail_position'][0] - 1) % kwargs['buf_len']]
+            arr_t_old = kwargs['buf_h'][(kwargs['tail_position'][0] - 1) %
+                                        kwargs['buffer_length']]
             b, d = pf.get_births_deaths_P(arr_t_old, kwargs['arr_t'])
             logging.debug('Replacing locations in image')
             self.replace_image_positions(b, 0)
@@ -269,8 +269,12 @@ class RunController(QObject):
             'buffer_length':np.asarray(self.buf_len, np.intc),
             'buffer_status':np.asarray(self.buf_stat, np.intc),
             'dim':np.asarray(self.dim, np.intc),
+            'dim_h':np.asarray(self.dim, np.intc),
+            'dim_t':np.asarray(self.dim, np.intc),
             'arr_h':np.asarray(self.arr_h, np.intc),
             'buf':np.asarray(self.buf, np.intc),
+            'buf_h':np.asarray(self.buf, np.intc),
+            'buf_t':np.asarray(self.buf, np.intc),
             'arr_t':np.asarray(self.arr_t, np.intc),
         }
         return kwargs

@@ -71,8 +71,6 @@ cpdef change_zoom_level(int[:] head_pos, int buffer_length, int[:, :] buffer_sta
         return dim_v, buf_v
     return dim, buf
 
-
-
 cpdef tuple init(list dimensions):
     """
     Initializes all the variables for a standard run.
@@ -254,11 +252,13 @@ cpdef update_array_positions(int[:] position, int buffer_length, int[:, :] buffe
 
     index = position[0] % buffer_length
     target = (index + 1) % buffer_length
-    if not buffer_status[buf_choice, (target + PADDING) % buffer_length] == 0:
-        return None
     if not buffer_status[buf_choice, index]:
-        buffer_status[buf_choice, target] = buffer_status[buf_choice - 1, index]
-        buffer_status[buf_choice - 1, index] = 0
+        if buffer_status[buf_choice - 1, index]:
+            buffer_status[buf_choice, target] = buffer_status[buf_choice - 1, index]
+            buffer_status[buf_choice - 1, index] = 0
+        elif buffer_status[buf_choice + 1, index]:
+            buffer_status[buf_choice, target] = buffer_status[buf_choice + 1, index]
+            buffer_status[buf_choice + 1, index] = 0
     else:
         buffer_status[buf_choice, target] = buffer_status[buf_choice, index]
         buffer_status[buf_choice, index] = 0
@@ -271,6 +271,30 @@ cpdef update_array_positions(int[:] position, int buffer_length, int[:, :] buffe
 
     return arrout
 
+cpdef extend_buffer_status(int[:] position, int buffer_length, int[:, :] buffer_status):
+    """
+    By comparing to the head status, this function will extend the buffer status
+    if there appear to be more buffers.
+
+    :param position:
+    :param buffer_length:
+    :param buffer_status:
+    :return: None
+    """
+
+    cdef int buf_choice = position[1]
+    cdef int[:, :] buffer_status_nu
+
+    if len(buffer_status) <= buf_choice:
+        buffer_status_nu = np.zeros((len(buffer_status) + 1, buffer_length), np.intc)
+        buffer_status_nu[0:-1, :] = buffer_status
+        buffer_status = buffer_status_nu
+    elif len(buffer_status) > buf_choice:
+        buffer_status_nu = np.zeros((len(buffer_status) - 1, buffer_length), np.intc)
+        buffer_status_nu[:, :] = buffer_status[0:-1, :]
+        buffer_status = buffer_status_nu
+
+    return buffer_status
 
 cpdef print_buffer_status(int[:, :] buffer_status, int pad=4,
                           str border=r"*", str base=r"#"):

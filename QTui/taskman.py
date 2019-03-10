@@ -13,7 +13,7 @@ import src.Pfuncs as pf
 import src.PHifuncs as phi
 
 import logging
-LOGGING_LEVEL = logging.INFO
+LOGGING_LEVEL = logging.DEBUG
 logging.basicConfig(level=LOGGING_LEVEL,
                     format='%(asctime)s:[%(levelname)s]-(%(processName)-15s): %(message)s',
                     )
@@ -72,7 +72,7 @@ class RunController(QObject):
     def growth_variables(self, st):
         self.dim = array.array('i', [20, 20])
         self.buf = cf.init_array_buffer(self.dim, self.buf_len)
-        self.head_position = array.array('i', [0, 2])
+        self.head_position = array.array('i', [2, 0])
         self.tail_position = array.array('i', [0, 0])
         self.arr_h = self.buf[self.head_position[0] % self.buf_len]
         self.arr_t = self.buf[self.tail_position[0] % self.buf_len]
@@ -80,20 +80,20 @@ class RunController(QObject):
         self.buf_stat[0, 2] = 1
 
         # Process a few frames on startup
-        cy.randomize_center(9, self.dim, self.arr_h)
+        cf.randomize_center(9, self.dim, self.arr_h)
         cf.advance_array(self.head_position, self.buf_len, self.buf)
         self.arr_h = cf.update_array_positions(self.head_position, self.buf_len,
-                                                self.buf_stat, self.buf, 0)
+                                                self.buf_stat, self.buf, 1)
 
         self.export_array(self.arr_h, 0)
         self.buf_stat[0, 0] = 2 #placing the tail
 
 #===============MAIN PROCESS OF THE THREAD===================#
-    def proc2(self):
+    def process(self):
+        self.growth_variables(self.st)
         self.error.emit('Proccess starting!')
         kwargs = self.prepare_frame()
-        change_pos = -1
-        change = 0
+        change_roll = np.zeros((kwargs['buffer_length'], 2), np.intc)
 
         while kwargs['running']:
             start = time.time()
@@ -109,13 +109,19 @@ class RunController(QObject):
                            kwargs['dim_h'], kwargs['arr_h'])
 
             logging.debug('Update array positions')
-            kwargs['dim_h'], kwargs['buf_h'], change = cf.change_zoom_level(
+            kwargs['dim_h'], kwargs['buf_h'], change_now = cf.change_zoom_level(
                 kwargs['head_position'], kwargs['buffer_length'],
                 kwargs['buffer_status'], kwargs['dim_h'], kwargs['buf_h']
             )
-            if change: change_pos = kwargs['head_position']
+            cy.roll_rows_pointer(1, array.array('i', [kwargs['buffer_length'], 2]),
+                                 change_roll)
+            change_roll[0, 0] = kwargs['head_position'][0]
+            change_roll[0, 1] = abs(change_now)
+            print(kwargs['head_position'])
+
             kwargs['buffer_status'] = cf.extend_buffer_status(kwargs['head_position'],
                                     kwargs['buffer_length'], kwargs['buffer_status'])
+            print(np.asarray(kwargs['buffer_status']))
             cf.advance_array(kwargs['head_position'], kwargs['buffer_length'], kwargs['buf_h'])
             kwargs['arr_h'] = cf.update_array_positions(
                 kwargs['head_position'],
@@ -126,7 +132,7 @@ class RunController(QObject):
             )
 
             logging.debug('Doing calculations for image')
-            arr_t_old = kwargs['buf_h'][(kwargs['tail_position'][0] - 1) %
+            arr_t_old = kwargs['buf_t'][(kwargs['tail_position'][0] - 1) %
                                         kwargs['buffer_length']]
             b, d = pf.get_births_deaths_P(arr_t_old, kwargs['arr_t'])
             logging.debug('Replacing locations in image')
@@ -135,14 +141,10 @@ class RunController(QObject):
             logging.debug('Sending image')
             self.send_image()
 
-            logging.debug('Updating scroll instructions')
-            cf.scroll_instruction_update(
-                kwargs['bars'], kwargs['dim']
-            )
-            cf.scroll_instruction_update(
-                kwargs['fuzz'], kwargs['dim']
-            )
             logging.debug('Updating tail position')
+            change_here = np.argwhere(change_roll==kwargs['tail_position'][0])
+            kwargs['tail_position'][1] += abs(change_roll[change_here[0][0], 1])
+
             kwargs['arr_t'] = cf.update_array_positions(
                 kwargs['tail_position'],
                 kwargs['buffer_length'],
@@ -151,13 +153,21 @@ class RunController(QObject):
                 0
             )
 
-            time.sleep(0.01)
+            # if tail has changed, you need to prepair to delete the first buffer
+            if change_roll[change_here[0][0], 1]:
+                kwargs['buf_t'] = kwargs['buf_h']
+                kwargs['dim_t'] = kwargs['dim_h']
+                kwargs['head_position'][1] -= 1
+                kwargs['tail_position'][1] -= 1
+                kwargs['buffer_status'] = cf.extend_buffer_status(kwargs['head_position'],
+                                    kwargs['buffer_length'], kwargs['buffer_status'])
+
             while time.time() - start < kwargs['frametime']:
                 time.sleep(0.01)
         self.finished.emit()
 
 
-    def process(self):
+    def process_old(self):
         self.error.emit('Process starting!')
         kwargs = self.prepare_frame()
         while kwargs['running']:
@@ -218,7 +228,6 @@ class RunController(QObject):
                 0
             )
 
-            time.sleep(0.01)
             while time.time() - start < kwargs['frametime']:
                 time.sleep(0.01)
         self.finished.emit()

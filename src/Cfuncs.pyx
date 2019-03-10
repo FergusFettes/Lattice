@@ -291,7 +291,7 @@ cpdef extend_buffer_status(int[:] position, int buffer_length, int[:, :] buffer_
         buffer_status = buffer_status_nu
     elif len(buffer_status) > buf_choice + 1:
         buffer_status_nu = np.zeros((len(buffer_status) - 1, buffer_length), np.intc)
-        buffer_status_nu[:, :] = buffer_status[0:-1, :]
+        buffer_status_nu[:, :] = buffer_status[1:, :]
         buffer_status = buffer_status_nu
 
     return buffer_status

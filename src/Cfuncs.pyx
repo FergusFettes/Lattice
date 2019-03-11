@@ -59,7 +59,10 @@ cpdef change_zoom_level(int[:] head_pos, int buffer_length, int[:, :] buffer_sta
     :param buffer_status:
     :param dim:
     :param buf:
-    :return:        (3D pointer) new buffer
+    :return:
+        (pointer) new dim
+        (3D pointer) new buffer
+        (int) size of change
     """
     cdef int[:] dim_v
     cdef int[:, :, :] buf_v

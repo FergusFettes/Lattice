@@ -4,9 +4,12 @@
 This app started off as an attempt to visualise different lattice models, and to see what happens when you mix a bunch of them together. It is currently very visually-oriented, though I intend to add some analytics later.
 
 ## Getting started
+Before you have a chance at running it, you have to build the c-libraries with cython. If you have cython installed, everything you need to build the libraries should be in the setupCfuncs.py files, and particularly the 'cyscript.sh' file will show you what is needed. maybe you can just run that script.
+
 Unless you have QT5 on your computer, it is pretty hard to get it working at the moment. I do inted to package it with QT at some point but not yet. This means that the pip install doesnt work either. All you can do is clone the git repo and try running one of the executables (**Xcute is the main GUI, Xterminal is a terminal version**).
 
-To facilitate rapid testing, there are a few keyboard shortcuts:
+
+To facilitate rapid testing, there are a few keybeard shortcuts:
 > NB: much has changed in version 2, maybe I'll add back some of these later but for now they are gone.
 * **E** starts a dynamic run. The length is determined by the 'frames' in the bottom right.
 * **Esc** interrupts the current run, or closes the app if nothing is running. (Closing is pretty buggy.)

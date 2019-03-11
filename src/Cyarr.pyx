@@ -269,6 +269,7 @@ cpdef fill_array(int[:] dim, int[:, :] arr):
     """
     Fills arr with 1s
 
+    :param dim:     (pointer) arr dimensions
     :param arr:     (2D pointer) arr
     :return:        None
     """
@@ -278,6 +279,7 @@ cpdef clear_array(int[:] dim, int[:, :] arr):
     """
     Fills arr with 0s
 
+    :param dim:     (pointer) arr dimensions
     :param arr:     (2D pointer) arr
     :return:        None
     """
@@ -290,6 +292,7 @@ cpdef replace_array(int[:] offset, int[:] dim_nu, int[:, :] nuarr, int[:] dim, i
     :param offset:  (pointer) offset of inner arr
     :param dim_nu:  (pointer) dimensions of inner arr
     :param nuarr:   (2D pointer) inner arr
+    :param dim:     (pointer) arr dimensions
     :param arr:     (2D pointer) arr
     :return:        None
     """

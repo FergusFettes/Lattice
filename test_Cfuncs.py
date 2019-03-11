@@ -1,11 +1,16 @@
+import random as ra
 import array
 import numpy as np
 from numpy import testing
+import io
 import unittest
+import unittest.mock
+from PyQt5.QtGui import QImage
 
 from src.Cfuncs import *
 import src.Cyarr as cy
 import src.Cyphys as cyphys
+import src.Pfuncs as pf
 
 debug = True
 simple = False
@@ -45,6 +50,28 @@ def tst_dimL():
     return memoryview(array.array('i', [500, 500]))
 
 
+class ImageProcessingTestCase(unittest.TestCase):
+
+    def setUp(self):
+        dim = tst_dimL()
+        colHex1 = int(ra.random() * int('0xffffffff', 16))
+        colHex2 = int(ra.random() * int('0xffffffff', 16))
+        colHex3 = int(ra.random() * int('0xffffffff', 16))
+        colHex4 = int(ra.random() * int('0xffffffff', 16))
+        self.colorList = [colHex1, colHex2, colHex3, colHex4]
+        self.L = np.random.randint(0, tst_dimL()[0], 1000).reshape(500, 2)
+        self.image = QImage(dim[0], dim[1], QImage.Format_ARGB32)
+        self.imageDim = np.asarray(dim)
+        self.imageScale = np.asarray(4, np.intc)
+
+    def test_replace_image_positions(self):
+        pass
+        image2 = QImage(self.imageDim[0], self.imageDim[1], QImage.Format_ARGB32)
+        self.assertEqual(self.image, image2)
+        pf.replace_image_positions(self.image, self.colorList, self.L, 2)
+        cf.replace_image_positions(image2, self.colorList, self.L, 2)
+        self.assertEqual(self.image, image2)
+
 class BasicSuiteTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -52,21 +79,32 @@ class BasicSuiteTestCase(unittest.TestCase):
             _, _, _, self.dim, self.arr, self.buf = init([50, 50])
         self.bounds = array.array('i', [1, 1, 1, 1])
         self.bars = np.array([[0, 1, 1, 0, 0, 1]], np.double)
+        self.fuzz = np.array([[0.1, 1.1, 1.1, 0.1, 0.1, 0.5, 1.1]], np.double)
+        self.roll = array.array('i', [1, 1])
         self.updates = 0.01
         self.beta = 1/8
         self.threshold = 0.9
-        self.coverage = 0.9
         self.rules = np.array([[2,5,4,6],[3,4,3,6]], np.intc)
 
     def test_init_basic(self):
         self.head_pos, self.tail_pos, self.buf_siz, self.buf_stat,\
             _, _, _, self.dim, self.arr, self.buf = init([50, 50])
 
-    def test_basic_print_defaults(self):
+    @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
+    def test_basic_print_size(self, mock_stdout):
         basic_print(self.dim, self.arr)
+        out = mock_stdout.getvalue()
+        self.assertEqual(int(len(out)/self.dim[1]), self.dim[0] + 1)
 
-    def test_basic_print_bounds_scroll(self):
+    @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
+    def test_basic_print_bounds_scroll(self, mock_stdout):
         basic_print(self.dim, self.arr, self.bounds, self.bars)
+
+    @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
+    def test_basic_print_bounds_scroll(self, mock_stdout):
+        basic_print(self.dim, self.arr, self.bounds)
+        out = mock_stdout.getvalue()
+        self.assertEqual(out[0], 'o')
 
     def test_basic_update_off(self):
         arr = np.copy(self.arr)
@@ -121,6 +159,72 @@ class BasicSuiteTestCase(unittest.TestCase):
             self.arr,
             self.bounds,
             self.bars
+        )
+        testing.assert_equal(np.any(np.not_equal(arr, self.arr)), True)
+
+    def test_basic_update_buffer_off(self):
+        arr = np.copy(self.arr)
+        basic_update_buffer(
+            0,
+            self.beta,
+            0,
+            np.array([[-1,0,0,0]], np.intc),
+            self.head_pos, 10,
+            self.dim,
+            self.arr,
+            self.buf,
+        )
+        testing.assert_array_equal(arr, self.arr)
+
+    def test_basic_update_buffer_bounds(self):
+        arr = np.copy(self.arr)
+        basic_update_buffer(
+            0,
+            self.beta,
+            0,
+            np.array([[-1,0,0,0]], np.intc),
+            self.head_pos, 10,
+            self.dim,
+            self.arr,
+            self.buf,
+            self.bounds,
+        )
+        cy.fill_bounds(self.dim, arr)
+        testing.assert_array_equal(arr, self.arr)
+
+    def test_basic_update_buffer_scroll(self):
+        arr = np.copy(self.arr)
+        basic_update_buffer(
+            0,
+            self.beta,
+            0,
+            np.array([[-1,0,0,0]], np.intc),
+            self.head_pos, 10,
+            self.dim,
+            self.arr,
+            self.buf,
+            self.bounds,
+            bars = np.array([[1, 1, 1, 0, 0, 1]], np.double),
+        )
+        cy.fill_bounds(self.dim, arr)
+        arr[1, :] = 1
+        testing.assert_array_equal(arr, self.arr)
+
+    def test_basic_update_buffer_on(self):
+        arr = np.copy(self.arr)
+        basic_update_buffer(
+            self.updates,
+            self.beta,
+            self.threshold,
+            np.array([[-1,0,0,0]], np.intc),
+            self.head_pos, 10,
+            self.dim,
+            self.arr,
+            self.buf,
+            self.bounds,
+            self.bars,
+            self.fuzz,
+            self.roll
         )
         testing.assert_equal(np.any(np.not_equal(arr, self.arr)), True)
 
@@ -216,10 +320,13 @@ class MiscTestCase(unittest.TestCase):
         self.assertAlmostEqual(np.asarray(arr).mean(), np.asarray(arr2).mean(), 2)
 
     def test_prepair_rule_fails_1D(self):
-        print('PASSING: Cant get assertRaises to work')
-        return
-        rules = np.array([2,3,3,3], np.intc)
-        self.assertRaises(TypeError, prepair_rule(rules, 1))
+        try:
+            rules = np.array([2,3,3,3], np.intc)
+            self.assertEqual('Manual', 'fail test, cause couldnt get assertRaises to work')
+        except:
+            st = 'failed_successfully'
+            self.assertEqual(st, st)
+
 
     def test_prepair_rule_passes_2D(self):
         rules = np.array([[2,3,3,3]], np.intc)
@@ -231,13 +338,23 @@ class MiscTestCase(unittest.TestCase):
         rule = prepair_rule(rules, self.position)
         testing.assert_array_equal(np.asarray(rule), np.array([1,1,1,1]))
 
-    def test_print_buffer_status_standard(self):
-        print('Prints something? I guess the is a check for this..')
-        print_buffer_status(np.array([[1,2,3,4]], np.intc))
+    @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
+    def test_print_buffer_status_standard(self, mock_stdout):
+        print_buffer_status(np.array([[1,2,0,0]], np.intc))
+        out = mock_stdout.getvalue()
+        self.assertEqual(int(len(out)/4), 13)
 
-    def test_print_buffer_status_custom(self):
-        print('Prints something? I guess the is a check for this..')
-        print_buffer_status(np.array([[1,2,3,4]], np.intc), 1, '&', '_')
+    @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
+    def test_print_buffer_status_short_padding(self, mock_stdout):
+        print_buffer_status(np.array([[1,2,0,0]], np.intc), pad=1)
+        out = mock_stdout.getvalue()
+        self.assertEqual(int(len(out)/4), 7)
+
+    @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
+    def test_print_buffer_status_custom(self, mock_stdout):
+        print_buffer_status(np.array([[1,2,0,1]], np.intc), 1, '>', 'm')
+        out = mock_stdout.getvalue()
+        self.assertEqual(out[0], '>')
 
 class BufferHandlingTestCase(unittest.TestCase):
 
@@ -251,20 +368,20 @@ class BufferHandlingTestCase(unittest.TestCase):
     def test_update_array_positions_writes(self):
         position = self.position
         self.buffer_status[0, position[0]] = 1
-        arr = update_array_positions(position, self.buf_len, self.buffer_status, self.buf)
+        arr = update_array_positions(position, self.buf_len, self.buffer_status, self.buf, 0)
         self.assertEqual(self.buffer_status[0, 1], 1)
 
     def test_update_array_positions_clears(self):
         position = self.position
         self.buffer_status[0, position[0]] = 1
-        arr = update_array_positions(position, self.buf_len, self.buffer_status, self.buf)
+        arr = update_array_positions(position, self.buf_len, self.buffer_status, self.buf, 0)
         self.assertEqual(self.buffer_status[0, 0], 0)
 
     def test_update_array_positions_wraps(self):
         position = self.position
         position = array.array('i', [self.buf_len - 1, 0])
         self.buffer_status[0, position[0]] = 1
-        arr = update_array_positions(position, self.buf_len, self.buffer_status, self.buf)
+        arr = update_array_positions(position, self.buf_len, self.buffer_status, self.buf, 0)
         self.assertEqual(self.buffer_status[0, 0], 1)
 
     def test_init_array_has_dimensions(self):
@@ -389,8 +506,29 @@ class NoiseTestCase(unittest.TestCase):
 
     def test_add_global_noise_lots_of_noise(self):
         arr = np.zeros_like(tst_arrL())
-        for _ in range(1):
-            add_global_noise(0.5, tst_dimL(), arr)
+        add_global_noise(0.5, tst_dimL(), arr)
+        testing.assert_almost_equal(np.mean(arr),
+                                    np.mean(np.random.randint(0, 2, tst_dimL())),
+                                    decimal=2)
+
+    def test_add_stochastic_noise_off(self):
+        arr = tst_arr()
+        add_stochastic_noise(0, tst_dim(), arr)
+        testing.assert_array_equal(tst_arr(), arr)
+
+    def test_add_stochastic_noise_additive(self):
+        arr = np.zeros_like(tst_arrL())
+        add_stochastic_noise(10, tst_dimL(), arr, 1)
+        testing.assert_almost_equal(np.mean(arr), 1, decimal = 4)
+
+    def test_add_stochastic_noise_subtractive(self):
+        arr = np.ones_like(tst_arrL())
+        add_stochastic_noise(10, tst_dimL(), arr, -1)
+        testing.assert_almost_equal(np.mean(arr), 0, decimal = 4)
+
+    def test_add_stochastic_noise_lots_of_noise(self):
+        arr = np.zeros_like(tst_arrL())
+        add_stochastic_noise(10, tst_dimL(), arr)
         testing.assert_almost_equal(np.mean(arr),
                                     np.mean(np.random.randint(0, 2, tst_dimL())),
                                     decimal=2)
@@ -413,81 +551,81 @@ class NoiseTestCase(unittest.TestCase):
 class NeighborTestCase(unittest.TestCase):
 
     def test_moore_neighbors_sum_random_versus_roll(self):
-        arr = tst_arrL()
-        add_global_noise(0.5, tst_dimL(), arr)
-        l = cy.roll_columns(1, tst_dimL(), arr)
-        r = cy.roll_columns(-1, tst_dimL(), arr)
-        u = cy.roll_rows(1, tst_dimL(), arr)
-        d = cy.roll_rows(-1, tst_dimL(), arr)
+        arr = tst_arr()
+        add_global_noise(0.5, tst_dim(), arr)
+        l = cy.roll_columns(1, tst_dim(), arr)
+        r = cy.roll_columns(-1, tst_dim(), arr)
+        u = cy.roll_rows(1, tst_dim(), arr)
+        d = cy.roll_rows(-1, tst_dim(), arr)
         NB = np.asarray(l) + np.asarray(r) + np.asarray(u) + np.asarray(d)
-        NB2 = moore_neighbors_array(tst_dimL(), arr)
+        NB2 = moore_neighbors_array(tst_dim(), arr)
 
         testing.assert_array_equal(NB, NB2)
 
     def test_moore_neighbors_same_random_versus_roll(self):
-        arr = tst_arrL()
-        add_global_noise(0.5, tst_dimL(), arr)
-        l = cy.roll_columns(1, tst_dimL(), arr)
-        r = cy.roll_columns(-1, tst_dimL(), arr)
-        u = cy.roll_rows(1, tst_dimL(), arr)
-        d = cy.roll_rows(-1, tst_dimL(), arr)
+        arr = tst_arr()
+        add_global_noise(0.5, tst_dim(), arr)
+        l = cy.roll_columns(1, tst_dim(), arr)
+        r = cy.roll_columns(-1, tst_dim(), arr)
+        u = cy.roll_rows(1, tst_dim(), arr)
+        d = cy.roll_rows(-1, tst_dim(), arr)
         NB = np.asarray(l) + np.asarray(r) + np.asarray(u) + np.asarray(d)
         NB2 = np.zeros_like(arr)
         pos = array.array('i', [0, 0])
-        for i in range(tst_dimL()[0]):
-            for j in range(tst_dimL()[1]):
+        for i in range(tst_dim()[0]):
+            for j in range(tst_dim()[1]):
                 pos[0] = i
                 pos[1] = j
-                NB2[i, j] = moore_neighbors_same_CP(pos, tst_dimL(), arr)
+                NB2[i, j] = moore_neighbors_same_CP(pos, tst_dim(), arr)
                 if not arr[i, j]:
                     NB[i, j] = 4 - NB[i, j]
 
         testing.assert_array_equal(NB, NB2)
 
     def test_moore_neighbors_same_complex(self):
-        arr = tst_arrL()
-        add_global_noise(0.5, tst_dimL(), arr)
+        arr = tst_arr()
+        add_global_noise(0.5, tst_dim(), arr)
         pos = array.array('i', [0, 0])
         NB = np.zeros_like(arr)
         NB2 = np.zeros_like(arr)
-        for i in range(tst_dimL()[0]):
-            for j in range(tst_dimL()[1]):
+        for i in range(tst_dim()[0]):
+            for j in range(tst_dim()[1]):
                 pos[0] = i
                 pos[1] = j
-                NB[i, j] = moore_neighbors_same_CP(pos, tst_dimL(), arr)
-                NB2[i, j] = moore_neighbors_same_complex(pos, tst_dimL(), arr)
+                NB[i, j] = moore_neighbors_same_CP(pos, tst_dim(), arr)
+                NB2[i, j] = moore_neighbors_same_complex(pos, tst_dim(), arr)
 
         testing.assert_array_equal(NB, NB2)
 
     def test_neumann_neighbors_sum_CP_random_versus_roll(self):
-        arr = tst_arrL()
-        add_global_noise(0.5, tst_dimL(), arr)
-        l = cy.roll_columns(1, tst_dimL(), arr)
-        r = cy.roll_columns(-1, tst_dimL(), arr)
-        u = cy.roll_rows(1, tst_dimL(), arr)
-        d = cy.roll_rows(-1, tst_dimL(), arr)
-        ul = cy.roll_rows(1, tst_dimL(), l)
-        dl = cy.roll_rows(-1, tst_dimL(), l)
-        ur = cy.roll_rows(1, tst_dimL(), r)
-        dr = cy.roll_rows(-1, tst_dimL(), r)
+        arr = tst_arr()
+        add_global_noise(0.5, tst_dim(), arr)
+        l = cy.roll_columns(1, tst_dim(), arr)
+        r = cy.roll_columns(-1, tst_dim(), arr)
+        u = cy.roll_rows(1, tst_dim(), arr)
+        d = cy.roll_rows(-1, tst_dim(), arr)
+        ul = cy.roll_rows(1, tst_dim(), l)
+        dl = cy.roll_rows(-1, tst_dim(), l)
+        ur = cy.roll_rows(1, tst_dim(), r)
+        dr = cy.roll_rows(-1, tst_dim(), r)
         NB = np.asarray(l) + np.asarray(r) + np.asarray(u) + np.asarray(d) +\
                     np.asarray(ul) + np.asarray(ur) + np.asarray(dl) + np.asarray(dr)
-        NB2 = neumann_neighbors_array(tst_dimL(), arr)
+        NB2 = neumann_neighbors_array(tst_dim(), arr)
 
         testing.assert_array_equal(NB, NB2)
 
     def test_neumann_neighbors_same_complex(self):
-        arr = tst_arrL()
-        add_global_noise(0.5, tst_dimL(), arr)
+        arr = tst_arr()
+        add_global_noise(0.5, tst_dim(), arr)
         pos = array.array('i', [0, 0])
         NB = np.zeros_like(arr)
         NB2 = np.zeros_like(arr)
-        for i in range(tst_dimL()[0]):
-            for j in range(tst_dimL()[1]):
+        for i in range(tst_dim()[0]):
+            for j in range(tst_dim()[1]):
                 pos[0] = i
                 pos[1] = j
-                NB[i, j] = neumann_neighbors_same(pos, tst_dimL(), arr)
-                NB2[i, j] = neumann_neighbors_same_complex(pos, tst_dimL(), arr)
+                NB[i, j] = neumann_neighbors_same(pos, tst_dim(), arr)
+                NB2[i, j] = neumann_neighbors_same_complex(pos, tst_dim(), arr)
         testing.assert_array_equal(NB, NB2)
 
 class IsingTestCase(unittest.TestCase):

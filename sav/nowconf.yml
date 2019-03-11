@@ -43,9 +43,9 @@ defaults:
 lastsave:
   analysis:
     steady: {entropy: None, population: None, radius: None}
-  bounds: [-1, -1, -1, -1]
+  bounds: [1, 1, 1, 1]
   canvas:
-    colorlist: [659244631, 437461332, 2327516145, 3037330853, 4294967295, 4294967295]
+    colorlist: [1688427884, 59340392, 2690082471, 1234550092, 4294967295, 4294967295]
     dim: [200, 200]
     fullscreen: false
     record: false
@@ -55,21 +55,18 @@ lastsave:
     rules:
     - [2, 3, 3, 3]
     switch: true
-  general: {equilibrate: false, frametime: 1.0, interrupt: false, maxFPS: 24, resize: true,
-    rundone: 0, running: true, runtodo: -1, update: false}
-  ising: {beta: 0.4, degree: 2, equilibrate: 10000, switch: true, updates: 0.0}
-  noise: {switch: true, threshold: 7.810763725135672e-06}
+  general: {equilibrate: false, frametime: 0.03225806451612903, interrupt: false,
+    maxFPS: 24, resize: false, rundone: 0, running: true, runtodo: -1, update: false}
+  ising: {beta: 1.0, degree: 2, equilibrate: 10000, switch: true, updates: 0.0}
+  noise: {switch: true, threshold: 0.00036327031321814474}
   scroll:
     bars:
-    - [0.0, 3.0, 17.0, 1.0, 1.0, 1.0]
-    - [0.0, 7.0, 43.0, 1.0, 0.0, 0.0]
+    - [0.0, 3.0, 17.0, 1.0, 1.0, -1.0]
     fuzz:
-    - [0.0, 10.0, 0.2, 0.0, 0.0, 0.1, 1.0]
-    - [10.0, 100.0, 0.2, 0.0, 0.0, 0.1, -1.0]
-    - [110.0, 100.0, 0.2, 0.0, 0.0, 0.05, -1.0]
+    - [0.0, 10.0, 0.2, 0.0, 0.0, 0.1, -2.0]
     switch: true
   transform:
-    roll: [0, -1]
+    roll: [0, 0]
     switch: true
   wolfram: {polarity: 1, position: 0, rule: 90, scale: 1}
 monstro:

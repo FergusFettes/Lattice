@@ -89,7 +89,7 @@ class RunController(QObject):
         self.buf_stat[0, 0] = 2 #placing the tail
 
 #===============MAIN PROCESS OF THE THREAD===================#
-    def process(self):
+    def process2(self):
         self.growth_variables(self.st)
         self.error.emit('Proccess starting!')
         kwargs = self.prepare_frame()
@@ -167,7 +167,7 @@ class RunController(QObject):
         self.finished.emit()
 
 
-    def process_old(self):
+    def process(self):
         self.error.emit('Process starting!')
         kwargs = self.prepare_frame()
         while kwargs['running']:
@@ -207,8 +207,8 @@ class RunController(QObject):
             arr_t_old = kwargs['buf'][(kwargs['tail_position'][0] - 1) % kwargs['buffer_length']]
             b, d = pf.get_births_deaths_P(arr_t_old, kwargs['arr_t'])
             logging.debug('Replacing locations in image')
-            self.replace_image_positions(b, 0)
-            self.replace_image_positions(d, 1)
+            cf.replace_image_positions(self.image, kwargs['colorlist'], np.asarray(b, np.intc), 0)
+            cf.replace_image_positions(self.image, kwargs['colorlist'], np.asarray(d, np.intc), 1)
             logging.debug('Sending image')
             self.send_image()
 
@@ -249,6 +249,7 @@ class RunController(QObject):
             'running':self.st.general.running,
             'frametime':self.st.general.frametime,
             'update_settings':self.st.general.update,
+            'colorlist':np.asarray(self.st.canvas.colorlist, np.intc),
             'threshold':self.st.noise.threshold,
             'updates':self.st.ising.updates,
             'beta':self.st.ising.beta,
@@ -265,6 +266,7 @@ class RunController(QObject):
             'running':self.st.general.running,
             'frametime':self.st.general.frametime, #NB: to get the to update in realtime, just use the original value
             'update_settings':self.st.general.update,
+            'colorlist':np.asarray(self.st.canvas.colorlist, np.intc),
             'threshold':self.st.noise.threshold,
             'updates':self.st.ising.updates,
             'beta':self.st.ising.beta,

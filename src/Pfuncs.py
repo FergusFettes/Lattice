@@ -2,6 +2,33 @@ import numpy as np
 from numpy.core.umath_tests import inner1d
 
 
+def export_array(image, colorList, A, color_offset):
+    """
+    Updates the image with the values from an entire array.
+
+    :param self:
+    :param A:               Array to use as new image
+    :param color_offset:    Use primary colors (0) or secondary colors (2)?
+    :return:                None
+    """
+    a = A.shape[0]
+    b = A.shape[1]
+    for i in range(a):
+        for j in range(b):
+            num = int(A[i][j])
+            color = colorList[num + color_offset]
+            image.setPixel(i, j, color)
+
+def replace_image_positions(image, colorList, L, color):
+    """
+    Updates the given positions with the specified color
+
+    :param L:       List of positions to update
+    :param color:   selection from colorlist
+    :return:        None
+    """
+    [image.setPixel(el[0], el[1], colorList[color]) for el in L]
+
 #==============WOLFRAM==========================#
 # Make little wolfline and array
 def make_wolf(random, dim, scale, rule):

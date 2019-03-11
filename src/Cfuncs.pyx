@@ -13,32 +13,39 @@ cimport numpy as np
 import src.Cyarr as cy
 
 #============================Image processing
-#cpdef export_array(PyObject image, int[:] colorList, int[:] dim, int[:, :] arr, int color_offset):
-#        """
-#        Updates the image with the values from an entire array.
-#
-#        :param image:           A QImage object to be written to
-#        :param dim:             dimensions of the array
-#        :param  array:          Array to use as new image
-#        :param color_offset:    Use primary colors (0) or secondary colors (2)?
-#        :return:                None
-#        """
-#        for i in range(dim[0]):
-#            for j in range(dim[1]):
-#                color = colorList[arr[i][j] + color_offset]
-#                image.setPixel(i, j, color)
-#
-#cpdef replace_image_positions(PyObject image, int[:] colorList, int[:, :] L, int color):
-#        """
-#        Updates the given positions with the specified color
-#
-#        :param image:           A QImage object to be written to
-#        :param L:       List of positions to update
-#        :param color:   selection from colorlist
-#        :return:        None
-#        """
-#        for el in L:
-#            image.setPixel(el[0], el[1], colorList[color])
+cpdef void export_array(object image, int[:] colorList, int[:] dim, int[:, :] arr, int color_offset):
+    """
+    Updates the image with the values from an entire array.
+
+    :param image:           A QImage object to be written to
+    :param colorList:       List of colors, as integers
+    :param dim:             Dimensions of the array
+    :param array:           Array to use as new image
+    :param color_offset:    Use primary colors (0) or secondary colors (2)?
+    :return:                None
+    """
+    cdef int color
+    cdef Py_ssize_t i, j
+    cdef int a = dim[0]
+    cdef int b = dim[1]
+    for i in range(a):
+        for j in range(b):
+            color = colorList[arr[i][j] + color_offset]
+            image.setPixel(i, j, color)
+
+cpdef void replace_image_positions(object image, int[:] colorList, int[:, :] L, int color):
+    """
+    Updates the given positions with the specified color
+
+    :param image:   A QImage object to be written to
+    :param colorList:       List of colors, as integers
+    :param L:       List of positions to update
+    :param color:   selection from colorlist
+    :return:        None
+    """
+    cdef int[:] el
+    for el in L:
+        image.setPixel(el[0], el[1], colorList[color])
 
 #==================HI-LEVEL==================
 #============================================
@@ -569,7 +576,7 @@ cpdef add_stochastic_noise(float coverage, int[:] dim, int[:, :] arr, int polari
     NB: This is slower than add_global_noise for large noise levels.
     Use the 'additive' setting to make the most of the speed if you want a fuller array.
 
-    :param threshold: (float) Noise threshold (0-1)
+    :param coverage: (float) update percentage (0-1)
     :param dim:     (pointer) dimensions of array
     :param array:   (2D pointer) array
     :param polarity (int) 1 is additive, 0 is normal and -1 is subtractive

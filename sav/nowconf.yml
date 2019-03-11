@@ -55,7 +55,7 @@ lastsave:
     rules:
     - [2, 3, 3, 3]
     switch: true
-  general: {growth: false, equilibrate: false, frametime: 0.03225806451612903, interrupt: false,
+  general: {growth: true, equilibrate: false, frametime: 0.03225806451612903, interrupt: false,
     maxFPS: 24, resize: false, rundone: 0, running: true, runtodo: -1, update: false}
   ising: {beta: 1.0, degree: 2, equilibrate: 10000, switch: true, updates: 0.0}
   noise: {switch: true, threshold: 0.00036327031321814474}

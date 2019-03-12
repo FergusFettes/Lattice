@@ -75,7 +75,7 @@ class MainWindow(QMainWindow):
         self.st.wolfram.scale = val()
 
     def general_wolfwave(self, val):
-        self.st.general.wolfwave = val()
+        self.st.wolfram.switch = val()
 
     def wolfram_polarity(self, val):
         self.st.wolfram.polarity = val()
@@ -104,9 +104,6 @@ class MainWindow(QMainWindow):
 
     def ising_updates(self, val):
         self.st.ising.updates = val() / 100
-
-    def ising_equilibrate(self, val):
-        self.st.ising.equilibrate = val()
 
     def ising_degree(self, val):
         self.st.ising.degree = val()
@@ -253,7 +250,7 @@ class MainWindow(QMainWindow):
             ffmpeg
             .input('images/temp%04d.png')
             .output('images/{3}x{4}-frames:{2}-wolf:{1}-rule:{0}.gif'.format(
-                rules, self.st.general.wolfwave, max(fileints),
+                rules, self.st.wolfram.switch, max(fileints),
                 self.st.canvas.dim[0], self.st.canvas.dim[1]), framerate=5, f='gif')
             .run()
         )
@@ -270,8 +267,6 @@ class MainWindow(QMainWindow):
 
     def shutdown(self):
         if self.engine.taskthread.isRunning():
-            self.st.general.equilibrate = False
-            self.st.general.clear = False
             self.st.general.running = False
             self.engine.taskthread.requestInterruption()
             print('Attempting to interrupt!')
@@ -362,7 +357,7 @@ class MainWindow(QMainWindow):
 #                                               self.wolfScale.value))
 #       self.WolframTool.addWidget(self.wolfScale)
 #       self.wolfCheck = QCheckBox('WolfWaveTM')
-#       self.wolfCheck.setChecked(self.st.general.wolfwave)
+#       self.wolfCheck.setChecked(self.st.wolfwave.switch)
 #       self.wolfCheck.stateChanged.connect(partial(self.general_wolfwave,
 #                                           self.wolfCheck.isChecked))
 #       self.WolframTool.addWidget(self.wolfCheck)

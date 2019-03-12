@@ -399,6 +399,23 @@ class BufferHandlingTestCase(unittest.TestCase):
         self.assertEqual(len(self.buf_stat), 1)
         self.assertEqual(self.buf_stat[0, 0], 2)
 
+    def test_change_zoom_level_array_larger(self):
+        add_stochastic_noise(1, self.dim, self.arr)
+        dim, arr, change = change_zoom_level_array(self.dim, self.arr)
+        self.assertEqual(change, 1)
+        self.assertEqual(dim[0], self.dim[0] + 2)
+
+    def test_change_zoom_level_array_larger_content(self):
+        cy.fill_array(self.dim, self.arr)
+        dim, arr, change = change_zoom_level_array(self.dim, self.arr)
+        cy.fill_bounds(dim, arr)
+        testing.assert_array_equal(np.mean(arr), np.mean(self.arr))
+
+    def test_change_zoom_level_array_larger_content(self):
+        add_stochastic_noise(1, self.dim, self.arr)
+        dim, arr, change = change_zoom_level_array(self.dim, self.arr)
+        testing.assert_array_equal(arr[1:-1, 1:-1], self.arr)
+
     def test_change_zoom_level_larger(self):
         add_stochastic_noise(1, self.dim, self.arr)
         self.assertEqual(len(self.buf_stat), 1)

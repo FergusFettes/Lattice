@@ -6,9 +6,7 @@ import time
 import src.Cfuncs as cf
 import src.Cyarr as cy
 import src.Cyphys as cph
-from src.PHifuncs import (
-    recenter
-)
+import src.PHifuncs as phi
 
 import logging
 LOGGING_LEVEL = logging.INFO
@@ -89,6 +87,9 @@ def basic_update(kwargs):
     cf.conway_process(cf.prepair_rule(kwargs['rules'], kwargs['head_position']),
                     kwargs['dim_h'], kwargs['arr_h'])
     cy.set_bounds(kwargs['bounds'], kwargs['dim_h'], kwargs['arr_h'])
+    if growth:
+        com = cph.center_of_mass(kwargs['dim_h'], kwargs['arr_h'])
+        _, _, = phi.recenter(com, kwargs['dim_h'], kwargs['arr_h'])
 
 def buffer_handler_head(kwargs):
     """

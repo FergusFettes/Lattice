@@ -136,6 +136,14 @@ class MainWindow(QMainWindow):
         self.st.ising.beta = self.tempCtrl.value() / 100
         self.tempLabel.setText('Beta = {:01.2f}'.format(self.tempCtrl.value() / 100))
 
+    def growth_switch(self):
+        state = self.growthBox.isChecked()
+        self.growthBox.setChecked(not state)
+
+    def stochi_switch(self):
+        state = self.stochasticBox.isChecked()
+        self.stochasticBox.setChecked(not state)
+
     def choose_color(self, callback, *args):
         dlg = QColorDialog()
         if dlg.exec():
@@ -146,17 +154,6 @@ class MainWindow(QMainWindow):
         templist[num] = QColor(hexx).rgba()
         self.st.canvas.colorlist = templist
         button.setStyleSheet('QPushButton { background-color: %s; }' % hexx)
-
-    #TODO: get rid of this, its dumb
-    def conway_mangler(self):
-        if self.conwayMangled:
-            old = self.conwayRules.toPlainText()
-            self.conwayRules.setText(old[2:-2])
-            self.conwayMangled = False
-        else:
-            old = self.conwayRules.toPlainText()
-            self.conwayRules.setText('!!{}!!'.format(old))
-            self.conwayMangled = True
 
     def record_change(self):
         self.engine.taskthread.requestInterruption()
@@ -198,8 +195,8 @@ class MainWindow(QMainWindow):
 
 
     def barRulesChange(self):
-        regexTestString=r'^(?:([0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)(-?[0-9]*\.[0-9]*)(?:;\ ?)[\ \n]*)+$'
-        regexMatchString=r'([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)(-?[0-9]+\.[0-9]+)(?:;\ ?)'
+        regexTestString=r'^(?:([0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)(-?[0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)([0-9]*\.[0-9]*)(?:,\ ?)(-?[0-9]*\.[0-9]*)(?:;\ ?)[\ \n]*)+$'
+        regexMatchString=r'([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)(-?[0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)(-?[0-9]+\.[0-9]+)(?:;\ ?)'
         text = self.barRules.toPlainText()
         strTest = re.match(regexTestString, text)
         if strTest is None:
@@ -221,8 +218,8 @@ class MainWindow(QMainWindow):
         self.st.scroll.bars = rules
 
     def fuzzRulesChange(self):
-        regexTestString=r'^(?:([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)(-?[0-9]+\.[0-9]+)(?:;\ ?)[\ \n]*)+$'
-        regexMatchString=r'([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)(-?[0-9]+\.[0-9]+)(?:;\ ?)'
+        regexTestString=r'^(?:([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)(-?[0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)(-?[0-9]+\.[0-9]+)(?:;\ ?)[\ \n]*)+$'
+        regexMatchString=r'([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)(-?[0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)([0-9]+\.[0-9]+)(?:,\ ?)(-?[0-9]+\.[0-9]+)(?:;\ ?)'
         text = self.fuzzRules.toPlainText()
         strTest = re.match(regexTestString, text)
         if strTest is None:
@@ -268,63 +265,46 @@ class MainWindow(QMainWindow):
 
     #TODO: make it save the previous configuration before overwriting
     def save_defaults(self):
-        original = safe_load(open('sav/defconf.yml'))
         sav = {'lastsave': unmunchify(self.st)}
-        original.update(sav)
-        safe_dump(original, open('sav/nowconf.yml', 'w'))
+        safe_dump(sav, open('sav/nowconf.yml', 'w'))
+
+    def shutdown(self):
+        if self.engine.taskthread.isRunning():
+            self.st.general.equilibrate = False
+            self.st.general.clear = False
+            self.st.general.running = False
+            self.engine.taskthread.requestInterruption()
+            print('Attempting to interrupt!')
+        else:
+            self.engine.taskthread.deleteLater()
+            QCoreApplication.instance().quit()
+            print('Threads shutting down and powering off')
 
     def keyPressEvent(self, e):
-        print(e.key())
-        # TODO: make this a dictonary
-        if e.key() == Qt.Key_Escape:
-            if self.engine.taskthread.isRunning():
-                self.st.general.equilibrate = False
-                self.st.general.clear = False
-                self.st.general.running = False
-                self.engine.taskthread.requestInterruption()
-                print('Attempting to interrupt!')
-            else:
-                self.engine.taskthread.deleteLater()
-                QCoreApplication.instance().quit()
-                print('Threads shutting down and powering off')
-        elif e.key() == 16777251:
-            # left alt key
-            self.speedCtrl.setFocus()
-        elif e.key() == Qt.Key_C:
-            self.speedCtrl.triggerAction(QSlider.SliderPageStepAdd)
-        elif e.key() == Qt.Key_X:
-            self.speedCtrl.triggerAction(QSlider.SliderPageStepSub)
-        elif e.key() == Qt.Key_O:
-            self.make_fullscreen()
-        elif e.key() == Qt.Key_D:
-            self.tempCtrl.triggerAction(QSlider.SliderPageStepAdd)
-        elif e.key() == Qt.Key_A:
-            self.tempCtrl.triggerAction(QSlider.SliderPageStepSub)
-        elif e.key() == Qt.Key_W:
-            self.thresholdCtrl.triggerAction(QSlider.SliderPageStepAdd)
-        elif e.key() == Qt.Key_S:
-            self.thresholdCtrl.triggerAction(QSlider.SliderPageStepSub)
-        # Change Colors, RF
-        elif e.key() == Qt.Key_R:
-            self.primaryButton.click()
-        elif e.key() == Qt.Key_F:
-            self.secondaryButton.click()
-        elif e.key() == Qt.Key_1:
-            state = self.stochasticBox.isChecked()
-            self.stochasticBox.setChecked(not state)
-        elif e.key() == Qt.Key_2:
-            state = self.growthBox.isChecked()
-            self.growthBox.setChecked(not state)
-        elif e.key() == Qt.Key_E:
-            self.dynamic.click()
+        keys = {
+            Qt.Key_Escape:self.shutdown,
+            16777251:self.speedCtrl.setFocus, #left alt key
+            Qt.Key_C:partial(self.speedCtrl.triggerAction, QSlider.SliderPageStepAdd),
+            Qt.Key_X:partial(self.speedCtrl.triggerAction, QSlider.SliderPageStepSub),
+            Qt.Key_O:self.make_fullscreen,
+            Qt.Key_D:partial(self.tempCtrl.triggerAction, QSlider.SliderPageStepAdd),
+            Qt.Key_A:partial(self.tempCtrl.triggerAction, QSlider.SliderPageStepSub),
+            Qt.Key_W:partial(self.thresholdCtrl.triggerAction, QSlider.SliderPageStepAdd),
+            Qt.Key_S:partial(self.thresholdCtrl.triggerAction, QSlider.SliderPageStepSub),
+            Qt.Key_R:self.primaryButton.click,
+            Qt.Key_F:self.secondaryButton.click,
+            Qt.Key_E:self.dynamic.click,
+            Qt.Key_1:self.stochi_switch,
+            Qt.Key_2:self.growth_switch,
+        }
+        keys[e.key()]()
 
 ##==========================THEGUI==============================##
 ##==============================================================##
     # Initialise GUI
     def initGUI(self, st):
         # Initialise the thread manager and painter and feed them the UI elements they
-        # need to control. TODO: cleaner way of connecting signals to a parent? Using
-        # Super perhaps? TODO: pass the guys with args anyway no?
+        # need to control.
         self.canvas = Canvas(st)
         self.frameLabel = QLabel()
         self.arrayfpsLabel = QLabel()
@@ -710,7 +690,6 @@ class MainWindow(QMainWindow):
         self.tempLabel.setText('Beta = {:01.2f}'.format(self.st.ising.beta))
 
         # Speed slider and label
-        # TODO: get this working again
         self.speedCtrl = QSlider(Qt.Horizontal)
         self.speedCtrl.setTickPosition(QSlider.TicksBelow)
         self.speedCtrl.setTickInterval(20)

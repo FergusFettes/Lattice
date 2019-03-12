@@ -62,7 +62,6 @@ class RunController(QObject):
             self.dim_t, self.arr_t, self.buf_t,\
             self.dim_h, self.arr_h, self.buf_h = cf.init([dim[0], dim[1]], 10, rand_center)
 
-        self.export_array(self.arr_h, 0)
 
 #===============MAIN PROCESS OF THE THREAD===================#
     def process(self):
@@ -260,7 +259,6 @@ class RunController(QObject):
     # Image and array have the same size, should be resized in one function.
     def resize_image(self, dim):
         self.image = QImage(dim[0], dim[1], QImage.Format_ARGB32)
-        self.send_image()
 
 #===============Array processing and Image export=============#
     def send_image(self):
@@ -269,28 +267,3 @@ class RunController(QObject):
         nupix = QPixmap()
         nupix.convertFromImage(ims)
         self.imageSig.emit(nupix)
-
-    def export_array(self, A, color_offset):
-        """
-        Updates the image with the values from an entire array.
-
-        :param self:
-        :param A:               Array to use as new image
-        :param color_offset:    Use primary colors (0) or secondary colors (2)?
-        :return:                None
-        """
-        for i in range(A.shape[0]):
-            for j in range(A.shape[1]):
-                num = int(A[i][j])
-                color = self.colorList[num + color_offset]
-                self.image.setPixel(i, j, color)
-
-    def replace_image_positions(self, L, color):
-        """
-        Updates the given positions with the specified color
-
-        :param L:       List of positions to update
-        :param color:   selection from colorlist
-        :return:        None
-        """
-        [self.image.setPixel(el[0], el[1], self.colorList[color]) for el in L]

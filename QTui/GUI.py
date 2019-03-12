@@ -114,6 +114,9 @@ class MainWindow(QMainWindow):
     def canvas_scale(self, val):
         self.st.canvas.scale = val()
 
+    def general_growth(self, val):
+        self.st.general.growth = val()
+
     def general_stochastic(self, val):
         self.st.noise.switch = val()
 
@@ -309,6 +312,9 @@ class MainWindow(QMainWindow):
         elif e.key() == Qt.Key_1:
             state = self.stochasticBox.isChecked()
             self.stochasticBox.setChecked(not state)
+        elif e.key() == Qt.Key_2:
+            state = self.growthBox.isChecked()
+            self.growthBox.setChecked(not state)
         elif e.key() == Qt.Key_E:
             self.dynamic.click()
 
@@ -679,10 +685,15 @@ class MainWindow(QMainWindow):
         self.stochasticBox.setChecked(self.st.noise.switch)
         self.stochasticBox.stateChanged.connect(partial(self.general_stochastic,
                                                     self.stochasticBox.isChecked))
+        self.growthBox = QCheckBox('Growth')
+        self.growthBox.setChecked(self.st.general.growth)
+        self.growthBox.stateChanged.connect(partial(self.general_growth,
+                                                    self.growthBox.isChecked))
         self.statusBar.addWidget(self.canvasfpsLabel)
         self.statusBar.addWidget(self.arrayfpsLabel)
 #       self.statusBar.addWidget(self.record)
         self.statusBar.addWidget(self.stochasticBox)
+        self.statusBar.addWidget(self.growthBox)
 #............................................................
 
 #====================================================SubControlDock

@@ -7,75 +7,70 @@
 defaults:       &DEFAULTS
         general:
                 maxFPS: 24
-                frametime: 0.05
-                runtodo: -1                   # -1 for unlimited run
-                rundone: 0
-                clear: False
-                equilibrate: False
-                stochastic: True
-                conway: True
-                wolfwave: True
-                running: False
-                interrupt: False
-                update: False
-
+                frametime: 0.03         # this parameter is subordinate to the one above
+                runtodo: -1             # -1 for unlimited run TODO: POSS DEPRECIATED?
+                rundone: 0              # framecounter TODO: DEPRECIATED?
+                running: False          # state of run, used for interrupts
+                interrupt: False        # TODO: DEPRECIATED?
+                update: False           # rules need updating?
+                growth: false           # in growth mode?
+                resize: false           # dimensions/ scale resized?
         analysis:
                 steady:
-                        entropy: None
+                        entropy: None   
                         population: None
                         radius: None
         canvas:
                 colorlist:
-                        - 1662807650   # These are just random rn. I was wondering
-                        - 4294951356   # if you could make a lambda function that
-                        - 4103433205   # generated them in YAML but maybe that is
-                        - 1151018145   # asking too much.
+                        - 1662807650    # These are just random rn. I was wondering
+                        - 4294951356    # if you could make a lambda function that
+                        - 4103433205    # generated them in YAML but maybe that is
+                        - 1151018145    # asking too much.
                         - 4294967295
                         - 4294967295
-                saturation: 80
-                dim:                            # Screen dimensions (widthxheight)
+                saturation: 80          # __future__
+                dim:                    # Screen dimensions (widthxheight)
                         - 300
                         - 200
-                
-                scale: 2
-                fullscreen: False
-                record: False
-
-        bounds:                            #[upper, right, down, left]
-                - 1
-                - 1
-                - 1
-                - 1
+                scale: 2                # dim scaled by how much?
+                fullscreen: False       # TODO: undepreciate this
+                record: False           # TODO: undepreciate this
+        bounds: [0, 0, 0, 0]    #[upper, right, down, left] 0 is dead, 1 alive, -1 off (wrap)
         scroll:
-                bars:                                   # [start, width, step, axis, bounce, polarity (-1 is off)]
+                switch: true            # can turn this set of options off
+                bars:           # [start, width, step, axis, bounce, polarity (-1 is off)]
                         - [0, 1, 1, 0, 1, -1]          
                         - [0, 1, 1, 1, 1, -1]           
-                fuzz:                                   # [start, width, step, axis, bounce, coverage, polarity (-2 is off)]
+                fuzz:   # [start, width, step, axis, bounce, coverage, polarity (-2 is off)]
                         - [0, 1, 1, 0, 1, 0.5, -2]            
                         - [0, 1, 1, 0, 1, 0.5, -2]           
-
-        wolfram:
-                rule: 90
-                position: 0
-                scale: 2
-                polarity: 1
-
-        noise:
-                threshold: 0.9
-
+        transform:                      # array transform
+                switch: true            # can turn this feature off
+                roll: [0, 0]            # roll array over h or v (TODO: make float)
+        wolfram:                        # TODO: undepreciate this
+                switch: false           # can turn this feature off
+                rule: 90                # update rule for 'wolfram' 1D automata
+                position: 0             # starting line
+                scale: 2                # pixel width
+                polarity: 1             # 1 is alive, 0 is dead, -1 is noninteracting 
+        noise:                          # simple stochastic noise. for additive or subtractive
+                                        # noise, make a fuzz bar with zero step the width of
+                                        # the screen
+                switch: true            # can turn this feature on or off
+                threshold: 0.9          # updates per pixel
         conway:
-                rules:
+                switch: true    # can turn this feature on or off #TODO: make these work
+                rules:                  # conway update rules, one occurs per frame
                         - [3,6,2,2]
                         - [3,6,3,3]
                         - [3,4,3,3]
                         - [3,4,2,2]
-
         ising:
-                beta: 0.125
-                degree: 2
-                updates: 0                   #Updates / frame
-                equilibrate: 10000              #Updates in a longer run
+                switch: true            # can turn this feature on or off
+                beta: 0.125             # ising inverse temperature
+                updates: 0              # Updates / pixel / frame
                 
+# Can add other rulesets here, for a selection menu
 conway:
         <<: *DEFAULTS
         conway:
@@ -88,22 +83,3 @@ monstro:
                 rules:
                         - [3,6,2,2]
                         - [3,4,3,3]
-
-lastsave:
-        <<: *DEFAULTS
-        conway:
-                rules:
-                        - [2,4,3,3]
-                        - [2,4,3,3]
-        noise:
-                threshold: 0.001
-        scroll:
-                bars:                                   # [start, width, step, axis, bounce, polarity (-1 is off)]
-                        - [0.0, 10.0, 1.0, 0.0, 1.0, 0.0]          
-                        - [10.0, 10.0, 1.0, 0.0, 1.0, 0.0]          
-                        - [20.0, 10.0, 1.0, 0.0, 1.0, 0.0]          
-                        - [30.0, 10.0, 1.0, 0.0, 1.0, 0.0]          
-                        - [40.0, 10.0, 1.0, 0.0, 1.0, 0.0]          
-                fuzz:                                   # [start, width, step, axis, bounce, coverage, polarity (-2 is off)]
-                        - [0.0, 10.0, 1.0, 1.0, 1.0, 0.1, 1.0]            
-                        - [50.0, 10.0, 1.0, 0.0, 1.0, 0.5, -1.0]          

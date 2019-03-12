@@ -1,9 +1,9 @@
-conway:
-  analysis: &id001
+lastsave:
+  analysis:
     steady: {entropy: None, population: None, radius: None}
-  bounds: &id002 [1, 1, 1, 1]
-  canvas: &id003
-    colorlist: [1662807650, 4294951356, 4103433205, 1151018145, 4294967295, 4294967295]
+  bounds: [0, 0, 0, 0]
+  canvas:
+    colorlist: [542293067, 3873766065, 3846842684, 3164183636, 4294967295, 4294967295]
     dim: [300, 200]
     fullscreen: false
     record: false
@@ -11,77 +11,24 @@ conway:
     scale: 2
   conway:
     rules:
-    - [2, 3, 3, 3]
-  general: &id004 {clear: false, conway: true, equilibrate: false, frametime: 0.05,
-    interrupt: false, maxFPS: 24, rundone: 0, running: false, runtodo: -1, stochastic: true,
-    update: false, wolfwave: true}
-  ising: &id005 {beta: 0.125, degree: 2, equilibrate: 10000, updates: 0}
-  noise: &id006 {threshold: 0.9}
-  scroll: &id007
+    - [3, 6, 2, 2]
+    - [3, 6, 3, 3]
+    - [3, 4, 3, 3]
+    - [3, 4, 2, 2]
+    switch: true
+  general: {frametime: 0.043478260869565216, growth: false, interrupt: false, maxFPS: 24,
+    resize: false, rundone: 0, running: true, runtodo: -1, update: false}
+  ising: {beta: 0.12, degree: 2, switch: true, updates: 0}
+  noise: {switch: true, threshold: 7.810763725135672e-06}
+  scroll:
     bars:
     - [0, 1, 1, 0, 1, -1]
     - [0, 1, 1, 1, 1, -1]
     fuzz:
     - [0, 1, 1, 0, 1, 0.5, -2]
     - [0, 1, 1, 0, 1, 0.5, -2]
-  wolfram: &id008 {polarity: 1, position: 0, rule: 90, scale: 2}
-defaults:
-  analysis: *id001
-  bounds: *id002
-  canvas: *id003
-  conway:
-    rules:
-    - [3, 6, 2, 2]
-    - [3, 6, 3, 3]
-    - [3, 4, 3, 3]
-    - [3, 4, 2, 2]
-  general: *id004
-  ising: *id005
-  noise: *id006
-  scroll: *id007
-  wolfram: *id008
-lastsave:
-  analysis:
-    steady: {entropy: None, population: None, radius: None}
-  bounds: [-1, 0, -1, 0]
-  canvas:
-    colorlist: [3089573882, 1709644781, 3303458964, 3459419953, 4294967295, 4294967295]
-    dim: [300, 300]
-    fullscreen: false
-    record: false
-    saturation: 80
-    scale: 2
-  conway:
-    rules:
-    - [2, 4, 3, 4]
-    switch: true
-  general: {equilibrate: false, frametime: 0.09090909090909091, growth: false, interrupt: false,
-    maxFPS: 24, resize: false, rundone: 0, running: false, runtodo: -1, update: false}
-  ising: {beta: 1.4, degree: 2, equilibrate: 10000, switch: true, updates: 0.0}
-  noise: {switch: true, threshold: 7.810763725135672e-06}
-  scroll:
-    bars:
-    - [0.0, 4.0, 17.0, 1.0, 1.0, 0.0]
-    - [4.0, 4.0, 17.0, 1.0, 1.0, 1.0]
-    - [8.0, 4.0, 17.0, 1.0, 1.0, 0.0]
-    - [280.0, 10.0, 1.0, 0.0, 1.0, 1.0]
-    fuzz:
-    - [0.0, 10.0, 2.2, 0.0, 0.0, 1.0, -1.0]
     switch: true
   transform:
-    roll: [0, 1]
+    roll: [0, 0]
     switch: true
-  wolfram: {polarity: 1, position: 0, rule: 90, scale: 1}
-monstro:
-  analysis: *id001
-  bounds: *id002
-  canvas: *id003
-  conway:
-    rules:
-    - [3, 6, 2, 2]
-    - [3, 4, 3, 3]
-  general: *id004
-  ising: *id005
-  noise: *id006
-  scroll: *id007
-  wolfram: *id008
+  wolfram: {polarity: 1, position: 0, rule: 90, scale: 2, switch: false}

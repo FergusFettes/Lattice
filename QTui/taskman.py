@@ -44,53 +44,36 @@ class RunController(QObject):
         self.st = st
 
         self.savecount = 0
-        if self.st.general.growth:
-            self.initialize_growth(st)
-        else:
-            self.initialize_standard(st)
+        self.initialize_buffers(st)
 
-    def initialize_standard(self, st):
+    def initialize_buffers(self, st):
         self.imageDim = np.asarray(st.canvas.dim)
         self.imageScale = np.asarray(st.canvas.scale)
 
-        dim = array.array('i', st.canvas.dim)
+        if self.st.general.growth:
+            dim = array.array('i', [20, 20])
+            self.resize_image(dim)
+        else:
+            dim = array.array('i', st.canvas.dim)
+            self.resize_image(dim)
         self.change_roll, self.head_position, self.tail_position,\
             self.buf_len, self.buf_stat,\
             self.dim_t, self.arr_t, self.buf_t,\
             self.dim_h, self.arr_h, self.buf_h = cf.init([dim[0], dim[1]], 10)
 
-        self.resize_image(st.canvas.dim)
-        self.export_array(self.arr_h, 0)
-
-    def initialize_growth(self, st):
-        self.imageDim = np.asarray(st.canvas.dim)
-        self.imageScale = np.asarray(st.canvas.scale)
-
-        dim = array.array('i', [20, 20])
-        self.change_roll, self.head_position, self.tail_position,\
-            self.buf_len, self.buf_stat,\
-            self.dim_t, self.arr_t, self.buf_t,\
-            self.dim_h, self.arr_h, self.buf_h = cf.init([dim[0], dim[1]], 10, 14)
-
-        self.resize_image(self.dim)
         self.export_array(self.arr_h, 0)
 
 #===============MAIN PROCESS OF THE THREAD===================#
     def process(self):
         self.error.emit('Proccess starting!')
         kwargs = self.prepare_frame()
-        if self.st.general.growth:
-            kwargs = self.growth_mode(kwargs)
-            self.change_roll = np.zeros((kwargs['buffer_length'], 2), np.intc)
-            self.change_roll -= 1
+        if self.st.general.growth: kwargs = self.growth_mode(kwargs)
 
         while kwargs['running']:
             start = time.time()
             kwargs = self.update_frame(kwargs)
-            if kwargs['update_settings']:
-                kwargs = self.update_rules(kwargs)
-            if self.st.general.growth:
-                kwargs = self.growth_mode(kwargs)
+            if kwargs['update_settings']: kwargs = self.update_rules(kwargs)
+            if self.st.general.growth: kwargs = self.growth_mode(kwargs)
 
             self.basic_update(kwargs)
             self.buffer_handler_head(kwargs)
@@ -100,8 +83,7 @@ class RunController(QObject):
             self.image_processing(kwargs)
             self.buffer_handler_tail(kwargs)
 
-            while time.time() - start < kwargs['frametime']:
-                time.sleep(0.01)
+            while time.time() - start < kwargs['frametime']: time.sleep(0.01)
 
         self.finished.emit()
 
@@ -132,18 +114,12 @@ class RunController(QObject):
         """
         if self.st.general.growth:
             logging.debug('Change zoom level')
-            kwargs['dim_h'], kwargs['buf_h'], change_now = cf.change_zoom_level(
+            kwargs['dim_h'], kwargs['buf_h'], kwargs['change_roll'],\
+                kwargs['buffer_status'] = cf.change_zoom_level(
                 kwargs['head_position'], kwargs['buffer_length'],
-                kwargs['buffer_status'], kwargs['dim_h'], kwargs['buf_h']
+                kwargs['buffer_status'], kwargs['change_roll'],
+                kwargs['dim_h'], kwargs['buf_h']
             )
-            logging.debug('Record change')
-            cy.roll_rows_pointer(1, array.array('i', [kwargs['buffer_length'], 2]),
-                                    self.change_roll)
-            self.change_roll[0, 0] = kwargs['head_position'][0]
-            self.change_roll[0, 1] = abs(change_now)
-
-            kwargs['buffer_status'] = cf.extend_buffer_status(kwargs['head_position'],
-                                    kwargs['buffer_length'], kwargs['buffer_status'])
 
         logging.debug('Update array positions')
         cf.advance_array(kwargs['head_position'], kwargs['buffer_length'], kwargs['buf_h'])
@@ -158,14 +134,6 @@ class RunController(QObject):
     def image_processing(self, kwargs):
         cy.scroll_bars(kwargs['dim_t'], kwargs['arr_t'], kwargs['bars'])
         cf.scroll_noise(kwargs['dim_t'], kwargs['arr_t'], kwargs['fuzz'])
-
-#       logging.debug('Doing calculations for image')
-#       arr_t_old = kwargs['buf_t'][(kwargs['tail_position'][0] - 1) %\
-#                                   kwargs['buffer_length']]
-#       b, d = pf.get_births_deaths_P(arr_t_old, kwargs['arr_t'])
-#       logging.debug('Replacing locations in image')
-#       cf.replace_image_positions(self.image, kwargs['colorlist'], np.asarray(b, np.intc), 0)
-#       cf.replace_image_positions(self.image, kwargs['colorlist'], np.asarray(d, np.intc), 1)
         cf.export_array(self.image, kwargs['colorlist'], kwargs['dim_t'], kwargs['arr_t'], 0)
         logging.debug('Sending image')
         self.send_image()
@@ -265,6 +233,7 @@ class RunController(QObject):
             'tail_position':np.asarray(self.tail_position, np.intc),
             'buffer_length':np.asarray(self.buf_len, np.intc),
             'buffer_status':np.asarray(self.buf_stat, np.intc),
+            'change_roll':np.asarray(self.change_roll, np.intc),
             'dim_h':np.asarray(self.dim_h, np.intc),
             'arr_h':np.asarray(self.arr_h, np.intc),
             'buf_h':np.asarray(self.buf_h, np.intc),

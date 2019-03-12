@@ -52,7 +52,7 @@ def growth_mode(kwargs):
 def prepare_frame():
     kwargs={
         'running':True,
-        'frametime':0.5,
+        'frametime':0.2,
         'threshold':threshold,
         'updates':updates,
         'beta':beta,
@@ -153,9 +153,9 @@ def buffer_handler_tail(kwargs):
     # if tail has changed, you need to delete the first buffer
     if growth and change_here.any():
         if change_roll[change_here[0][0], 1]:
-            kwargs['buf_t'] = kwargs['buf_h']
-            kwargs['dim_t'] = kwargs['dim_h']
-            kwargs['arr_t'] = kwargs['buf_t'][kwargs['tail_position'][0] % kwargs['buffer_length']]
+            kwargs['buf_t'] = np.asarray(kwargs['buf_h']) #TODO: this is broken, will update to the wrong size. also np.asarray is entirely the wrongthing to do here, defeats the whole prupose of the pointers
+            kwargs['dim_t'] = np.asarray(kwargs['dim_h']) #TODO: this is broken
+            kwargs['arr_t'] = np.asarray(kwargs['buf_t'][kwargs['tail_position'][0] % kwargs['buffer_length']])
             kwargs['head_position'][1] -= 1
             kwargs['tail_position'][1] -= 1
             kwargs['buffer_status'] = cf.extend_buffer_status(kwargs['head_position'],

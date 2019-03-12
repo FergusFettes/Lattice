@@ -47,7 +47,7 @@ defaults:       &DEFAULTS
         transform:                      # array transform
                 switch: true            # can turn this feature off
                 roll: [0, 0]            # roll array over h or v (TODO: make float)
-        wolfram:                        # TODO: undepreciate this
+        wolfram:                        # DEPRECIATED TODO: undepreciate this
                 switch: false           # can turn this feature off
                 rule: 90                # update rule for 'wolfram' 1D automata
                 position: 0             # starting line

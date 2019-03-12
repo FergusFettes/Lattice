@@ -52,11 +52,11 @@ class RunController(QObject):
         if self.st.general.growth:
             dim = array.array('i', [20, 20])
             rand_center = 10
-            self.resize_image(dim)
+            self.image = QImage(dim[0], dim[1], QImage.Format_ARGB32)
         else:
             dim = array.array('i', st.canvas.dim)
             rand_center = 0
-            self.resize_image(dim)
+            self.image = QImage(dim[0], dim[1], QImage.Format_ARGB32)
         self.change_roll, self.head_position, self.tail_position,\
             self.buf_len, self.buf_stat,\
             self.dim_t, self.arr_t, self.buf_t,\
@@ -254,11 +254,6 @@ class RunController(QObject):
             'buf_t':self.buf_t,
         }
         return kwargs
-
-    # Resize/reset
-    # Image and array have the same size, should be resized in one function.
-    def resize_image(self, dim):
-        self.image = QImage(dim[0], dim[1], QImage.Format_ARGB32)
 
 #===============Array processing and Image export=============#
     def send_image(self):

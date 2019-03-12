@@ -93,6 +93,37 @@ cpdef change_zoom_level(int[:] head_pos, int buffer_length, int[:, :] buffer_sta
 
     return dim_v, buf_v, change_roll, buffer_status
 
+cpdef change_zoom_level_array(int[:] dim, int[:, :] arr):
+    """
+    Checks the array edges, resizes if necessary and saves the change in change_roll
+
+    :param frame:        position of the head in the buffer
+    :param dim:
+    :param arr:
+    :return:
+        (pointer) new dim
+        (3D pointer) new buffer
+        (int) size of change
+    """
+    cdef int[:] dim_v
+    cdef int[:, :] arr_v
+    if cy.check_rim(0, dim, arr) is True:
+        dim_v, arr_v = resize_array(dim)
+        change_array(dim, arr, dim_v, arr_v)
+        change = 1
+    # if outer rim has nothing, check next two in
+    elif cy.check_rim(1, dim, arr) is False\
+     and cy.check_rim(2, dim, arr) is False:
+        dim_v, arr_v = resize_array(dim)
+        change_array(dim, arr, dim_v, arr_v,
+                        array.array('i', [1,1]), array.array('i', [2, 2]))
+        change = -1
+    else:
+        dim_v = dim
+        arr_v = arr
+        change = 0
+
+    return dim_v, arr_v, change
 
 cpdef tuple init(list dimensions, int buffer_length, int randomize_size = 0):
     """
@@ -438,6 +469,27 @@ cpdef change_buffer(
         buf_old[pos[0] % length, cut[0]: dim_old[0] - cut[0],\
                      cut[1]: dim_old[1] - cut[1]]
 
+cpdef change_array(
+    int[:] dim_old, int[:, :] arr_old,
+    int[:] dim_nu, int[:, :] arr_nu,
+    int[:] offset=array.array('i', [1,1]), int[:] cut=array.array('i', [0,0])
+):
+    """
+    Copys the array into a different buffer, resizing and repositioning it as specified.
+
+    :param dim_old:     (pointer) dimensions of old arrfer
+    :param arr_old:     (3D pointer) old arrfer
+    :param dim_nu:      (pointer) dimensions of new arrfer
+    :param arr_nu:      (3D pointer) new arrfer
+    :param offset:      (pointer) offset of array in new arrfer
+    :param cut:         (pointer) cut off sides of old arrfer
+    :return:            None
+    """
+    cy.clear_array(dim_nu, arr_nu)
+    arr_nu[offset[0]: offset[0] + dim_old[0] - cut[0] * 2,\
+                offset[1]: offset[1] + dim_old[1] - cut[1] * 2] =\
+        arr_old[cut[0]: dim_old[0] - cut[0],\
+                     cut[1]: dim_old[1] - cut[1]]
 
 cpdef int[:, :, :] init_array_buffer(int[:] dim, int length):
     """
@@ -449,6 +501,20 @@ cpdef int[:, :, :] init_array_buffer(int[:] dim, int length):
     :return:        (3D pointer) new array buffer
     """
     return np.empty([length, dim[0], dim[1]], np.intc)
+
+
+cpdef tuple resize_array(int[:] dim_old, int add=1):
+    """
+    Creates a new array, larger than the last
+    Array may be uninitialized. This is essentially a (safe, easy) malloc.
+
+    :param dim_old:     (pointer) size of the array
+    :param add:         amount of space to add at the edges of the new array
+    :return:            dim_v, arr_v
+    """
+    cdef int[:] dim_v = array.array('i', [dim_old[0] + add * 2, dim_old[1] + add * 2])
+    cdef int[:, :] arr_v = init_array(dim_v)
+    return dim_v, arr_v
 
 
 cpdef tuple resize_array_buffer(int[:] dim_old, int length, int add=1):

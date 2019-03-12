@@ -13,7 +13,7 @@ import src.Cyphys as cyphys
 import src.Pfuncs as pf
 
 debug = True
-simple = True
+simple = False
 
 
 def tst_arr():

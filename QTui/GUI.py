@@ -126,6 +126,7 @@ class MainWindow(QMainWindow):
 
     def coverageChange(self):
         coverage = self.thresholdCtrl.value()
+        self.st.noise.coverage = coverage
         self.st.noise.threshold = self.threshval[coverage]
         self.thresholdLabel.setText('Threshold = {:2.2f}'.format(self.threshval[coverage]))
 
@@ -708,7 +709,7 @@ class MainWindow(QMainWindow):
         self.thresholdCtrl.setMinimum(0)
         self.thresholdCtrl.setMaximum(99)
         self.thresholdCtrl.setPageStep(4)
-        self.thresholdCtrl.setValue(26)
+        self.thresholdCtrl.setValue(self.st.noise.coverage)
         self.thresholdCtrl.valueChanged.connect(self.coverageChange)
         self.thresholdLabel= QLabel()
         self.thresholdLabel.setAlignment(Qt.AlignRight | Qt.AlignVCenter)

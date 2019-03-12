@@ -17,10 +17,11 @@ def recenter(com, dim, arr):
     """
     ver = 0
     hor = 0
-    center = [dim[0]/2, dim[1]/2]
+    com = np.asarray(com)
+    center = np.asarray([dim[0]/2, dim[1]/2])
+    if not com.any(): com = center
     offcenter = center - com
     norm = np.sqrt(np.sum(offcenter**2))
-    print('Offcenter norm: {}'.format(norm))
     if norm > 2:
         if offcenter[0] > 0:
             roll_rows_pointer(1, dim, arr)

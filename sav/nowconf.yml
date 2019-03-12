@@ -45,20 +45,20 @@ lastsave:
     steady: {entropy: None, population: None, radius: None}
   bounds: [1, 1, 1, 1]
   canvas:
-    colorlist: [2032087716, 1440202701, 3731331684, 538132371, 4294967295, 4294967295]
-    dim: [200, 200]
+    colorlist: [3113100562, 124044437, 431196437, 990602675, 4294967295, 4294967295]
+    dim: [300, 300]
     fullscreen: false
     record: false
     saturation: 80
     scale: 2
   conway:
     rules:
-    - [2, 3, 3, 3]
+    - [2, 4, 3, 4]
     switch: true
-  general: {equilibrate: false, frametime: 1.0, growth: true, interrupt: false, maxFPS: 24,
-    resize: false, rundone: 0, running: true, runtodo: -1, update: false}
-  ising: {beta: 1.0, degree: 2, equilibrate: 10000, switch: true, updates: 0.0}
-  noise: {switch: true, threshold: 0.00036327031321814474}
+  general: {equilibrate: false, frametime: 0.09090909090909091, growth: true, interrupt: false,
+    maxFPS: 24, resize: true, rundone: 0, running: false, runtodo: -1, update: false}
+  ising: {beta: 1.4, degree: 2, equilibrate: 10000, switch: true, updates: 0.0}
+  noise: {switch: true, threshold: 7.810763725135672e-06}
   scroll:
     bars:
     - [0.0, 3.0, 17.0, 1.0, 1.0, -1.0]

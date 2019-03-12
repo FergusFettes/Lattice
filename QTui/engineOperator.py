@@ -47,7 +47,7 @@ class EngineOperator(QObject):
 #===============Run Initiators=============#
     def dynamic_run(self):
         self.taskthread.requestInterruption()
-        self.st.general.running = True
+        self.st.general.running = not self.st.general.running
         self.taskthread.start()
 
 #===============GUI updaters=============#

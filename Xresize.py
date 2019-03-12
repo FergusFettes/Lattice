@@ -15,6 +15,7 @@ LOGGING_LEVEL = logging.INFO
 logging.basicConfig(level=LOGGING_LEVEL,
                     format='%(asctime)s:[%(levelname)s]-(%(processName)-15s): %(message)s',
                     )
+buffer_storage = {}
 
 growth = True
 
@@ -68,10 +69,10 @@ def prepare_frame():
         'change_roll':np.asarray(change_roll, np.intc),
         'dim_h':np.asarray(dim, np.intc),
         'dim_t':np.asarray(dim, np.intc),
-        'arr_h':np.asarray(arr_h, np.intc),
-        'buf_h':np.asarray(buf_h, np.intc),
-        'buf_t':np.asarray(buf_t, np.intc),
-        'arr_t':np.asarray(arr_t, np.intc),
+        'arr_h':arr_h,
+        'buf_h':buf_h,
+        'buf_t':buf_t,
+        'arr_t':arr_t,
     }
     return kwargs
 
@@ -111,6 +112,10 @@ def buffer_handler_head(kwargs):
             kwargs['buffer_status'], kwargs['change_roll'],
             kwargs['dim_h'], kwargs['buf_h']
         )
+        if kwargs['change_roll'][0, 1]:
+            buffer_storage.update(
+                {kwargs['change_roll'][0, 0]:(kwargs['dim_h'], kwargs['buf_h'])}
+            )
 
     logging.debug('Update array positions')
     cf.advance_array(kwargs['head_position'], kwargs['buffer_length'], kwargs['buf_h'])
@@ -130,9 +135,10 @@ def image_processing(kwargs):
 def buffer_handler_tail(kwargs):
     if growth:
         logging.debug('Updating tail position')
-        change_here = np.argwhere(change_roll[:, 0]==kwargs['tail_position'][0])
+        change_here = np.argwhere(kwargs['change_roll'][:, 0]==kwargs['tail_position'][0])
         if change_here.any():
-            kwargs['tail_position'][1] += abs(change_roll[change_here[0][0], 1])
+            change_here = change_here[0][0]
+            kwargs['tail_position'][1] += abs(kwargs['change_roll'][change_here, 1])
 
     logging.debug('Updating scroll instructions')
     cf.scroll_instruction_update(
@@ -152,9 +158,10 @@ def buffer_handler_tail(kwargs):
 
     # if tail has changed, you need to delete the first buffer
     if growth and change_here.any():
-        if change_roll[change_here[0][0], 1]:
-            kwargs['buf_t'] = np.asarray(kwargs['buf_h']) #TODO: this is broken, will update to the wrong size. also np.asarray is entirely the wrongthing to do here, defeats the whole prupose of the pointers
-            kwargs['dim_t'] = np.asarray(kwargs['dim_h']) #TODO: this is broken
+        if kwargs['change_roll'][change_here, 1]:
+            dim, buf = buffer_storage.pop(kwargs['change_roll'][change_here, 0])
+            kwargs['buf_t'] = buf
+            kwargs['dim_t'] = dim
             kwargs['arr_t'] = np.asarray(kwargs['buf_t'][kwargs['tail_position'][0] % kwargs['buffer_length']])
             kwargs['head_position'][1] -= 1
             kwargs['tail_position'][1] -= 1

@@ -8,7 +8,7 @@ import time
 
 import src.Cfuncs as cf
 import src.Cyarr as cy
-#import src.Cyphys as cph
+import src.Cyphys as cph
 import src.Pfuncs as pf
 import src.PHifuncs as phi
 
@@ -44,7 +44,6 @@ class RunController(QObject):
         self.st = st
 
         self.savecount = 0
-        self.initialize_buffers(st)
 
     def initialize_buffers(self, st):
         self.imageDim = np.asarray(st.canvas.dim)
@@ -52,22 +51,26 @@ class RunController(QObject):
 
         if self.st.general.growth:
             dim = array.array('i', [20, 20])
+            rand_center = 10
             self.resize_image(dim)
         else:
             dim = array.array('i', st.canvas.dim)
+            rand_center = 0
             self.resize_image(dim)
         self.change_roll, self.head_position, self.tail_position,\
             self.buf_len, self.buf_stat,\
             self.dim_t, self.arr_t, self.buf_t,\
-            self.dim_h, self.arr_h, self.buf_h = cf.init([dim[0], dim[1]], 10)
+            self.dim_h, self.arr_h, self.buf_h = cf.init([dim[0], dim[1]], 10, rand_center)
 
         self.export_array(self.arr_h, 0)
 
 #===============MAIN PROCESS OF THE THREAD===================#
     def process(self):
         self.error.emit('Proccess starting!')
+        self.initialize_buffers(self.st)
         kwargs = self.prepare_frame()
         if self.st.general.growth: kwargs = self.growth_mode(kwargs)
+        self.buffer_storage = {}
 
         while kwargs['running']:
             start = time.time()
@@ -100,6 +103,10 @@ class RunController(QObject):
         cf.conway_process(cf.prepair_rule(kwargs['rules'], kwargs['head_position']),
                         kwargs['dim_h'], kwargs['arr_h'])
         cy.set_bounds(kwargs['bounds'], kwargs['dim_h'], kwargs['arr_h'])
+        if self.st.general.growth:
+            _, _ = phi.recenter(
+                cph.center_of_mass(kwargs['dim_h'], kwargs['arr_h']),
+                kwargs['dim_h'], kwargs['arr_h'])
 
     def buffer_handler_head(self, kwargs):
         """
@@ -120,6 +127,10 @@ class RunController(QObject):
                 kwargs['buffer_status'], kwargs['change_roll'],
                 kwargs['dim_h'], kwargs['buf_h']
             )
+            if kwargs['change_roll'][0, 1]:
+                self.buffer_storage.update(
+                    {kwargs['change_roll'][0, 0]:(kwargs['dim_h'], kwargs['buf_h'])}
+                )
 
         logging.debug('Update array positions')
         cf.advance_array(kwargs['head_position'], kwargs['buffer_length'], kwargs['buf_h'])
@@ -128,7 +139,7 @@ class RunController(QObject):
             kwargs['buffer_length'],
             kwargs['buffer_status'],
             kwargs['buf_h'],
-            1
+            0
         )
 
     def image_processing(self, kwargs):
@@ -141,9 +152,10 @@ class RunController(QObject):
     def buffer_handler_tail(self, kwargs):
         if self.st.general.growth:
             logging.debug('Updating tail position')
-            change_here = np.argwhere(self.change_roll[:, 0]==kwargs['tail_position'][0])
+            change_here = np.argwhere(kwargs['change_roll'][:, 0]==kwargs['tail_position'][0])
             if change_here.any():
-                kwargs['tail_position'][1] += abs(self.change_roll[change_here[0][0], 1])
+                change_here = change_here[0][0]
+                kwargs['tail_position'][1] += abs(kwargs['change_roll'][change_here, 1])
 
         logging.debug('Updating scroll instructions')
         cf.scroll_instruction_update(
@@ -163,9 +175,10 @@ class RunController(QObject):
 
         # if tail has changed, you need to prepair to delete the first buffer
         if self.st.general.growth and change_here.any():
-            if self.change_roll[change_here[0][0], 1]:
-                kwargs['buf_t'] = kwargs['buf_h']
-                kwargs['dim_t'] = kwargs['dim_h']
+            if kwargs['change_roll'][change_here, 1]:
+                dim, buf = self.buffer_storage.pop(kwargs['change_roll'][change_here, 0])
+                kwargs['buf_t'] = buf
+                kwargs['dim_t'] = dim
                 kwargs['arr_t'] = kwargs['buf_t'][kwargs['tail_position'][0] %\
                                                   kwargs['buffer_length']]
                 kwargs['head_position'][1] -= 1
@@ -185,7 +198,7 @@ class RunController(QObject):
     def update_rules(self, kwargs):
         if self.st.general.resize:
             self.st.general.resize = False
-            self.initialize_variables(self.st)
+            self.initialize_buffers(self.st)
             return self.prepare_frame()
         self.st.general.update = False
         kwargs.update({
@@ -234,12 +247,12 @@ class RunController(QObject):
             'buffer_length':np.asarray(self.buf_len, np.intc),
             'buffer_status':np.asarray(self.buf_stat, np.intc),
             'change_roll':np.asarray(self.change_roll, np.intc),
-            'dim_h':np.asarray(self.dim_h, np.intc),
-            'arr_h':np.asarray(self.arr_h, np.intc),
-            'buf_h':np.asarray(self.buf_h, np.intc),
-            'dim_t':np.asarray(self.dim_t, np.intc),
-            'arr_t':np.asarray(self.arr_t, np.intc),
-            'buf_t':np.asarray(self.buf_t, np.intc),
+            'dim_h':self.dim_h,
+            'arr_h':self.arr_h,
+            'buf_h':self.buf_h,
+            'dim_t':self.dim_t,
+            'arr_t':self.arr_t,
+            'buf_t':self.buf_t,
         }
         return kwargs
 

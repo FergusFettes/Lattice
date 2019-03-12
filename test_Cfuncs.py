@@ -66,17 +66,17 @@ class ImageProcessingTestCase(unittest.TestCase):
 
     def test_replace_image_positions(self):
         pass
-        image2 = QImage(self.imageDim[0], self.imageDim[1], QImage.Format_ARGB32)
-        self.assertEqual(self.image, image2)
-        pf.replace_image_positions(self.image, self.colorList, self.L, 2)
-        cf.replace_image_positions(image2, self.colorList, self.L, 2)
-        self.assertEqual(self.image, image2)
+#       image2 = QImage(self.imageDim[0], self.imageDim[1], QImage.Format_ARGB32)
+#       self.assertEqual(self.image, image2)
+#       pf.replace_image_positions(self.image, self.colorList, self.L, 2)
+#       cf.replace_image_positions(image2, self.colorList, self.L, 2)
+#       self.assertEqual(self.image, image2)
 
 class BasicSuiteTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.head_pos, self.tail_pos, self.buf_len, self.buf_stat,\
-            _, _, _, self.dim, self.arr, self.buf = init([50, 50])
+        _, self.head_pos, self.tail_pos, self.buf_len, self.buf_stat,\
+            _, _, _, self.dim, self.arr, self.buf = init([50, 50], 10)
         self.bounds = array.array('i', [1, 1, 1, 1])
         self.bars = np.array([[0, 1, 1, 0, 0, 1]], np.double)
         self.fuzz = np.array([[0.1, 1.1, 1.1, 0.1, 0.1, 0.5, 1.1]], np.double)
@@ -87,8 +87,8 @@ class BasicSuiteTestCase(unittest.TestCase):
         self.rules = np.array([[2,5,4,6],[3,4,3,6]], np.intc)
 
     def test_init_basic(self):
-        self.head_pos, self.tail_pos, self.buf_len, self.buf_stat,\
-            _, _, _, self.dim, self.arr, self.buf = init([50, 50])
+        _, self.head_pos, self.tail_pos, self.buf_len, self.buf_stat,\
+            _, _, _, self.dim, self.arr, self.buf = init([50, 50], 10)
 
     @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
     def test_basic_print_size(self, mock_stdout):
@@ -339,20 +339,20 @@ class MiscTestCase(unittest.TestCase):
         testing.assert_array_equal(np.asarray(rule), np.array([1,1,1,1]))
 
     @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
-    def test_print_buf_stat_standard(self, mock_stdout):
-        print_buf_stat(np.array([[1,2,0,0]], np.intc))
+    def test_print_buffer_status_standard(self, mock_stdout):
+        print_buffer_status(np.array([[1,2,0,0]], np.intc))
         out = mock_stdout.getvalue()
         self.assertEqual(int(len(out)/4), 13)
 
     @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
-    def test_print_buf_stat_short_padding(self, mock_stdout):
-        print_buf_stat(np.array([[1,2,0,0]], np.intc), pad=1)
+    def test_print_buffer_status_short_padding(self, mock_stdout):
+        print_buffer_status(np.array([[1,2,0,0]], np.intc), pad=1)
         out = mock_stdout.getvalue()
         self.assertEqual(int(len(out)/4), 7)
 
     @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
-    def test_print_buf_stat_custom(self, mock_stdout):
-        print_buf_stat(np.array([[1,2,0,1]], np.intc), 1, '>', 'm')
+    def test_print_buffer_status_custom(self, mock_stdout):
+        print_buffer_status(np.array([[1,2,0,1]], np.intc), 1, '>', 'm')
         out = mock_stdout.getvalue()
         self.assertEqual(out[0], '>')
 
@@ -360,10 +360,8 @@ class BufferHandlingTestCase(unittest.TestCase):
 
     def setUp(self):
         dim = list(tst_dimL())
-        self.position, self.tail_pos, self.buf_len, self.buf_stat,\
-            _, _, _, self.dim, self.arr, self.buf = init(dim)
-        self.head_pos2, self.tail_pos2, self.buf_len2, self.buf_stat2,\
-            _, _, _, self.dim2, self.arr2, self.buf2 = init(dim)
+        self.change_roll, self.position, self.tail_pos, self.buf_len, self.buf_stat,\
+            _, _, _, self.dim, self.arr, self.buf = init(dim, 10)
         self.bounds = array.array('i', [1, 1, 1, 1])
         self.rules = np.array([[2,5,4,6],[3,4,3,6]], np.intc)
 
@@ -403,16 +401,18 @@ class BufferHandlingTestCase(unittest.TestCase):
 
     def test_change_zoom_level_larger(self):
         add_stochastic_noise(1, self.dim, self.arr)
-        dim, buf, change = change_zoom_level(
-            self.position, self.buf_len, self.buf_stat, self.dim, self.buf
+        self.assertEqual(len(self.buf_stat), 1)
+        dim, buf, change, self.buf_stat = change_zoom_level(
+        self.position, self.buf_len, self.buf_stat, self.change_roll, self.dim, self.buf
         )
-        self.assertEqual(change, 1)
+        self.assertEqual(change[0, 1], 1)
         self.assertEqual(dim[0], self.dim[0] + 2)
+        self.assertEqual(len(self.buf_stat), 2)
 
     def test_change_zoom_level_larger_content(self):
         cy.fill_array(self.dim, self.arr)
-        dim, buf, change = change_zoom_level(
-            self.position, self.buf_len, self.buf_stat, self.dim, self.buf
+        dim, buf, change, self.buf_stat = change_zoom_level(
+        self.position, self.buf_len, self.buf_stat, self.change_roll, self.dim, self.buf
         )
         nu_arr = buf[self.position[0]]
         cy.fill_bounds(dim, nu_arr)
@@ -420,17 +420,19 @@ class BufferHandlingTestCase(unittest.TestCase):
 
     def test_change_zoom_level_smaller(self):
         cy.clear_array(self.dim, self.arr)
-        dim, buf, change = change_zoom_level(
-            self.position, self.buf_len, self.buf_stat, self.dim, self.buf
+        self.assertEqual(len(self.buf_stat), 1)
+        dim, buf, change, self.buf_stat = change_zoom_level(
+        self.position, self.buf_len, self.buf_stat, self.change_roll, self.dim, self.buf
         )
-        self.assertEqual(change, -1)
+        self.assertEqual(change[0, 1], -1)
         self.assertEqual(dim[0], self.dim[0] - 2)
+        self.assertEqual(len(self.buf_stat), 2)
 
     def test_change_zoom_level_smaller_content(self):
         cy.clear_array(self.dim, self.arr)
         randomize_center(10, self.dim, self.arr)
-        dim, buf, change = change_zoom_level(
-            self.position, self.buf_len, self.buf_stat, self.dim, self.buf
+        dim, buf, change, self.buf_stat = change_zoom_level(
+        self.position, self.buf_len, self.buf_stat, self.change_roll, self.dim, self.buf
         )
         nu_arr = buf[self.position[0]]
         self.assertEqual(np.sum(self.arr), np.sum(nu_arr))
@@ -438,48 +440,42 @@ class BufferHandlingTestCase(unittest.TestCase):
     def test_change_zoom_level_same(self):
         add_stochastic_noise(1, self.dim, self.arr)
         cy.clear_bounds(self.dim, self.arr)
-        dim, buf, change = change_zoom_level(
-            self.position, self.buf_len, self.buf_stat, self.dim, self.buf
+        self.assertEqual(len(self.buf_stat), 1)
+        dim, buf, change, self.buf_stat = change_zoom_level(
+        self.position, self.buf_len, self.buf_stat, self.change_roll, self.dim, self.buf
         )
-        self.assertEqual(change, 0)
+        self.assertEqual(change[0, 1], 0)
         self.assertEqual(dim[0], self.dim[0])
         testing.assert_array_equal(self.arr, buf[self.position[0]])
-
-    def test_change_zoom_level_nochange(self):
-        add_stochastic_noise(1, self.dim, self.arr)
-        cy.clear_bounds(self.dim, self.arr)
-        dim, buf, change = change_zoom_level(
-            self.position, self.buf_len, self.buf_stat, self.dim, self.buf
-        )
-        testing.assert_array_equal(self.arr, buf[self.position[0]])
+        self.assertEqual(len(self.buf_stat), 1)
 
     def test_change_zoom_level_smaller_manual_check(self):
         add_stochastic_noise(1, self.dim, self.arr)
         cy.clear_bounds(self.dim, self.arr)
         self.arr[0, 0] = 2 # make the zoomer resize
-        dim, buf, change = change_zoom_level(
-            self.position, self.buf_len, self.buf_stat, self.dim, self.buf
+        dim, buf, change, self.buf_stat = change_zoom_level(
+        self.position, self.buf_len, self.buf_stat, self.change_roll, self.dim, self.buf
         )
         nu_arr = buf[self.position[0]]
         self.assertEqual(nu_arr[1, 1], 2)
-        self.assertEqual(change, 1)
+        self.assertEqual(change[0, 1], 1)
         nu_arr[1, 1] = 0
         nu_arr_mid = np.copy(nu_arr)
         nu_arr[0, 0] = 2 #zoom again
 
-        dim, buf, change = change_zoom_level(
-            self.position, self.buf_len, self.buf_stat, dim, buf
+        dim, buf, change, self.buf_stat = change_zoom_level(
+        self.position, self.buf_len, self.buf_stat, change, dim, buf
         )
         nu_arr = buf[self.position[0]]
         self.assertEqual(nu_arr[1, 1], 2) #second assert
-        self.assertEqual(change, 1)
+        self.assertEqual(change[0, 1], 1)
         nu_arr[1, 1] = 0
 
-        dim, buf, change = change_zoom_level(
-            self.position, self.buf_len, self.buf_stat, dim, buf
+        dim, buf, change, self.buf_stat = change_zoom_level(
+        self.position, self.buf_len, self.buf_stat, change, dim, buf
         )
         nu_arr = buf[self.position[0]]
-        self.assertEqual(change, -1)
+        self.assertEqual(change[0, 1], -1)
 
         testing.assert_array_equal(nu_arr, nu_arr_mid)
 
@@ -610,16 +606,16 @@ class BufferHandlingTestCase(unittest.TestCase):
         testing.assert_array_equal(self.buf[self.position[0] + 1], self.buf[self.position[0]])
 
     def test_advance_array_wraps(self):
-        buf = self.buf
-        buf[0] = 0
-        add_global_noise(0.5, tst_dimL(), buf[self.buf_len - 1])
-        testing.assert_almost_equal(np.mean(buf[self.buf_len - 1]),
+        self.buf[0] = 0
+        cy.clear_array(tst_dimL(), self.buf[self.buf_len - 1])
+        add_global_noise(0.5, tst_dimL(), self.buf[self.buf_len - 1])
+        testing.assert_almost_equal(np.mean(self.buf[self.buf_len - 1]),
                                     np.mean(np.random.randint(0, 2, self.dim)),
                                     decimal=2)
 
         self.position[0] = self.buf_len - 1
-        advance_array(self.position, self.buf_len, buf)
-        testing.assert_array_equal(buf[0], buf[self.buf_len - 1])
+        advance_array(self.position, self.buf_len, self.buf)
+        testing.assert_array_equal(self.buf[0], self.buf[self.buf_len - 1])
 
 class NoiseTestCase(unittest.TestCase):
 

@@ -50,63 +50,39 @@ class RunController(QObject):
             self.initialize_standard(st)
 
     def initialize_standard(self, st):
+        self.imageDim = np.asarray(st.canvas.dim)
+        self.imageScale = np.asarray(st.canvas.scale)
+
+        dim = array.array('i', st.canvas.dim)
+        self.change_roll, self.head_position, self.tail_position,\
+            self.buf_len, self.buf_stat,\
+            self.dim_t, self.arr_t, self.buf_t,\
+            self.dim_h, self.arr_h, self.buf_h = cf.init([dim[0], dim[1]], 10)
+
         self.resize_image(st.canvas.dim)
-
-        self.dim = array.array('i', st.canvas.dim)
-        self.buf_len = 10
-        self.buf_stat = np.zeros((1, self.buf_len), np.intc)
-        self.buf_stat[0, 0] = 1
-        self.head_position = array.array('i', [0, 0])
-        self.tail_position = array.array('i', [0, 0])
-
-        self.buf = cf.init_array_buffer(self.dim, self.buf_len)
-        self.arr_h = self.buf[self.head_position[0] % self.buf_len]
-        self.arr_t = self.buf[self.tail_position[0] % self.buf_len]
-
-        # Process a few frames on startup
-        for _ in range(3):
-            cy.clear_array(self.dim, self.arr_h)
-            cf.advance_array(self.head_position, self.buf_len, self.buf)
-            self.arr_h = cf.update_array_positions(self.head_position, self.buf_len,
-                                                self.buf_stat, self.buf, 0)
         self.export_array(self.arr_h, 0)
-        self.buf_stat[0, 0] = 2 #placing the tail
 
     def initialize_growth(self, st):
-        self.resize_image(st.canvas.dim)
+        self.imageDim = np.asarray(st.canvas.dim)
+        self.imageScale = np.asarray(st.canvas.scale)
 
-        self.dim = array.array('i', [20, 20])
-        self.buf_len = 10
-        self.buf_stat = np.zeros((1, self.buf_len), np.intc)
-        self.buf_stat[0, 0] = 1
-        self.head_position = array.array('i', [2, 0])
-        self.tail_position = array.array('i', [0, 0])
+        dim = array.array('i', [20, 20])
+        self.change_roll, self.head_position, self.tail_position,\
+            self.buf_len, self.buf_stat,\
+            self.dim_t, self.arr_t, self.buf_t,\
+            self.dim_h, self.arr_h, self.buf_h = cf.init([dim[0], dim[1]], 10, 14)
 
-        self.buf = cf.init_array_buffer(self.dim, self.buf_len)
-        self.arr_h = self.buf[self.head_position[0] % self.buf_len]
-        self.arr_t = self.buf[self.tail_position[0] % self.buf_len]
-
-        # Process a few frames on startup
-        for _ in range(2):
-            cy.clear_array(self.dim, self.arr_h)
-            cf.advance_array(self.head_position, self.buf_len, self.buf)
-            self.arr_h = cf.update_array_positions(self.head_position, self.buf_len,
-                                                self.buf_stat, self.buf, 0)
-        cf.randomize_center(9, self.dim, self.arr_h)
-        cf.advance_array(self.head_position, self.buf_len, self.buf)
-        self.arr_h = cf.update_array_positions(self.head_position, self.buf_len,
-                                                self.buf_stat, self.buf, 1)
-
+        self.resize_image(self.dim)
         self.export_array(self.arr_h, 0)
-        self.buf_stat[0, 0] = 2 #placing the tail
 
 #===============MAIN PROCESS OF THE THREAD===================#
     def process(self):
         self.error.emit('Proccess starting!')
         kwargs = self.prepare_frame()
         if self.st.general.growth:
-            self.growth_mode()
+            kwargs = self.growth_mode(kwargs)
             self.change_roll = np.zeros((kwargs['buffer_length'], 2), np.intc)
+            self.change_roll -= 1
 
         while kwargs['running']:
             start = time.time()
@@ -114,27 +90,20 @@ class RunController(QObject):
             if kwargs['update_settings']:
                 kwargs = self.update_rules(kwargs)
             if self.st.general.growth:
-                self.growth_mode()
+                kwargs = self.growth_mode(kwargs)
 
-            self.stable_run(kwargs)
+            self.basic_update(kwargs)
+            self.buffer_handler_head(kwargs)
+            if kwargs['dim_h'][0] < 4:
+                logging.info('Run breaking!')
+                break
+            self.image_processing(kwargs)
+            self.buffer_handler_tail(kwargs)
 
             while time.time() - start < kwargs['frametime']:
                 time.sleep(0.01)
 
         self.finished.emit()
-
-    def growth_run(self, kwargs):
-        self.basic_update(kwargs)
-        self.buffer_handler_head(kwargs)
-        self.image_processing(kwargs)
-        self.buffer_handler_tail(kwargs)
-
-
-    def stable_run(self, kwargs):
-        self.basic_update(kwargs)
-        self.buffer_handler_head(kwargs)
-        self.image_processing(kwargs)
-        self.buffer_handler_tail(kwargs)
 
     def basic_update(self, kwargs):
         logging.debug('Basic update')
@@ -187,50 +156,56 @@ class RunController(QObject):
         )
 
     def image_processing(self, kwargs):
-        cy.scroll_bars(kwargs['dim_h'], kwargs['arr_t'], kwargs['bars'])
-        cf.scroll_noise(kwargs['dim_h'], kwargs['arr_t'], kwargs['fuzz'])
+        cy.scroll_bars(kwargs['dim_t'], kwargs['arr_t'], kwargs['bars'])
+        cf.scroll_noise(kwargs['dim_t'], kwargs['arr_t'], kwargs['fuzz'])
 
-        logging.debug('Doing calculations for image')
-        arr_t_old = kwargs['buf_t'][(kwargs['tail_position'][0] - 1) %\
-                                    kwargs['buffer_length']]
-        b, d = pf.get_births_deaths_P(arr_t_old, kwargs['arr_t'])
-        logging.debug('Replacing locations in image')
-        cf.replace_image_positions(self.image, kwargs['colorlist'], np.asarray(b, np.intc), 0)
-        cf.replace_image_positions(self.image, kwargs['colorlist'], np.asarray(d, np.intc), 1)
+#       logging.debug('Doing calculations for image')
+#       arr_t_old = kwargs['buf_t'][(kwargs['tail_position'][0] - 1) %\
+#                                   kwargs['buffer_length']]
+#       b, d = pf.get_births_deaths_P(arr_t_old, kwargs['arr_t'])
+#       logging.debug('Replacing locations in image')
+#       cf.replace_image_positions(self.image, kwargs['colorlist'], np.asarray(b, np.intc), 0)
+#       cf.replace_image_positions(self.image, kwargs['colorlist'], np.asarray(d, np.intc), 1)
+        cf.export_array(self.image, kwargs['colorlist'], kwargs['dim_t'], kwargs['arr_t'], 0)
         logging.debug('Sending image')
         self.send_image()
 
     def buffer_handler_tail(self, kwargs):
         if self.st.general.growth:
             logging.debug('Updating tail position')
-            change_here = np.argwhere(change_roll==kwargs['tail_position'][0])
-            kwargs['tail_position'][1] += abs(change_roll[change_here[0][0], 1])
+            change_here = np.argwhere(self.change_roll[:, 0]==kwargs['tail_position'][0])
+            if change_here.any():
+                kwargs['tail_position'][1] += abs(self.change_roll[change_here[0][0], 1])
 
         logging.debug('Updating scroll instructions')
         cf.scroll_instruction_update(
-            kwargs['bars'], kwargs['dim_h']
+            kwargs['bars'], kwargs['dim_t']
         )
         cf.scroll_instruction_update(
-            kwargs['fuzz'], kwargs['dim_h']
+            kwargs['fuzz'], kwargs['dim_t']
         )
         logging.debug('Updating tail position')
         kwargs['arr_t'] = cf.update_array_positions(
             kwargs['tail_position'],
             kwargs['buffer_length'],
             kwargs['buffer_status'],
-            kwargs['buf_h'],
+            kwargs['buf_t'],
             0
         )
 
         # if tail has changed, you need to prepair to delete the first buffer
-        if self.st.general.growth:
-            if change_roll[change_here[0][0], 1]:
+        if self.st.general.growth and change_here.any():
+            if self.change_roll[change_here[0][0], 1]:
                 kwargs['buf_t'] = kwargs['buf_h']
                 kwargs['dim_t'] = kwargs['dim_h']
+                kwargs['arr_t'] = kwargs['buf_t'][kwargs['tail_position'][0] %\
+                                                  kwargs['buffer_length']]
                 kwargs['head_position'][1] -= 1
                 kwargs['tail_position'][1] -= 1
                 kwargs['buffer_status'] = cf.extend_buffer_status(kwargs['head_position'],
                                     kwargs['buffer_length'], kwargs['buffer_status'])
+                self.image = QImage(kwargs['dim_t'][0], kwargs['dim_t'][1],
+                                    QImage.Format_ARGB32)
 
     def update_frame(self, kwargs):
         kwargs.update({
@@ -270,6 +245,7 @@ class RunController(QObject):
             kwargs['bars'][i, -1] = -1
         for i in range(len(kwargs['fuzz'])):
             kwargs['fuzz'][i, -1] = -2
+        return kwargs
 
     def prepare_frame(self):
         kwargs={
@@ -289,12 +265,12 @@ class RunController(QObject):
             'tail_position':np.asarray(self.tail_position, np.intc),
             'buffer_length':np.asarray(self.buf_len, np.intc),
             'buffer_status':np.asarray(self.buf_stat, np.intc),
-            'dim_h':np.asarray(self.dim, np.intc),
-            'dim_t':np.asarray(self.dim, np.intc),
+            'dim_h':np.asarray(self.dim_h, np.intc),
             'arr_h':np.asarray(self.arr_h, np.intc),
-            'buf_h':np.asarray(self.buf, np.intc),
-            'buf_t':np.asarray(self.buf, np.intc),
+            'buf_h':np.asarray(self.buf_h, np.intc),
+            'dim_t':np.asarray(self.dim_t, np.intc),
             'arr_t':np.asarray(self.arr_t, np.intc),
+            'buf_t':np.asarray(self.buf_t, np.intc),
         }
         return kwargs
 
@@ -302,14 +278,12 @@ class RunController(QObject):
     # Image and array have the same size, should be resized in one function.
     def resize_image(self, dim):
         self.image = QImage(dim[0], dim[1], QImage.Format_ARGB32)
-        self.imageDim = np.asarray(dim)
-        self.imageScale = np.asarray(self.st.canvas.scale)
         self.send_image()
 
 #===============Array processing and Image export=============#
     def send_image(self):
         ims = self.image.scaled(QSize(self.imageDim[0] * self.imageScale,
-                                 self.imageDim[1] * self.imageScale))
+                                self.imageDim[1] * self.imageScale))
         nupix = QPixmap()
         nupix.convertFromImage(ims)
         self.imageSig.emit(nupix)

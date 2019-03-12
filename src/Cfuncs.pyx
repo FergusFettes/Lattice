@@ -50,13 +50,14 @@ cpdef void replace_image_positions(object image, int[:] colorList, int[:, :] L, 
 #==================HI-LEVEL==================
 #============================================
 cpdef change_zoom_level(int[:] head_pos, int buffer_length, int[:, :] buffer_status,
-                        int[:] dim, int[:, :, :] buf):
+                        int[:, :] change_roll, int[:] dim, int[:, :, :] buf):
     """
-    Checks the array edges, resizes if necessary.
+    Checks the array edges, resizes if necessary and saves the change in change_roll
 
     :param head_pos:        position of the head in the buffer
     :param buffer_length:
     :param buffer_status:
+    :param change_roll:     short list containing the mangitude and position of each change
     :param dim:
     :param buf:
     :return:
@@ -70,26 +71,39 @@ cpdef change_zoom_level(int[:] head_pos, int buffer_length, int[:, :] buffer_sta
         dim_v, buf_v = resize_array_buffer(dim, buffer_length)
         change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v)
         head_pos[1] += 1
-        return dim_v, buf_v, 1
+        change = 1
     # if outer rim has nothing, check next two in
     elif cy.check_rim(1, dim, buf[head_pos[0] % buffer_length]) is False\
      and cy.check_rim(2, dim, buf[head_pos[0] % buffer_length]) is False:
         dim_v, buf_v = resize_array_buffer(dim, buffer_length, -1)
         change_buffer(head_pos, buffer_length, dim, buf, dim_v, buf_v,
                         array.array('i', [1,1]), array.array('i', [2, 2]))
-        head_pos[1] -= 1
-        return dim_v, buf_v, -1
-    return dim, buf, 0
+        head_pos[1] += 1
+        change = -1
+    else:
+        dim_v = dim
+        buf_v = buf
+        change = 0
 
-cpdef tuple init(list dimensions):
+    cy.roll_rows_pointer(1, array.array('i', [buffer_length, 2]), change_roll)
+    change_roll[0, 0] = head_pos[0]
+    change_roll[0, 1] = change
+
+    buffer_status = extend_buffer_status(head_pos, buffer_length, buffer_status)
+
+    return dim_v, buf_v, change_roll, buffer_status
+
+
+cpdef tuple init(list dimensions, int buffer_length, int randomize_size = 0):
     """
     Initializes all the variables for a standard run.
 
     :param dimensions:      (list) initial dimensions of array
     :param rules:           (list) rules
     :return:
+        change_roll `       (2D pointer) list ready to recod the buffer changes
         head_pos            (pointer) position of head in buffer
-        tail_pos        (pointer) positions to be analysed
+        tail_pos            (pointer) positions to be analysed
         buffer_length       (int) buffer length
         buffer_status       (2Dpointer) list of array poistions in buffer
         dim                 (pointer) dimensions of array
@@ -99,7 +113,6 @@ cpdef tuple init(list dimensions):
         arr                 (2D pointer) array
         buf                 (3D pointer) buffer
     """
-    cdef int buffer_length
     cdef int[:] head_position, tail_position
     cdef int[:, :] buffer_status
     cdef int[:] dim_h = array.array('i', dimensions)
@@ -107,7 +120,6 @@ cpdef tuple init(list dimensions):
     cdef int[:, :] arr_h, arr_t
     cdef int[:, :, :] buf_h
 
-    buffer_length = 10
     buffer_status = np.zeros((1, buffer_length), np.intc)
     buffer_status[0, 0] = 1
     head_position = array.array('i', [0, 0])
@@ -122,14 +134,22 @@ cpdef tuple init(list dimensions):
     arr_h = update_array_positions(head_position, buffer_length, buffer_status,
                                    buf_h, 0)
 
-    randomize_center(7, dim_h, arr_h)
+    cy.clear_array(dim_h, arr_h)
+    advance_array(head_position, buffer_length, buf_h)
+    arr_h = update_array_positions(head_position, buffer_length, buffer_status,
+                                   buf_h, 0)
+
+    randomize_center(randomize_size, dim_h, arr_h)
     advance_array(head_position, buffer_length, buf_h)
     arr_h = update_array_positions(head_position, buffer_length, buffer_status,
                                    buf_h, 0)
 
     buffer_status[0, 0] = 2 #placing the tail
 
-    return head_position, tail_position, buffer_length, buffer_status,\
+    change_roll = np.zeros((buffer_length, 2), np.intc)
+    change_roll -= 1
+
+    return change_roll, head_position, tail_position, buffer_length, buffer_status,\
             dim_t, arr_t, buf_h, dim_h, arr_h, buf_h
 
 
@@ -539,6 +559,7 @@ cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, float threshold=0.2):
     :param arr:         (2D pointer) array
     :return:            None
     """
+    if not siz: return
     cdef int[:] dim_v, offset_v
     cdef int[:, :] arr_v
     dim_v = array.array('i', [siz, siz])

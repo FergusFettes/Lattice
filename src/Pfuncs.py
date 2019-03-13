@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.core.umath_tests import inner1d
 
 
 #==============WOLFRAM==========================#
@@ -54,7 +53,8 @@ def wolf_array(wolf, wolfarray):
     return wolfarray
 
 
-#====Analysis===========
+#===========================Analysis
+#==Used for testing the Cython funcs
 def population_density_P(rad, pop):
     if pop == 0:
         return 0

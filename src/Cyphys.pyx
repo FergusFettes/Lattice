@@ -57,14 +57,15 @@ cpdef tuple analysis_loop_energy(float[:] com_in, int[:] dim, int[:, :] arr):
                 hsum += i
                 vsum += j
                 tot += 1
-    if tot == 0: return None
     cdef float e, e2, hm, vm, M
     e = float(etot) / float(tot_positions)
     e2 = float(e2tot) / float(tot_positions)
-    hm = float(hsum) / float(tot)
-    vm = float(vsum) / float(tot)
+    if tot == 0: hm = 0; vm = 0; Rg = 0
+    else:
+        hm = float(hsum) / float(tot)
+        vm = float(vsum) / float(tot)
+        Rg /= float(tot)
     cdef float[:] com = array.array('f', [hm, vm])
-    Rg /= float(tot)
 
     Mtot = abs((2 * tot) - tot_positions)
     M = float(Mtot) / float(tot_positions)
@@ -104,12 +105,13 @@ cpdef tuple analysis_loop(float[:] com_in, int[:] dim, int[:, :] arr):
                 hsum += i
                 vsum += j
                 tot += 1
-    if tot == 0: return None
     cdef float hm, vm
-    hm = float(hsum) / float(tot)
-    vm = float(vsum) / float(tot)
+    if tot == 0: hm = 0; vm = 0; Rg = 0
+    else:
+        hm = float(hsum) / float(tot)
+        vm = float(vsum) / float(tot)
+        Rg /= float(tot)
     cdef float[:] com = array.array('f', [hm, vm])
-    Rg /= float(tot)
 
     Mtot = abs((2 * tot) - tot_positions)
     M = float(Mtot) / float(tot_positions)

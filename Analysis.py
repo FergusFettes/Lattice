@@ -1,5 +1,5 @@
 import numpy as np
 
-import Xanalysis as X
+import Xsimple_runner as X
 
 print(X.COM)

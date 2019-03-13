@@ -416,6 +416,18 @@ class BufferHandlingTestCase(unittest.TestCase):
         dim, arr, change = change_zoom_level_array(self.dim, self.arr)
         testing.assert_array_equal(arr[1:-1, 1:-1], self.arr)
 
+    def test_change_zoom_level_array_smaller(self):
+        cy.clear_array(self.dim, self.arr)
+        dim, arr, change = change_zoom_level_array(self.dim, self.arr)
+        self.assertEqual(change, -1)
+        self.assertEqual(dim[0], self.dim[0] - 2)
+
+    def test_change_zoom_level_array_smaller_content(self):
+        cy.clear_array(self.dim, self.arr)
+        randomize_center(10, self.dim, self.arr)
+        dim, arr, change = change_zoom_level_array(self.dim, self.arr)
+        testing.assert_array_equal(self.arr[1:-1, 1:-1], arr)
+
     def test_change_zoom_level_larger(self):
         add_stochastic_noise(1, self.dim, self.arr)
         self.assertEqual(len(self.buf_stat), 1)
@@ -605,6 +617,23 @@ class BufferHandlingTestCase(unittest.TestCase):
         self.assertFalse(cy.check_rim(0, dim_nu, buf_nu[0]))
         self.assertFalse(cy.check_rim(1, dim_nu, buf_nu[0]))
         self.assertTrue(cy.check_rim(2, dim_nu, buf_nu[0]))
+
+    def test_change_array_manual_fill_cut_and_gap(self):
+        # Fill old buffer with 1s
+        self.arr[:] = 1
+        dim_nu, arr_nu = resize_array(self.dim)
+
+        # Initialise new buffer to 0
+        arr_nu[:] = 0
+        # This time when changing, offset and cut the old array
+        offset = array.array('i', [2, 2])
+        cut = array.array('i', [1, 1])
+        change_array(self.dim, self.arr, dim_nu, arr_nu, offset, cut)
+        # Check the new buffer has a gap all the way around, one step in from the
+        # outside.
+        self.assertFalse(cy.check_rim(0, dim_nu, arr_nu))
+        self.assertFalse(cy.check_rim(1, dim_nu, arr_nu))
+        self.assertTrue(cy.check_rim(2, dim_nu, arr_nu))
 
     def test_advance_array_has_dimensions(self):
         buf = self.buf

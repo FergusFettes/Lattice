@@ -97,16 +97,16 @@ cpdef change_zoom_level_array(int[:] dim, int[:, :] arr):
     """
     Checks the array edges, resizes if necessary and saves the change in change_roll
 
-    :param frame:        position of the head in the buffer
     :param dim:
     :param arr:
     :return:
         (pointer) new dim
-        (3D pointer) new buffer
+        (3D pointer) new arr
         (int) size of change
     """
-    cdef int[:] dim_v
+    cdef int[:] dim_v, offset, cut
     cdef int[:, :] arr_v
+    cdef int change
     if cy.check_rim(0, dim, arr) is True:
         dim_v, arr_v = resize_array(dim)
         change_array(dim, arr, dim_v, arr_v)
@@ -114,9 +114,10 @@ cpdef change_zoom_level_array(int[:] dim, int[:, :] arr):
     # if outer rim has nothing, check next two in
     elif cy.check_rim(1, dim, arr) is False\
      and cy.check_rim(2, dim, arr) is False:
-        dim_v, arr_v = resize_array(dim)
-        change_array(dim, arr, dim_v, arr_v,
-                        array.array('i', [1,1]), array.array('i', [2, 2]))
+        dim_v, arr_v = resize_array(dim, -1)
+        offset = array.array('i', [1,1])
+        cut = array.array('i', [2, 2])
+        change_array(dim, arr, dim_v, arr_v, offset, cut)
         change = -1
     else:
         dim_v = dim

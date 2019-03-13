@@ -40,7 +40,7 @@ cpdef tuple analysis_loop_energy(float[:] com_in, int[:] dim, int[:, :] arr):
     d = cy.roll_rows(-1, dim, arr)
     cdef int tot_positions = dim[0] * dim[1]
     cdef int[:, :] living = np.zeros((dim[0] * dim[1],2), np.intc)
-    cdef float Rg
+    cdef float Rg = 0.0
     cdef int vsum = 0, tot = 0, hsum = 0, etot = 0, e2tot = 0, Mtot = 0, nb
     cdef Py_ssize_t i, j
     for i in range(dim[0]):
@@ -92,7 +92,7 @@ cpdef tuple analysis_loop(float[:] com_in, int[:] dim, int[:, :] arr):
     """
     cdef int tot_positions = dim[0] * dim[1]
     cdef int[:, :] living = np.zeros((dim[0] * dim[1],2), np.intc)
-    cdef float Rg
+    cdef float Rg = 0.0
     cdef int vsum = 0, tot = 0, hsum = 0, etot = 0, e2tot = 0, Mtot = 0
     cdef Py_ssize_t i, j
     for i in range(dim[0]):
@@ -203,6 +203,28 @@ cpdef int[:, :] births(int[:] dim_old, int[:, :] arr_old, int[:] dim, int[:, :] 
                     birth[count, 1] = j
                     count += 1
     return birth[: count]
+
+cpdef int[:] population_change(int[:] dim_old, int[:, :] arr_old, int[:] dim, int[:, :] arr):
+    """
+    Returns those cells that are new
+
+    :param dim:
+    :param arr:
+    :param dim_old:
+    :param arr_old:
+    :return:            [births, deaths] totals
+    """
+    cdef int[:] results = array.array('i', [0, 0])
+    cdef Py_ssize_t i, j
+    for i in range(dim[0]):
+        for j in range(dim[1]):
+            if not arr_old[i, j]:
+                if arr[i, j]:
+                    results[0] += 1
+            if arr_old[i, j]:
+                if not arr[i, j]:
+                    results[1] += 1
+    return results
 
 cpdef int[:, :] deaths(int[:] dim_old, int[:, :] arr_old, int[:] dim, int[:, :] arr):
     """

@@ -182,6 +182,7 @@ cpdef int[:, :] living(int[:] dim, int[:, :] arr):
                 count += 1
     return living[: count]
 
+#TODO: fix this
 cpdef int[:, :] births(int[:] dim_old, int[:, :] arr_old, int[:] dim, int[:, :] arr):
     """
     Returns those cells that are new
@@ -204,28 +205,7 @@ cpdef int[:, :] births(int[:] dim_old, int[:, :] arr_old, int[:] dim, int[:, :] 
                     count += 1
     return birth[: count]
 
-cpdef int[:] population_change(int[:] dim_old, int[:, :] arr_old, int[:] dim, int[:, :] arr):
-    """
-    Returns those cells that are new
-
-    :param dim:
-    :param arr:
-    :param dim_old:
-    :param arr_old:
-    :return:            [births, deaths] totals
-    """
-    cdef int[:] results = array.array('i', [0, 0])
-    cdef Py_ssize_t i, j
-    for i in range(dim[0]):
-        for j in range(dim[1]):
-            if not arr_old[i, j]:
-                if arr[i, j]:
-                    results[0] += 1
-            if arr_old[i, j]:
-                if not arr[i, j]:
-                    results[1] += 1
-    return results
-
+#TODO: fix this per population change
 cpdef int[:, :] deaths(int[:] dim_old, int[:, :] arr_old, int[:] dim, int[:, :] arr):
     """
     Returns those cells that are new
@@ -247,6 +227,48 @@ cpdef int[:, :] deaths(int[:] dim_old, int[:, :] arr_old, int[:] dim, int[:, :] 
                     death[count, 1] = j
                     count += 1
     return death[: count]
+
+cpdef int[:] population_change(int[:] dim_old, int[:, :] arr_old, int[:] dim, int[:, :] arr):
+    """
+    Returns those cells that are new
+
+    :param dim:
+    :param arr:
+    :param dim_old:
+    :param arr_old:
+    :return:            [births, deaths] totals
+    """
+    cdef int[:] results = array.array('i', [0, 0])
+    cdef Py_ssize_t i, j
+    cdef int offset = 0
+    if dim_old[0] < dim[0]:
+        for i in range(dim_old[0]):
+            for j in range(dim_old[1]):
+                if not arr_old[i, j]:
+                    if arr[i + 1, j + 1]:
+                        results[0] += 1
+                if arr_old[i, j]:
+                    if not arr[i + 1, j + 1]:
+                        results[1] += 1
+    elif dim_old[0] > dim[0]:
+        for i in range(dim[0]):
+            for j in range(dim[1]):
+                if not arr_old[i + 1, j + 1]:
+                    if arr[i, j]:
+                        results[0] += 1
+                if arr_old[i + 1, j + 1]:
+                    if not arr[i, j]:
+                        results[1] += 1
+    else:
+        for i in range(dim[0]):
+            for j in range(dim[1]):
+                if not arr_old[i, j]:
+                    if arr[i, j]:
+                        results[0] += 1
+                if arr_old[i, j]:
+                    if not arr[i, j]:
+                        results[1] += 1
+    return results
 
 cpdef int population(int[:] dim, int[:, :] arr):
     """

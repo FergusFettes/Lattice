@@ -13,11 +13,13 @@ LOGGING_LEVEL = logging.INFO
 logging.basicConfig(level=LOGGING_LEVEL,
                     format='%(asctime)s:[%(levelname)s]-(%(processName)-15s): %(message)s',
                     )
+LENGTH = 500
 
 screendim1 = [38, 149]
 DIM = array.array('i', [20, 20])
 ARR = cf.init_array(DIM)
 ARR_OLD = np.copy(ARR)
+DIM_OLD = np.copy(DIM)
 cf.randomize_center(10, DIM, ARR)
 FRAME = array.array('i', [0])
 
@@ -26,13 +28,15 @@ UPDATES = 0
 THRESHOLD = 0
 RULES = np.array([[2, 3, 3, 3], [2, 3, 3, 3]], np.intc)
 
-TOT = np.zeros(1000, np.intc)
-Rg = np.zeros_like(TOT)
+COM = cph.center_of_mass(DIM, ARR)
+
+TOT = np.zeros(LENGTH, np.intc)
+RG = np.zeros_like(TOT)
 E = np.zeros_like(TOT)
 E2 = np.zeros_like(TOT)
 M = np.zeros_like(TOT)
-CHANGE = np.zeros((1000, 2), np.intc)
-COM = cph.center_of_mass(DIM, ARR)
+CHANGE = np.zeros((LENGTH, 2), np.intc)
+
 
 def prepare_frame():
     kwargs={
@@ -50,8 +54,10 @@ def prepare_frame():
 
 def basic_update(updates=None, beta=None, threshold=None, dim=None, arr=None, frame=None,
                  rules=None, **_):
+    global ARR_OLD, DIM_OLD
     _, _, = phi.recenter(COM, dim, arr)
-    ARR_OLD = np.copy(ARR)
+    ARR_OLD = np.copy(arr)
+    DIM_OLD = np.copy(dim)
     logging.debug('Basic update')
     cf.ising_process(updates, beta, dim, arr)
     cf.add_stochastic_noise(threshold, dim, arr)
@@ -62,22 +68,24 @@ def basic_update(updates=None, beta=None, threshold=None, dim=None, arr=None, fr
     # cf.basic_print(dim, arr)
     return dim, arr
 
-def analysis(frame=None, dim=None, arr=None):
+def analysis(frame=None, dim=None, arr=None, **_):
 
-    tot, _, COM, Rg, e, e2, m = cph.analysis_loop_energy(com, dim, arr)
+    global COM, TOT, RG, E, E2, M, CHANGE
+    tot, _, COM, Rg, e, e2, m = cph.analysis_loop_energy(COM, dim, arr)
     TOT[frame] = tot
-    Rg[frame] = Rg
+    RG[frame] = Rg
     E[frame] = e
     E2[frame] = e2
     M[frame] = m
-    CHANGE[frame, :] = cph.population_change(ARR_OLD, arr)
+    CHANGE[frame, :] = cph.population_change(DIM_OLD, ARR_OLD, DIM, ARR)
 
 if __name__ == "__main__":
     logging.info('Proccess starting!')
     kwargs = prepare_frame()
 
     start = time.time()
-    while kwargs['frame'][0] < 1000:
+    while kwargs['frame'][0] < LENGTH:
         kwargs['dim'], kwargs['arr'] = basic_update(**kwargs)
+        analysis(**kwargs)
         kwargs['frame'][0] += 1
     print('Total time: {}'.format(time.time() - start))

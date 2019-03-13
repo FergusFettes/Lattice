@@ -182,6 +182,50 @@ cpdef int[:, :] living(int[:] dim, int[:, :] arr):
                 count += 1
     return living[: count]
 
+cpdef int[:, :] births(int[:] dim_old, int[:, :] arr_old, int[:] dim, int[:, :] arr):
+    """
+    Returns those cells that are new
+
+    :param dim:
+    :param arr:
+    :param dim_old:
+    :param arr_old:
+    :return:            births
+    """
+    cdef int[:, :] birth = np.zeros((dim[0] * dim[1],2), np.intc)
+    cdef int count = 0
+    cdef Py_ssize_t i, j
+    for i in range(dim[0]):
+        for j in range(dim[1]):
+            if not arr_old[i, j]:
+                if arr[i, j]:
+                    birth[count, 0] = i
+                    birth[count, 1] = j
+                    count += 1
+    return birth[: count]
+
+cpdef int[:, :] deaths(int[:] dim_old, int[:, :] arr_old, int[:] dim, int[:, :] arr):
+    """
+    Returns those cells that are new
+
+    :param dim:
+    :param arr:
+    :param dim_old:
+    :param arr_old:
+    :return:            deaths
+    """
+    cdef int[:, :] death = np.zeros((dim[0] * dim[1],2), np.intc)
+    cdef int count = 0
+    cdef Py_ssize_t i, j
+    for i in range(dim[0]):
+        for j in range(dim[1]):
+            if arr_old[i, j]:
+                if not arr[i, j]:
+                    death[count, 0] = i
+                    death[count, 1] = j
+                    count += 1
+    return death[: count]
+
 cpdef int population(int[:] dim, int[:, :] arr):
     """
     And the population.

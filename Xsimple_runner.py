@@ -4,8 +4,9 @@ import numpy as np
 import time
 
 import src.Cfuncs as cf
-import src.Cyarr as cy
+import src.Pfuncs as pf
 import src.Cyphys as cph
+import src.Cyarr as cy
 import src.PHifuncs as phi
 
 import logging
@@ -13,112 +14,86 @@ LOGGING_LEVEL = logging.INFO
 logging.basicConfig(level=LOGGING_LEVEL,
                     format='%(asctime)s:[%(levelname)s]-(%(processName)-15s): %(message)s',
                     )
-LENGTH = 1000
-RUNNING = True
 
-screendim1 = [38, 149]
-DIM = array.array('i', [20, 20])
-ARR = cf.init_array(DIM)
-ARR_OLD = np.copy(ARR)
-DIM_OLD = np.copy(DIM)
-cf.randomize_center(10, DIM, ARR)
-FRAME = array.array('i', [0])
+class Run():
 
-BETA = 1/8
-UPDATES = 0
-THRESHOLD = 0
-RULES = np.array([[2, 3, 3, 3], [2, 3, 3, 3]], np.intc)
+    def __init__(self, length=1000):
+        self.RUNNING = True
+        self.LENGTH = length
+        self.DIM = array.array('i', [20, 20])
+        self.ARR = cf.init_array(self.DIM)
+        cy.clear_array(self.DIM, self.ARR)
+        self.ARR_OLD = np.copy(self.ARR)
+        self.DIM_OLD = np.copy(self.DIM)
+        self.FRAME = array.array('i', [0])
 
-COM = cph.center_of_mass(DIM, ARR)
-if not np.asarray(COM).any():
-    import pdb; pdb.set_trace()  # XXX BREAKPOINT
-    COM = np.array([DIM[0]/2, DIM[1]/2], np.float32)
+        self.BETA = 1/8
+        self.UPDATES = 0
+        self.THRESHOLD = 0
+        self.RULES = np.array([[2, 3, 3, 3], [2, 3, 3, 3]], np.intc)
 
-TOT = np.zeros(LENGTH, np.intc)
-RG = np.zeros_like(TOT)
-E = np.zeros_like(TOT)
-E2 = np.zeros_like(TOT)
-M = np.zeros_like(TOT)
-CHANGE = np.zeros((LENGTH, 2), np.intc)
+        self.COM = cph.center_of_mass(self.DIM, self.ARR)
 
-def rezero():
-    TOT = np.zeros(LENGTH, np.intc)
-    RG = np.zeros_like(TOT)
-    E = np.zeros_like(TOT)
-    E2 = np.zeros_like(TOT)
-    M = np.zeros_like(TOT)
-    CHANGE = np.zeros((LENGTH, 2), np.intc)
+        self.TOT = np.zeros(self.LENGTH, np.intc)
+        self.RG = np.zeros(self.LENGTH, np.float32)
+        self.E = np.zeros_like(self.RG)
+        self.E2 = np.zeros_like(self.RG)
+        self.M = np.zeros_like(self.RG)
+        self.CHANGE = np.zeros((self.LENGTH, 2), np.intc)
+        self.AXES = np.zeros((self.LENGTH, 2), np.intc)
 
-def prepare_frame():
-    kwargs={
-        'running':RUNNING,
-        'frametime':0.2,
-        'threshold':THRESHOLD,
-        'updates':UPDATES,
-        'beta':BETA,
-        'rules':np.asarray(RULES, np.intc),
-        'frame':np.asarray(FRAME, np.intc),
-        'dim':np.asarray(DIM, np.intc),
-        'arr':ARR,
-    }
-    return kwargs
+        if not np.asarray(self.COM).any():
+            self.COM = np.array([self.DIM[0]/2, self.DIM[1]/2], np.float32)
 
-def basic_update(updates=None, beta=None, threshold=None, dim=None, arr=None, frame=None,
-                 rules=None, **_):
-    global ARR_OLD, DIM_OLD, RUNNING
-    _, _, = phi.recenter(COM, dim, arr)
-    ARR_OLD = np.copy(arr)
-    DIM_OLD = np.copy(dim)
-    logging.debug('Basic update')
-    cf.ising_process(updates, beta, dim, arr)
-    cf.add_stochastic_noise(threshold, dim, arr)
-    cf.conway_process(cf.prepair_rule(rules, frame), dim, arr)
-    logging.debug('Change zoom level')
-    if dim[0] <= 4:
-        RUNNING = False
+    def basic_update(self):
+        # _, _, = phi.recenter(self.COM, self.DIM, self.ARR) #turned off cause I think
+        # this buggers the turnover rate
+        self.ARR_OLD = np.copy(self.ARR)
+        self.DIM_OLD = np.copy(self.DIM)
+        logging.debug('Basic update')
+        cf.ising_process(self.UPDATES, self.BETA, self.DIM, self.ARR)
+        cf.add_stochastic_noise(self.THRESHOLD, self.DIM, self.ARR)
+        cf.conway_process(cf.prepair_rule(self.RULES, self.FRAME), self.DIM, self.ARR)
+        logging.debug('Change zoom level')
+        if self.DIM[0] <= 4:
+            self.RUNNING = False
 
-    dim, arr, change = cf.change_zoom_level_array(dim, arr)
+        self.DIM, self.ARR, _ = cf.change_zoom_level_array(self.DIM, self.ARR)
 
-    # cf.basic_print(dim, arr)
-    return dim, arr
+    def analysis(self):
 
-def analysis(frame=None, dim=None, arr=None, **_):
+        tot, live, self.COM, Rg, e, e2, m = cph.analysis_loop_energy(self.COM, self.DIM, self.ARR)
+        if not tot:
+            self.COM = np.array([self.DIM[0]/2, self.DIM[1]/2], np.float32)
 
-    global COM, TOT, RG, E, E2, M, CHANGE
-    tot, _, COM, Rg, e, e2, m = cph.analysis_loop_energy(COM, dim, arr)
-    if not tot:
-        COM = np.array([dim[0]/2, dim[1]/2], np.float32)
+        self.TOT[self.FRAME[0]] = tot
+        self.RG[self.FRAME[0]] = Rg
+        self.E[self.FRAME[0]] = e
+        self.E2[self.FRAME[0]] = e2
+        self.M[self.FRAME[0]] = m
+        change = cph.population_change(self.DIM_OLD, self.ARR_OLD, self.DIM, self.ARR)
+        self.CHANGE[self.FRAME[0], :] = change
+        axes = pf.axial_diameter_P(live)
+        self.AXES[self.FRAME[0], :] = axes
+        if not np.asarray(change).any():
+            self.RUNNING = False
+            self.TOT[self.FRAME[0]: ] = tot
 
-    TOT[frame] = tot
-    RG[frame] = Rg
-    E[frame] = e
-    E2[frame] = e2
-    M[frame] = m
-    CHANGE[frame, :] = cph.population_change(DIM_OLD, ARR_OLD, DIM, ARR)
-    if not np.asarray(CHANGE).any():
-        RUNNING = False
+    def main(self):
+        logging.info('Proccess starting!')
 
-def truncate(frame=None, **_):
-    global TOT, RG, E, E2, M, CHANGE
-    fr = frame[0]
-    TOT = TOT[: fr]
-    RG = RG[: fr]
-    E = E[: fr]
-    E2 = E2[: fr]
-    M = M[: fr]
-    CHANGE = CHANGE[: fr, :]
+        start = time.time()
+        cf.randomize_center(10, self.DIM, self.ARR)
+        self.analysis()
+        self.FRAME[0] += 1
+        while self.FRAME[0] < self.LENGTH  and self.RUNNING:
+            self.basic_update()
+            self.analysis()
+            self.FRAME[0] += 1
+        print('Total time: {} Final length: {}'.format(time.time() - start, self.FRAME[0]))
 
-def main():
-    logging.info('Proccess starting!')
-    kwargs = prepare_frame()
-
-    rezero()
-    start = time.time()
-    while kwargs['frame'][0] < LENGTH and RUNNING:
-        kwargs['dim'], kwargs['arr'] = basic_update(**kwargs)
-        analysis(**kwargs)
-        kwargs['frame'][0] += 1
-#   truncate(**kwargs)
-    print('Total time: {} Final length: {}'.format(time.time() - start, kwargs['frame'][0]))
-
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    a = Run()
+    a.main()
+    print(a.TOT[0:5])
+    print(a.CHANGE[0:5, :])

@@ -64,9 +64,10 @@ def population_density_P(rad, pop):
 def axial_diameter_P(positions):
     if len(positions) == 0:
         return 0, 0
-    width = max(positions[:,0]) - min(positions[:,0])
-    height = max(positions[:,1]) - min(positions[:,1])
-    return max(width, height), min(width, height)
+    l = np.asarray(positions)
+    ax0 = l[:,0].max() - l[:,0].min() + 1
+    ax1 = l[:,1].max() - l[:,1].min() + 1
+    return ax0, ax1
 
 
 def diameter_growth_rate_P(max_diameter):

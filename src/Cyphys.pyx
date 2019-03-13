@@ -66,9 +66,9 @@ cpdef tuple analysis_loop_energy(float[:] com_in, int[:] dim, int[:, :] arr):
     cdef float[:] com = array.array('f', [hm, vm])
     Rg /= float(tot)
 
-    Mtot = abs(tot_positions - tot)
+    Mtot = abs((2 * tot) - tot_positions)
     M = float(Mtot) / float(tot_positions)
-    return tot, living[: tot], com, Rg, e, e2, M
+    return tot, living[: tot], com, Rg**0.5, e, e2, M
 
 cpdef tuple analysis_loop(float[:] com_in, int[:] dim, int[:, :] arr):
     """
@@ -90,7 +90,6 @@ cpdef tuple analysis_loop(float[:] com_in, int[:] dim, int[:, :] arr):
         com         centre_of_mass
         Rg          radius_of_gyration
     """
-    cdef int[:] pos = array.array('i', [0, 0])
     cdef int tot_positions = dim[0] * dim[1]
     cdef int[:, :] living = np.zeros((dim[0] * dim[1],2), np.intc)
     cdef float Rg
@@ -112,9 +111,9 @@ cpdef tuple analysis_loop(float[:] com_in, int[:] dim, int[:, :] arr):
     cdef float[:] com = array.array('f', [hm, vm])
     Rg /= float(tot)
 
-    Mtot = abs(tot_positions - tot)
-    M = float(Mtot) / float(tot)
-    return tot, living[: tot], com, Rg
+    Mtot = abs((2 * tot) - tot_positions)
+    M = float(Mtot) / float(tot_positions)
+    return tot, living[: tot], com, Rg**0.5, M
 
 cpdef float[:] center_of_mass(int[:] dim, int[:, :] arr):
     """
@@ -235,7 +234,7 @@ cpdef tuple neighbor_interaction(int[:] dim, int[:, :] arr):
     u = cy.roll_rows(1, dim, arr)
     d = cy.roll_rows(-1, dim, arr)
     cdef int tot_positions = dim[0] * dim[1]
-    cdef int etot = 0, e2tot = 0
+    cdef int etot = 0, e2tot = 0, nb
     cdef Py_ssize_t i, j
     for i in range(dim[0]):
         for j in range(dim[1]):
@@ -266,7 +265,7 @@ cpdef tuple neighbor_interaction_moore(int[:] dim, int[:, :] arr):
         for j in range(dim[1]):
             pos[0] = i
             pos[1] = j
-            nb = cf.moore_neighbors_same(pos, dim, arr)
+            nb = cf.moore_neighbors_same_CP(pos, dim, arr)
             etot -= 2 * nb
             e2tot += (2 * nb) * (2 * nb)
 
@@ -287,5 +286,12 @@ cpdef float polarization(int[:] dim, int[:, :] arr):
     M = float(Mtot) / float(tot_positions)
     return M
 
-cpdef inline float norm(int a, int b):
+cpdef inline float norm(float a, float b):
+    """
+    Returns the norm of the integers
+    Faster than anything in python for single digits by OOM
+    :param a:
+    :param b:
+    :return:    norm(a, b)
+    """
     return (a*a + b*b)**0.5

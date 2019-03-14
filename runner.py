@@ -20,6 +20,8 @@ class Run():
 
     def __init__(self, length=1000, dim=np.array([20, 20], np.intc), beta=1/8, updates=0,
                  threshold=0, rules=np.array([[2,3,3,3]], np.intc)):
+        self.TOTTIME = time.time()
+        self.RUNTIME = 0
         self.RUNNING = True
         self.LENGTH = length
         self.DIM = np.asarray(dim, np.intc)
@@ -90,7 +92,15 @@ class Run():
             self.basic_update()
             self.analysis()
             self.FRAME[0] += 1
-        print('Total time: {} Final length: {}'.format(time.time() - start, self.FRAME[0]))
+        #TODO: add some more analysis of the actual computation of the run, processor intensity or something
+        self.RUNTIME = time.time() - start
+        self.TOTTIME = time.time() - self.TOTTIME
+
+        setup = self.TOTTIME - self.RUNTIME
+
+        logging.info('Total time: {0:3.3f},{1:0.4f} Final length: {2}'.format(
+            self.TOTTIME, setup, self.FRAME[0])
+        )
 
 class Repeater():
 
@@ -104,20 +114,18 @@ class Repeater():
             R = Run(self.LENGTH)
             R.main()
             temp = pd.DataFrame({
+                'time':R.TOTTIME,
                 'frame':list(range(self.LENGTH)),
-                'population':R.TOT,
-                'births':R.CHANGE[:, 0],
-                'deaths':R.CHANGE[:, 1],
+                'populus':R.TOT,
                 'growth':R.CHANGE[:, 0] - R.CHANGE[:, 1],
                 'turnover':R.CHANGE.sum(axis=1),
-                'comx':R.COM[0],
-                'comy':R.COM[1],
                 'comnorm':cph.norm(R.COM[0], R.COM[1]),
-                'radius':R.RG,
+                'rad':R.RG,
                 'diameter':R.AXES.max(axis=1),
             })
-            temp['growth_change'] = temp['growth'].sub(temp['growth'].shift())
-            temp['density'] = temp['population'].div(temp['radius'], fill_value=0)
+            temp['density'] = temp['populus'].div(temp['rad'], fill_value=0)
+            temp['Dgrowth'] = temp['growth'].sub(temp['growth'].shift())
+            temp['Drad'] = temp['rad'].sub(temp['rad'].shift())
             assert(temp['growth'].sum()==R.TOT[-1])
             frames[i] = temp
         return frames

@@ -19,7 +19,7 @@ logging.basicConfig(level=LOGGING_LEVEL,
 class Run():
 
     def __init__(self, length=1000, dim=np.array([20, 20], np.intc), beta=1/8, updates=0,
-                 threshold=0, rules=np.array([[2,3,3,3]], np.intc)):
+                 threshold=0, rules=np.array([[2,3,3,3]], np.intc), seed=None, show=False):
         self.TOTTIME = time.time()
         self.RUNTIME = 0
         self.RUNNING = True
@@ -46,6 +46,8 @@ class Run():
         self.CHANGE = np.zeros((self.LENGTH, 2), np.intc)
         self.AXES = np.zeros((self.LENGTH, 2), np.intc)
 
+        self.SEED = seed if seed is not None else np.random.randint(0, 10**9)
+        self.SHOW = show
         if not np.asarray(self.COM).any():
             self.COM = np.array([self.DIM[0]/2, self.DIM[1]/2], np.float32)
 
@@ -85,12 +87,15 @@ class Run():
                      self.RULES[0], len(self.RULES))
         )
         start = time.time()
-        cf.randomize_center(10, self.DIM, self.ARR)
+        cf.randomize_center(10, self.DIM, self.ARR, seed=self.SEED)
         self.analysis()
         self.FRAME[0] += 1
         while self.FRAME[0] < self.LENGTH  and self.RUNNING:
             self.basic_update()
             self.analysis()
+            if self.SHOW:
+                cf.basic_print(self.DIM, self.ARR)
+                time.sleep(0.1)
             self.FRAME[0] += 1
         #TODO: add some more analysis of the actual computation of the run, processor intensity or something
         self.RUNTIME = time.time() - start
@@ -104,30 +109,42 @@ class Run():
 
 class Repeater():
 
-    def __init__(self, repeat=50, length=1000):
-        self.REPEAT = repeat
+    def __init__(self, repeat=50, length=1000, beta=1/8, updates=0,
+                 threshold=0, rules=np.array([[2,3,3,3]], np.intc)):
         self.LENGTH = length
+        self.REPEAT = repeat
+
+        self.BETA = beta
+        self.UPDATES = updates
+        self.THRESHOLD = threshold
+        self.RULES = np.asarray(rules, np.intc)
 
     def go(self):
+        TOTTIME = time.time()
         frames = {}
         for i in range(self.REPEAT):
-            R = Run(self.LENGTH)
+            R = Run(length=self.LENGTH, beta=self.BETA, updates=self.UPDATES,
+                 threshold=self.THRESHOLD, rules=self.RULES)
             R.main()
             temp = pd.DataFrame({
                 'time':R.TOTTIME,
+                'seed':R.SEED,
                 'frame':list(range(self.LENGTH)),
                 'populus':R.TOT,
                 'growth':R.CHANGE[:, 0] - R.CHANGE[:, 1],
                 'turnover':R.CHANGE.sum(axis=1),
                 'comnorm':cph.norm(R.COM[0], R.COM[1]),
-                'rad':R.RG,
+                'radius':R.RG,
                 'diameter':R.AXES.max(axis=1),
             })
-            temp['density'] = temp['populus'].div(temp['rad'], fill_value=0)
+            temp['density'] = temp['populus'].div(temp['radius'], fill_value=0)
             temp['Dgrowth'] = temp['growth'].sub(temp['growth'].shift())
-            temp['Drad'] = temp['rad'].sub(temp['rad'].shift())
+            temp['Drad'] = temp['radius'].sub(temp['radius'].shift())
             assert(temp['growth'].sum()==R.TOT[-1])
             frames[i] = temp
+        TOTTIME = time.time() - TOTTIME
+        logging.info('Completed {0} runs of length {1} in {2:4.3f}s'.format(
+            self.REPEAT, self.LENGTH, TOTTIME))
         return frames
 
 if __name__=='__main__':

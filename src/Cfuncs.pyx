@@ -617,25 +617,53 @@ cpdef void noise_column(int pos, int[:] dim, int[:, :] arr, int polarity, float 
     add_stochastic_noise(coverage, tdim, tarr, polarity)
 
 #===============FANTASTIC STOCHASTIC===============
-cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, float threshold=0.2):
+cpdef randomize_center(int siz, int[:] dim, int[:, :] arr, int seed=-1, float threshold=0.2):
     """
     Puts a little random array in the center of the array
 
     :param size:        (pointer) size of small array
     :param dim:         (pointer) dimensions
     :param arr:         (2D pointer) array
+    :param seed:        seed for Srand
+    :param threshold:   threshold for randomizer
     :return:            None
     """
+    seed = seed if seed is not -1 else np.random.randint(0, 10**9)
     if not siz: return
     cdef int[:] dim_v, offset_v
     cdef int[:, :] arr_v
     dim_v = array.array('i', [siz, siz])
     arr_v = init_array(dim_v)
 
-    add_global_noise(threshold, dim_v, arr_v)
+    add_global_noise_seed(seed, threshold, dim_v, arr_v)
 
     offset_v = array.array('i', [(dim[0] - dim_v[0])//2, (dim[1] - dim_v[1])//2])
     cy.replace_array(offset_v, dim_v, arr_v, dim, arr)
+
+cpdef add_global_noise_seed(int seed, float threshold, int[:] dim, int[:, :] arr, int polarity=0):
+    """
+    Adds simple noise to an array.
+    NB: This is faster than add_stochastic_noise for large noise levels.
+
+    :param threshold: (float) Noise threshold (0-1)
+    :param dim:     (pointer) dimensions of array
+    :param array:   (2D pointer) array
+    :param polarity: (int) 1 is additive, 0 is normal and -1 is subtractive
+    :return: None
+    """
+    if threshold == 0.0:
+        return
+    np.random.seed(seed)
+    cdef int[:, :] narr = np.asarray(np.random.random(dim) < threshold, np.intc)
+    cdef Py_ssize_t i, j
+    for i in range(dim[0]):
+        for j in range(dim[1]):
+            if polarity == 1:
+                arr[i][j] = arr[i][j] | narr[i][j]
+            elif polarity == -1:
+                arr[i][j] = ~(arr[i][j] & narr[i][j])
+            else:
+                arr[i][j] = arr[i][j] ^ narr[i][j]
 
 cpdef add_global_noise(float threshold, int[:] dim, int[:, :] arr, int polarity=0):
     """

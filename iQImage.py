@@ -3,7 +3,7 @@ import array
 import numpy as np
 from PyQt5.QtGui import QPixmap, QImage, QColor
 from PyQt5.QtWidgets import QLabel, QApplication, QMainWindow, QDockWidget
-from PyQt5.QtCore import Qt, QCoreApplication, QSize, QByteArray
+from PyQt5.QtCore import Qt, QCoreApplication, QSize, QByteArray, QByteArray
 
 import src.Cfuncs as cf
 import src.Cyarr as cy

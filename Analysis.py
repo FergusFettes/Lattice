@@ -4,49 +4,53 @@ import matplotlib.pyplot as plt
 
 from runner import Run, Repeater
 
-L = 800
-R = 90
+L = 300
+R = 50
 r = Repeater(length=L, repeat=R)
 out = r.go()
 
-
+R = pd.DataFrame({'instance':pd.Series(range(R))})
 fig = plt.figure(1)
-ded = 0
-fin = np.zeros(R)
-maxx = np.zeros(R)
-radfin = np.zeros(R)
-radstd = np.zeros(R)
+t1 = []; t2 = []; t3 = []
 ax1 = plt.subplot(221)
-ax2 = plt.subplot(222)
-ax3 = plt.subplot(223)
+ax2 = plt.subplot(223)
+ax3 = plt.subplot(222)
 ax4 = plt.subplot(224)
-for i in range(len(out)):
+ded = 0
+for i in out:
     plt.sca(ax1)
-    plt.plot(out[i].frame, out[i].populus)
+    out[i].radius.plot()
     plt.sca(ax2)
-    plt.plot(out[i].frame, out[i].rad)
+    out[i].Drad.plot()
+    t1.append(
+        out[i].Drad.tail(100).std()
+    )
+    t2.append(
+        out[i].Drad.tail(100).mean()
+    )
+    t3.append(
+        out[i].iloc[-1].seed
+    )
 
-    fin[i] = out[i].populus.tail(1)
-    maxx[i] = out[i].populus.max()
 
-    radfin[i] = out[i].rad.tail(1)
-    radstd[i] = out[i].rad.std()
-
+R['end_std'] = t1
+R['end_mean'] = t2
+R['seed'] = t3
 
 plt.sca(ax3)
-plt.scatter(fin, maxx)
-plt.xlabel('Final Length')
-plt.ylabel('Maximum Length')
+R.end_mean.hist()
+plt.ylabel('Mean (end)')
+
 plt.sca(ax4)
-plt.scatter(radfin, radstd)
-plt.xlabel('Final Radius')
-plt.ylabel('Radius STD')
+R.end_std.hist()
+plt.ylabel('Std (end)')
 
 plt.sca(ax1)
 plt.xlabel('Frame')
-plt.ylabel('Population')
-plt.title('Population and Radius Growth (POP0 REMOVED:{})'.format(ded))
+plt.ylabel('Radius')
+plt.title('Radius Growth (POP0 REMOVED:{})'.format(ded))
 plt.sca(ax2)
 plt.xlabel('Frame')
-plt.ylabel('Radius')
+plt.ylabel('Change in Radius')
 plt.show()
+

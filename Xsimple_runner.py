@@ -1,5 +1,6 @@
 import array
 
+import pandas as pd
 import numpy as np
 import time
 
@@ -17,20 +18,21 @@ logging.basicConfig(level=LOGGING_LEVEL,
 
 class Run():
 
-    def __init__(self, length=1000):
+    def __init__(self, length=1000, dim=np.array([20, 20], np.intc), beta=1/8, updates=0,
+                 threshold=0, rules=np.array([[2,3,3,3]], np.intc)):
         self.RUNNING = True
         self.LENGTH = length
-        self.DIM = array.array('i', [20, 20])
+        self.DIM = np.asarray(dim, np.intc)
         self.ARR = cf.init_array(self.DIM)
         cy.clear_array(self.DIM, self.ARR)
         self.ARR_OLD = np.copy(self.ARR)
         self.DIM_OLD = np.copy(self.DIM)
         self.FRAME = array.array('i', [0])
 
-        self.BETA = 1/8
-        self.UPDATES = 0
-        self.THRESHOLD = 0
-        self.RULES = np.array([[2, 3, 3, 3], [2, 3, 3, 3]], np.intc)
+        self.BETA = beta
+        self.UPDATES = updates
+        self.THRESHOLD = threshold
+        self.RULES = np.asarray(rules, np.intc)
 
         self.COM = cph.center_of_mass(self.DIM, self.ARR)
 
@@ -46,8 +48,6 @@ class Run():
             self.COM = np.array([self.DIM[0]/2, self.DIM[1]/2], np.float32)
 
     def basic_update(self):
-        # _, _, = phi.recenter(self.COM, self.DIM, self.ARR) #turned off cause I think
-        # this buggers the turnover rate
         self.ARR_OLD = np.copy(self.ARR)
         self.DIM_OLD = np.copy(self.DIM)
         logging.debug('Basic update')
@@ -75,13 +75,13 @@ class Run():
         self.CHANGE[self.FRAME[0], :] = change
         axes = pf.axial_diameter_P(live)
         self.AXES[self.FRAME[0], :] = axes
-        if not np.asarray(change).any():
-            self.RUNNING = False
-            self.TOT[self.FRAME[0]: ] = tot
 
     def main(self):
-        logging.info('Proccess starting!')
-
+        logging.info(
+                    r"""Starting run: BETA:{}, THR:{}, UPD:{}, RUL1:{}, RUL#:{}""".format(
+                     self.BETA, self.THRESHOLD, self.UPDATES,
+                     self.RULES[0], len(self.RULES))
+        )
         start = time.time()
         cf.randomize_center(10, self.DIM, self.ARR)
         self.analysis()
@@ -92,8 +92,37 @@ class Run():
             self.FRAME[0] += 1
         print('Total time: {} Final length: {}'.format(time.time() - start, self.FRAME[0]))
 
-if __name__ == "__main__":
-    a = Run()
-    a.main()
-    print(a.TOT[0:5])
-    print(a.CHANGE[0:5, :])
+class Repeater():
+
+    def __init__(self, repeat=50, length=1000):
+        self.REPEAT = repeat
+        self.LENGTH = length
+
+    def go(self):
+        frames = {}
+        for i in range(self.REPEAT):
+            R = Run(self.LENGTH)
+            R.main()
+            temp = pd.DataFrame({
+                'frame':list(range(self.LENGTH)),
+                'population':R.TOT,
+                'births':R.CHANGE[:, 0],
+                'deaths':R.CHANGE[:, 1],
+                'growth':R.CHANGE[:, 0] - R.CHANGE[:, 1],
+                'turnover':R.CHANGE.sum(axis=1),
+                'comx':R.COM[0],
+                'comy':R.COM[1],
+                'comnorm':cph.norm(R.COM[0], R.COM[1]),
+                'radius':R.RG,
+                'diameter':R.AXES.max(axis=1),
+            })
+            temp['growth_change'] = temp['growth'].sub(temp['growth'].shift())
+            temp['density'] = temp['population'].div(temp['radius'], fill_value=0)
+            assert(temp['growth'].sum()==R.TOT[-1])
+            frames[i] = temp
+        return frames
+
+if __name__=='__main__':
+    a = Repeater(1, 60)
+    out = a.go()
+    print(out[0])

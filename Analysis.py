@@ -9,7 +9,6 @@ R = 50
 r = Repeater(length=L, repeat=R)
 out = r.go()
 
-R = pd.DataFrame({'instance':pd.Series(range(R))})
 fig = plt.figure(1)
 t1 = []; t2 = []; t3 = []
 ax1 = plt.subplot(221)
@@ -18,10 +17,8 @@ ax3 = plt.subplot(222)
 ax4 = plt.subplot(224)
 ded = 0
 for i in out:
-    plt.sca(ax1)
-    out[i].radius.plot()
-    plt.sca(ax2)
-    out[i].Drad.plot()
+    if not out[i].Drad.tail(100).mean(): ded += 1; continue
+
     t1.append(
         out[i].Drad.tail(100).std()
     )
@@ -32,7 +29,12 @@ for i in out:
         out[i].iloc[-1].seed
     )
 
+    plt.sca(ax1)
+    out[i].radius.plot()
+    plt.sca(ax2)
+    out[i].Drad.plot()
 
+R = pd.DataFrame({'instance':pd.Series(range(len(t1)))})
 R['end_std'] = t1
 R['end_mean'] = t2
 R['seed'] = t3
@@ -48,7 +50,7 @@ plt.ylabel('Std (end)')
 plt.sca(ax1)
 plt.xlabel('Frame')
 plt.ylabel('Radius')
-plt.title('Radius Growth (POP0 REMOVED:{})'.format(ded))
+plt.title('Radius Growth (DRAD0 REMOVED:{})'.format(ded))
 plt.sca(ax2)
 plt.xlabel('Frame')
 plt.ylabel('Change in Radius')

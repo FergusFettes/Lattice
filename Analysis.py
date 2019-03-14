@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from runner import Run, Repeater
+from scripts.runner import Run, Repeater
 
 L = 300
 R = 50

@@ -123,7 +123,8 @@ class Repeater():
 
     def __init__(self, show=False, grow=True, repeat=50, length=1000, beta=1/8, updates=0,
                  threshold=0, rules=np.array([[2,3,3,3]], np.intc), dim=None,
-                 thermo=None, init_noise=None):
+                 thermo=None, init_noise=None, squeeze=False):
+        self.SQUEEZE = squeeze
         self.THERMO = thermo
         self.INIT_NOISE = init_noise
         self.DIM = dim
@@ -188,7 +189,7 @@ class Repeater():
                 'e2':R.E2,
                 'm':R.M,
                 'beta':be,
-            })
+            }, columns=['run', 'fr', 'time', 'populus', 'turnover', 'e', 'e2', 'm', 'beta'])
             #temp.set_index(['run', 'frame'], inplace=True)
             temp['density'] = temp['populus'].div(self.DIM[0] * self.DIM[1], fill_value=0)
             ee = R.E[self.LENGTH//5:].mean()
@@ -203,6 +204,46 @@ class Repeater():
             self.REPEAT, self.LENGTH, TOTTIME))
         return frames
 
+    def glosqueeze(self):
+        TOTTIME = time.time()
+        frames = pd.DataFrame()
+        for i in range(self.REPEAT):
+            be = self.thermostat(i)
+            R = Run(grow=self.GROW, length=self.LENGTH, beta=be,
+                    updates=self.UPDATES,
+                    threshold=self.THRESHOLD, rules=self.RULES, show=self.SHOW)
+            if self.DIM is not None or self.INIT_NOISE is not None:
+                R.array_setup(grow=self.GROW, dim=self.DIM, init_noise=self.INIT_NOISE)
+            R.main()
+            cut=5
+            temp = pd.DataFrame({
+                'run':[i],
+                'time':[R.TOTTIME],
+                'populus':[R.TOT[cut:].mean()],
+                'populusstd':[R.TOT[cut:].std()],
+                'turnover':[R.CHANGE[cut:].sum(axis=1).mean()],
+                'turnoverstd':[R.CHANGE[cut:].sum(axis=1).std()],
+                'e':[R.E[cut:].mean()],
+                'e':[R.E[cut:].std()],
+                'e2':[R.E2[cut:].mean()],
+                'e2':[R.E2[cut:].std()],
+                'm':[R.M[cut:].mean()],
+                'm':[R.M[cut:].std()],
+                'beta':[be],
+            })
+            temp['density'] = temp['populus'].div(self.DIM[0] * self.DIM[1], fill_value=0)
+            ee = R.E[self.LENGTH//5:].mean()
+            ee22 = R.E2[self.LENGTH//5:].mean()
+            nn = self.DIM[0] * self.DIM[1]
+            temp['C'] = ((be**2)*(ee22 - ee**2))/nn
+            frames = frames.append(temp)
+        # This makes it into a MultiArray
+        frames.set_index('run', inplace=True)
+        TOTTIME = time.time() - TOTTIME
+        logging.info('Completed {0} runs of length {1} in {2:4.3f}s'.format(
+            self.REPEAT, self.LENGTH, TOTTIME))
+        return frames
+
     def thermostat(self, repeat):
         if self.THERMO is None:
             return self.BETA
@@ -211,6 +252,8 @@ class Repeater():
     def go(self):
         if self.GROW:
             return self.gro()
+        if self.SQUEEZE:
+            return self.glosqueeze()
         return self.glo()
 
 if __name__=='__main__':

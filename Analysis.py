@@ -48,7 +48,7 @@ piv = fin.reset_index()
     .plot(linewidth=1, linestyle='dashed', ax=ax1))
 (piv
     .pivot(index='run', columns='rule', values='m')
-    .plot(linewidth=2, linestyle='dashed', ax=ax2))
+    .plot(linewidth=1, linestyle='dashed', ax=ax2))
 
 piv.plot(kind='scatter', x='beta', y='C', ylim=[piv.C.min(), piv.C.max()],
             marker='+', ax=ax3)

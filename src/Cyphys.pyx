@@ -60,7 +60,7 @@ cpdef tuple analysis_loop_energy(float[:] com_in, int[:] dim, int[:, :] arr):
     cdef float e, e2, hm, vm, M
     e = float(etot) / float(tot_positions)
     e2 = float(e2tot) / float(tot_positions)
-    if tot == 0: hm = 0; vm = 0; Rg = 0
+    if tot == 0: hm = dim[0]/2; vm = dim[1]/2; Rg = 0
     else:
         hm = float(hsum) / float(tot)
         vm = float(vsum) / float(tot)
@@ -106,7 +106,7 @@ cpdef tuple analysis_loop(float[:] com_in, int[:] dim, int[:, :] arr):
                 vsum += j
                 tot += 1
     cdef float hm, vm
-    if tot == 0: hm = 0; vm = 0; Rg = 0
+    if tot == 0: hm = dim[0]/2; vm = dim[1]/2; Rg = 0
     else:
         hm = float(hsum) / float(tot)
         vm = float(vsum) / float(tot)
@@ -134,7 +134,7 @@ cpdef float[:] center_of_mass(int[:] dim, int[:, :] arr):
                 hsum += i
                 vtot += 1
                 vsum += j
-    if htot == 0: return None
+    if htot == 0: return array.array('f', [dim[0]/2, dim[1]/2])
     cdef float hm = float(hsum) / float(htot)
     cdef float vm = float(vsum) / float(vtot)
     cdef float[:] com = array.array('f', [hm, vm])
@@ -159,7 +159,7 @@ cpdef tuple center_of_mass_pop(int[:] dim, int[:, :] arr):
                 hsum += i
                 vtot += 1
                 vsum += j
-    if htot == 0: return None
+    if htot == 0: return array.array('f', [dim[0]/2, dim[1]/2])
     cdef float hm = float(hsum) / float(htot)
     cdef float vm = float(vsum) / float(vtot)
     cdef float[:] com = array.array('f', [hm, vm])

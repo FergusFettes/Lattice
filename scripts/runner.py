@@ -18,11 +18,17 @@ logging.basicConfig(level=LOGGING_LEVEL,
 
 class Run():
 
-    def __init__(self, length=1000, dim=np.array([20, 20], np.intc), beta=1/8, updates=0,
-                 threshold=0, rules=np.array([[2,3,3,3]], np.intc), seed=None, show=False):
+    def __init__(self, length=1000, dim=None, beta=1/8, updates=0,
+                 threshold=0, rules=np.array([[2,3,3,3]], np.intc), seed=None, show=False,
+                 grow=True):
+        if grow:
+            dim = dim if dim is not None else np.array([20, 20], np.intc)
+        else:
+            dim = dim if dim is not None else np.array([38, 149], np.intc)
         self.TOTTIME = time.time()
         self.RUNTIME = 0
         self.RUNNING = True
+        self.GROW = grow
         self.LENGTH = length
         self.DIM = np.asarray(dim, np.intc)
         self.ARR = cf.init_array(self.DIM)
@@ -62,7 +68,8 @@ class Run():
         if self.DIM[0] <= 4:
             self.RUNNING = False
 
-        self.DIM, self.ARR, _ = cf.change_zoom_level_array(self.DIM, self.ARR)
+        if self.GROW:
+            self.DIM, self.ARR, _ = cf.change_zoom_level_array(self.DIM, self.ARR)
 
     def analysis(self):
 
@@ -95,7 +102,7 @@ class Run():
             self.analysis()
             if self.SHOW:
                 cf.basic_print(self.DIM, self.ARR)
-                time.sleep(0.1)
+                time.sleep(0.05)
             self.FRAME[0] += 1
         #TODO: add some more analysis of the actual computation of the run, processor intensity or something
         self.RUNTIME = time.time() - start
@@ -109,8 +116,11 @@ class Run():
 
 class Repeater():
 
-    def __init__(self, repeat=50, length=1000, beta=1/8, updates=0,
-                 threshold=0, rules=np.array([[2,3,3,3]], np.intc)):
+    def __init__(self, show=False, grow=True, repeat=50, length=1000, beta=1/8, updates=0,
+                 threshold=0, rules=np.array([[2,3,3,3]], np.intc), dim=None):
+        self.dim = dim
+        self.SHOW = show
+        self.GROW = grow
         self.LENGTH = length
         self.REPEAT = repeat
 
@@ -123,14 +133,15 @@ class Repeater():
         TOTTIME = time.time()
         frames = {}
         for i in range(self.REPEAT):
-            R = Run(length=self.LENGTH, beta=self.BETA, updates=self.UPDATES,
-                 threshold=self.THRESHOLD, rules=self.RULES)
+            R = Run(grow=self.GROW, length=self.LENGTH, beta=self.BETA, updates=self.UPDATES,
+                 dim=self.DIM, threshold=self.THRESHOLD, rules=self.RULES, show=self.SHOW)
             R.main()
             temp = pd.DataFrame({
                 'time':R.TOTTIME,
                 'seed':R.SEED,
-                'frame':list(range(self.LENGTH)),
+                'frame':pd.Series(range(self.LENGTH)),
                 'populus':R.TOT,
+
                 'growth':R.CHANGE[:, 0] - R.CHANGE[:, 1],
                 'turnover':R.CHANGE.sum(axis=1),
                 'comnorm':cph.norm(R.COM[0], R.COM[1]),

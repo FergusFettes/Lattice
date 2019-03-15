@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 from runner import Run, Repeater
 
-L = 800
-R = 90
+L = 2000
+R = 20
 r = Repeater(length=L, repeat=R)
 out = r.go()
 
@@ -28,14 +28,13 @@ for i in range(len(out)):
     plt.sca(ax1)
     plt.plot(out[i].frame, out[i].populus)
     plt.sca(ax2)
-    plt.plot(out[i].frame, out[i].rad)
+    plt.plot(out[i].frame, out[i].radius)
 
-    fin[i] = out[i].populus.tail(1)
+    fin[i] = out[i].populus.iloc[-1]
     maxx[i] = out[i].populus.max()
 
-    radfin[i] = out[i].rad.tail(1)
-    radstd[i] = out[i].rad.std()
-
+    radfin[i] = out[i].radius.iloc[-1]
+    radstd[i] = out[i].radius.std()
 
 plt.sca(ax3)
 plt.scatter(fin, maxx)

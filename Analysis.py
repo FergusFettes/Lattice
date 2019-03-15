@@ -18,8 +18,8 @@ thermo = 0.8
 
 rules = [[2,3,2,3]]
 highest = []
-for i in range(1,9):
-    rules[0][0] = i
+for i in range(8):
+    rules[0][0] = i + 1
     r = Repeater(length=L, repeat=R, grow=False, dim=[100, 100],
                 updates=1.0, rules=rules, init_noise=0.5,
                 beta=.80, thermo=thermo)
@@ -28,20 +28,27 @@ for i in range(1,9):
     ded=0
     C = np.zeros(R)
     D = np.zeros(R)
-    for i in out:
-        a = out[i]
+    for i in range(L):
+        # Ive made an index for each BETA, but I meant to make one for each RULE
+        # Can add another dimension/index to the pandas array, but need also to
+        # Change all this to use the new flattened data. Will be a good test of the
+        # usefulness of multiarray. This code should get simpler and compressed.
         plt.sca(ax1)
-        a.e.plot(color='k', linewidth=1, linestyle='dashed')
+        out.loc[i, :].e.plot(color='k', linewidth=1, linestyle='dashed')
         plt.sca(ax2)
-        a.m.plot(color='k', linewidth=2, linestyle='dashed')
+        out.loc[i, :].m.plot(color='k', linewidth=2, linestyle='dashed')
 
         plt.sca(ax3)
-        plt.scatter(a.beta.max(), a.heat_capacity.max(), color='g', marker='+')
-        C[i] = a.heat_capacity.max()
+        plt.scatter(out.loc[i, :].beta.max(),
+                    out.loc[i, :].heat_capacity.max(),
+                    color='g', marker='+')
+        C[i] = out.loc[i, :].heat_capacity.max()
 
         plt.sca(ax4)
-        plt.scatter(a.beta.max(), a.m.tail(L//5).mean(), color='g', marker='+')
-        D[i] = a.m.tail(L//5).mean()
+        plt.scatter(out.loc[i, :].beta.max(),
+                    out.loc[i, :].m.tail(L//5).mean(),
+                    color='g', marker='+')
+        D[i] = out.loc[i, :].m.tail(L//5).mean()
 
     derived = pd.DataFrame({'C':C, 'D':D})
     derived.C.plot(ax=ax3, kind='kde')

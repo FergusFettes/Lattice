@@ -169,7 +169,6 @@ class Repeater():
 
     def glo(self):
         TOTTIME = time.time()
-        frames = {}
         for i in range(self.REPEAT):
             be = self.thermostat(i)
             R = Run(grow=self.GROW, length=self.LENGTH, beta=be,
@@ -179,8 +178,9 @@ class Repeater():
                 R.array_setup(grow=self.GROW, dim=self.DIM, init_noise=self.INIT_NOISE)
             R.main()
             temp = pd.DataFrame({
-                'time':R.TOTTIME,
+                'run_index':i,
                 'frame':pd.Series(range(self.LENGTH)),
+                'time':R.TOTTIME,
                 'populus':R.TOT,
                 'turnover':R.CHANGE.sum(axis=1),
                 'e':R.E,
@@ -188,12 +188,16 @@ class Repeater():
                 'm':R.M,
                 'beta':be,
             })
+            #temp.set_index(['run_index', 'frame'], inplace=True)
             temp['density'] = temp['populus'].div(self.DIM[0] * self.DIM[1], fill_value=0)
             ee = R.E[self.LENGTH//5:].mean()
             ee22 = R.E2[self.LENGTH//5:].mean()
             nn = self.DIM[0] * self.DIM[1]
             temp['heat_capacity'] = ((be**2)*(ee22 - ee**2))/nn
-            frames[i] = temp
+            if not i: frames = temp
+            frames.append(temp)
+        # This makes it into a MultiArray
+        frames.set_index(['run_index', 'frame'], inplace=True)
         TOTTIME = time.time() - TOTTIME
         logging.info('Completed {0} runs of length {1} in {2:4.3f}s'.format(
             self.REPEAT, self.LENGTH, TOTTIME))

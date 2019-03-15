@@ -13,7 +13,7 @@ import src.PHifuncs as phi
 import logging
 LOGGING_LEVEL = logging.INFO
 logging.basicConfig(level=LOGGING_LEVEL,
-                    format='%(asctime)s:[%(levelname)s]-(%(processName)-15s): %(message)s',
+                    format='%(asctime)s:[%(levelname)s]-(%(processName)s): %(message)s',
                     )
 
 class Run():

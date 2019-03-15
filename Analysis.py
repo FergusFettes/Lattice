@@ -4,8 +4,16 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as cl
 # peakfinder, use 'prominence' to control
 from scipy.signal import find_peaks
+import time
+
+import logging
+LOGGING_LEVEL = logging.INFO
+logging.basicConfig(level=LOGGING_LEVEL,
+                    format='%(asctime)s:[%(levelname)s]-(%(processName)s): %(message)s',
+                    )
 
 from scripts.runner import Run, Repeater
+
 
 fig = plt.figure(1)
 ax1 = plt.subplot(221)
@@ -20,6 +28,7 @@ thermo = 0.8
 rules = [[2,3,2,3]]
 highest = []
 fin = pd.DataFrame()
+start = time.time()
 for i in range(8):
     for j in range(8):
         rules[0][1] = i + 1
@@ -30,6 +39,8 @@ for i in range(8):
         out = r.go()
         out['rule'] = ''.join((str(i) for i in rules[0]))
         fin = fin.append(out)
+
+logging.info('Completed {} runs in {} seconds!'.format(i*j*R, time.time() - start))
 
 piv = fin.reset_index()
 (piv
@@ -43,6 +54,7 @@ piv.plot(kind='scatter', x='beta', y='C', ylim=[piv.C.min(), piv.C.max()],
             marker='+', ax=ax3)
 piv.C.plot(kind='kde', ax=ax3)
 
+
 plt.sca(ax3)
 plt.xlabel('Beta')
 plt.ylabel('Heat Capacity')
@@ -51,10 +63,10 @@ plt.xlabel('Beta')
 plt.ylabel('Polarization')
 
 plt.sca(ax1)
-plt.xlabel('Frame')
+plt.xlabel('Beta')
 plt.ylabel('Energy')
 plt.title('Energy and polarizaton of Ising/Conway. Rules:{}'.format(rules))
 plt.sca(ax2)
-plt.xlabel('Frame')
+plt.xlabel('Beta')
 plt.ylabel('Polarization')
 plt.show()

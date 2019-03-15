@@ -18,31 +18,22 @@ logging.basicConfig(level=LOGGING_LEVEL,
 
 class Run():
 
-    def __init__(self, length=1000, dim=None, beta=1/8, updates=0,
-                 threshold=0, rules=np.array([[2,3,3,3]], np.intc), seed=None, show=False,
-                 grow=True):
-        if grow:
-            dim = dim if dim is not None else np.array([20, 20], np.intc)
-        else:
-            dim = dim if dim is not None else np.array([38, 149], np.intc)
+    def __init__(self, length=1000, beta=1/8, updates=0,
+                 threshold=0, rules=np.array([[2,3,3,3]], np.intc),
+                 seed=None, show=False, grow=True):
         self.TOTTIME = time.time()
-        self.RUNTIME = 0
+        self.RUNTIME = None
         self.RUNNING = True
+        self.SHOW = show
         self.GROW = grow
         self.LENGTH = length
-        self.DIM = np.asarray(dim, np.intc)
-        self.ARR = cf.init_array(self.DIM)
-        cy.clear_array(self.DIM, self.ARR)
-        self.ARR_OLD = np.copy(self.ARR)
-        self.DIM_OLD = np.copy(self.DIM)
         self.FRAME = array.array('i', [0])
+        self.DIM = None # for testing if array_setup needs to run automatically
 
         self.BETA = beta
         self.UPDATES = updates
         self.THRESHOLD = threshold
         self.RULES = np.asarray(rules, np.intc)
-
-        self.COM = cph.center_of_mass(self.DIM, self.ARR)
 
         self.TOT = np.zeros(self.LENGTH, np.intc)
         self.RG = np.zeros(self.LENGTH, np.float32)
@@ -53,9 +44,28 @@ class Run():
         self.AXES = np.zeros((self.LENGTH, 2), np.intc)
 
         self.SEED = seed if seed is not None else np.random.randint(0, 10**9)
-        self.SHOW = show
-        if not np.asarray(self.COM).any():
-            self.COM = np.array([self.DIM[0]/2, self.DIM[1]/2], np.float32)
+
+    def array_setup(self, grow=True, dim=None, init_noise=None):
+        if grow:
+            dim = dim if dim is not None else np.array([20, 20], np.intc)
+        else:
+            dim = dim if dim is not None else np.array([38, 149], np.intc)
+            init_noise = init_noise if init_noise is not None else 0
+
+        self.DIM = np.asarray(dim, np.intc)
+        self.ARR = cf.init_array(self.DIM)
+
+        cy.clear_array(self.DIM, self.ARR)
+        if grow:
+            cf.randomize_center(10, self.DIM, self.ARR, seed=self.SEED)
+        else:
+            cf.add_global_noise(init_noise, self.DIM, self.ARR)
+        self.ARR_OLD = np.copy(self.ARR)
+        self.DIM_OLD = np.copy(self.DIM)
+
+        self.COM = cph.center_of_mass(self.DIM, self.ARR)
+        self.analysis()
+        self.FRAME[0] += 1
 
     def basic_update(self):
         self.ARR_OLD = np.copy(self.ARR)
@@ -72,11 +82,7 @@ class Run():
             self.DIM, self.ARR, _ = cf.change_zoom_level_array(self.DIM, self.ARR)
 
     def analysis(self):
-
         tot, live, self.COM, Rg, e, e2, m = cph.analysis_loop_energy(self.COM, self.DIM, self.ARR)
-        if not tot:
-            self.COM = np.array([self.DIM[0]/2, self.DIM[1]/2], np.float32)
-
         self.TOT[self.FRAME[0]] = tot
         self.RG[self.FRAME[0]] = Rg
         self.E[self.FRAME[0]] = e
@@ -89,14 +95,13 @@ class Run():
 
     def main(self):
         logging.info(
-                    r"""Starting run: BETA:{}, THR:{}, UPD:{}, RUL1:{}, RUL#:{}""".format(
-                     self.BETA, self.THRESHOLD, self.UPDATES,
-                     self.RULES[0], len(self.RULES))
+            "Starting run: BETA:{}, THR:{}, UPD:{}, RUL1:{}, RUL#:{}".format(
+                self.BETA, self.THRESHOLD, self.UPDATES,
+                self.RULES[0], len(self.RULES))
         )
         start = time.time()
-        cf.randomize_center(10, self.DIM, self.ARR, seed=self.SEED)
-        self.analysis()
-        self.FRAME[0] += 1
+        if self.DIM is None:
+            self.array_setup(grow=self.GROW)
         while self.FRAME[0] < self.LENGTH  and self.RUNNING:
             self.basic_update()
             self.analysis()
@@ -104,10 +109,10 @@ class Run():
                 cf.basic_print(self.DIM, self.ARR)
                 time.sleep(0.05)
             self.FRAME[0] += 1
+
         #TODO: add some more analysis of the actual computation of the run, processor intensity or something
         self.RUNTIME = time.time() - start
         self.TOTTIME = time.time() - self.TOTTIME
-
         setup = self.TOTTIME - self.RUNTIME
 
         logging.info('Total time: {0:3.3f},{1:0.4f} Final length: {2}'.format(
@@ -117,8 +122,11 @@ class Run():
 class Repeater():
 
     def __init__(self, show=False, grow=True, repeat=50, length=1000, beta=1/8, updates=0,
-                 threshold=0, rules=np.array([[2,3,3,3]], np.intc), dim=None):
-        self.dim = dim
+                 threshold=0, rules=np.array([[2,3,3,3]], np.intc), dim=None,
+                 thermo=None, init_noise=None):
+        self.THERMO = thermo
+        self.INIT_NOISE = init_noise
+        self.DIM = dim
         self.SHOW = show
         self.GROW = grow
         self.LENGTH = length
@@ -129,12 +137,14 @@ class Repeater():
         self.THRESHOLD = threshold
         self.RULES = np.asarray(rules, np.intc)
 
-    def go(self):
+    def gro(self):
         TOTTIME = time.time()
         frames = {}
         for i in range(self.REPEAT):
             R = Run(grow=self.GROW, length=self.LENGTH, beta=self.BETA, updates=self.UPDATES,
-                 dim=self.DIM, threshold=self.THRESHOLD, rules=self.RULES, show=self.SHOW)
+                    threshold=self.THRESHOLD, rules=self.RULES, show=self.SHOW)
+            if self.DIM is not None or self.INIT_NOISE is not None:
+                R.array_setup(grow=self.GROW, dim=self.DIM, init_noise=self.INIT_NOISE)
             R.main()
             temp = pd.DataFrame({
                 'time':R.TOTTIME,
@@ -151,12 +161,53 @@ class Repeater():
             temp['density'] = temp['populus'].div(temp['radius'], fill_value=0)
             temp['Dgrowth'] = temp['growth'].sub(temp['growth'].shift())
             temp['Drad'] = temp['radius'].sub(temp['radius'].shift())
-            assert(temp['growth'].sum()==R.TOT[-1])
             frames[i] = temp
         TOTTIME = time.time() - TOTTIME
         logging.info('Completed {0} runs of length {1} in {2:4.3f}s'.format(
             self.REPEAT, self.LENGTH, TOTTIME))
         return frames
+
+    def glo(self):
+        TOTTIME = time.time()
+        frames = {}
+        for i in range(self.REPEAT):
+            be = self.thermostat(i)
+            R = Run(grow=self.GROW, length=self.LENGTH, beta=be,
+                    updates=self.UPDATES,
+                    threshold=self.THRESHOLD, rules=self.RULES, show=self.SHOW)
+            if self.DIM is not None or self.INIT_NOISE is not None:
+                R.array_setup(grow=self.GROW, dim=self.DIM, init_noise=self.INIT_NOISE)
+            R.main()
+            temp = pd.DataFrame({
+                'time':R.TOTTIME,
+                'frame':pd.Series(range(self.LENGTH)),
+                'populus':R.TOT,
+                'turnover':R.CHANGE.sum(axis=1),
+                'e':R.E,
+                'e2':R.E2,
+                'm':R.M,
+                'beta':be,
+            })
+            temp['density'] = temp['populus'].div(self.DIM[0] * self.DIM[1], fill_value=0)
+            ee = R.E[self.LENGTH//5:].mean()
+            ee22 = R.E2[self.LENGTH//5:].mean()
+            nn = self.DIM[0] * self.DIM[1]
+            temp['heat_capacity'] = ((be**2)*(ee22 - ee**2))/nn
+            frames[i] = temp
+        TOTTIME = time.time() - TOTTIME
+        logging.info('Completed {0} runs of length {1} in {2:4.3f}s'.format(
+            self.REPEAT, self.LENGTH, TOTTIME))
+        return frames
+
+    def thermostat(self, repeat):
+        if self.THERMO is None:
+            return self.BETA
+        return self.BETA - (self.THERMO/2) + ((self.THERMO/self.REPEAT) * repeat)
+
+    def go(self):
+        if self.GROW:
+            return self.gro()
+        return self.glo()
 
 if __name__=='__main__':
     a = Repeater(1, 60)

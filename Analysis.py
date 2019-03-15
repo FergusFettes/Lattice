@@ -4,55 +4,43 @@ import matplotlib.pyplot as plt
 
 from scripts.runner import Run, Repeater
 
-L = 300
+#==================================ISING
+L = 4000
 R = 50
-r = Repeater(length=L, repeat=R)
+thermo = 1
+r = Repeater(length=L, repeat=R, grow=False, dim=[100, 100],
+             updates=1, rules=[[-1,0,0,-1]], init_noise=0.5,
+             beta=.6, thermo=thermo)
 out = r.go()
 
 fig = plt.figure(1)
-t1 = []; t2 = []; t3 = []
 ax1 = plt.subplot(221)
-ax2 = plt.subplot(223)
-ax3 = plt.subplot(222)
+ax2 = plt.subplot(222)
+ax3 = plt.subplot(223)
 ax4 = plt.subplot(224)
-ded = 0
+ded=0
+C = []
+B = []
 for i in out:
-    if not out[i].Drad.tail(100).mean(): ded += 1; continue
-
-    t1.append(
-        out[i].Drad.tail(100).std()
-    )
-    t2.append(
-        out[i].Drad.tail(100).mean()
-    )
-    t3.append(
-        out[i].iloc[-1].seed
-    )
-
     plt.sca(ax1)
-    out[i].radius.plot()
+    out[i].e.plot()
     plt.sca(ax2)
-    out[i].Drad.plot()
+    out[i].m.plot()
 
-R = pd.DataFrame({'instance':pd.Series(range(len(t1)))})
-R['end_std'] = t1
-R['end_mean'] = t2
-R['seed'] = t3
+    C.append(out[i].heat_capacity.max())
+    B.append(out[i].beta.max())
 
 plt.sca(ax3)
-R.end_mean.hist()
-plt.ylabel('Mean (end)')
-
-plt.sca(ax4)
-R.end_std.hist()
-plt.ylabel('Std (end)')
+plt.scatter(B, C)
+plt.xlabel('Beta')
+plt.ylabel('Heat Capacity')
 
 plt.sca(ax1)
 plt.xlabel('Frame')
-plt.ylabel('Radius')
-plt.title('Radius Growth (DRAD0 REMOVED:{})'.format(ded))
+plt.ylabel('Energy')
+plt.title('Energy and polarizaton of Ising Model (DRAD0 REMOVED:{})'.format(ded))
 plt.sca(ax2)
 plt.xlabel('Frame')
-plt.ylabel('Change in Radius')
+plt.ylabel('Polarization')
 plt.show()
 

@@ -224,11 +224,11 @@ class Repeater():
                 'turnover':[R.CHANGE[cut:].sum(axis=1).mean()],
                 'turnoverstd':[R.CHANGE[cut:].sum(axis=1).std()],
                 'e':[R.E[cut:].mean()],
-                'e':[R.E[cut:].std()],
+                'estd':[R.E[cut:].std()],
                 'e2':[R.E2[cut:].mean()],
-                'e2':[R.E2[cut:].std()],
+                'e2std':[R.E2[cut:].std()],
                 'm':[R.M[cut:].mean()],
-                'm':[R.M[cut:].std()],
+                'mstd':[R.M[cut:].std()],
                 'beta':[be],
             })
             temp['density'] = temp['populus'].div(self.DIM[0] * self.DIM[1], fill_value=0)

@@ -17,6 +17,11 @@ logging.basicConfig(level=LOGGING_LEVEL,
                     )
 
 class Run():
+    """
+    Base class for Run objects.
+    Run objects take a set of update rules and parameters, create an array and apply
+    those rules to that array.
+    """
 
     def __init__(self, length=1000, beta=1/8, updates=0,
                  threshold=0, rules=np.array([[2,3,3,3]], np.intc),
@@ -44,6 +49,12 @@ class Run():
         self.AXES = np.zeros((self.LENGTH, 2), np.intc)
 
         self.SEED = seed if seed is not None else np.random.randint(0, 10**9)
+
+    def permutater(self, n):
+        for i in range(2**(n**2)):
+            bin_rep = '{1:0{0}b}'.format(n**2, i)
+            arr = np.asarray([int(i) for i in bin_rep], np.intc).reshape(n,n)
+            yield arr
 
     def array_setup(self, grow=True, dim=None, init_noise=None):
         if grow:

@@ -11,6 +11,6 @@ else
 	
 	if [ -z $2 ]
 	then
-		python3 test_$1.py
+		python3 ./../testing/test_$1.py
 	fi
 fi

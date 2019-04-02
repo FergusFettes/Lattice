@@ -9,7 +9,7 @@ import timeit
 import unittest
 
 debug = False
-import Cyarr as cy
+import src.Cyarr as cy
 
 def tst_arr():
     """

@@ -4,7 +4,6 @@ from PyQt5.QtCore import *
 from functools import partial
 
 from QTui.engineOperator import *
-from QTui.graphs import *
 
 import random as ra
 import math
